@@ -1,0 +1,955 @@
+<title>Sistema de diseño de Servicio Técnico</title>
+<meta name="description" content="La guía visual de la app de órdenes de servicio de Alpha Digital: color, tipografía, componentes y movimiento." />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+
+<style>
+  /* ===================================================================
+     TOKENS — replican los de la app (app/globals.css). Modo claro por
+     defecto; oscuro sigue al sistema salvo elección explícita.
+     =================================================================== */
+  :root {
+    color-scheme: light dark;
+
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --surface-2: #f1f5f9;
+    --border: #e5e7eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --hairline: #e9edf3;
+
+    --brand: #203f7e;
+    --brand-fg: #ffffff;
+    --brand-600: #1b356a;
+    --brand-050: #eef2fb;
+
+    --red: #e53325;
+    --gray: #c6c6c6;
+    --danger: #dc2626;
+    --success: #15803d;
+
+    --marca-lexmark: #008a44;
+    --marca-lexmark-sr: #e0a93b;
+    --marca-xerox: #d92231;
+    --marca-alpha: #203f7e;
+
+    --tone-info-bg: #e0f2fe;   --tone-info-fg: #075985;
+    --tone-warn-bg: #fef9c3;   --tone-warn-fg: #854d0e;
+    --tone-ok-bg: #dcfce7;     --tone-ok-fg: #166534;
+    --tone-violet-bg: #ede9fe; --tone-violet-fg: #5b21b6;
+    --tone-orange-bg: #ffedd5; --tone-orange-fg: #9a3412;
+    --tone-teal-bg: #ccfbf1;   --tone-teal-fg: #115e59;
+    --tone-neutral-bg: #e2e8f0;--tone-neutral-fg: #475569;
+
+    --shadow-sm: 0 1px 2px rgb(15 23 42 / .06), 0 1px 3px rgb(15 23 42 / .05);
+    --shadow-lg: 0 10px 30px -12px rgb(15 23 42 / .22);
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1220;
+      --surface: #131d31;
+      --surface-2: #1d2941;
+      --border: #2c3a54;
+      --text: #e6eaf2;
+      --muted: #94a2bc;
+      --hairline: #22304c;
+
+      --brand: #5b83d4;
+      --brand-fg: #ffffff;
+      --brand-600: #3f61ad;
+      --brand-050: #182746;
+
+      --danger: #f87171;
+      --success: #4ade80;
+
+      --marca-lexmark: #10a15a;
+      --marca-lexmark-sr: #e0a93b;
+      --marca-xerox: #e0483a;
+      --marca-alpha: #5b83d4;
+
+      --tone-info-bg: #0c2a3d;   --tone-info-fg: #7dd3fc;
+      --tone-warn-bg: #3a2e08;   --tone-warn-fg: #fde047;
+      --tone-ok-bg: #0f2e1a;     --tone-ok-fg: #86efac;
+      --tone-violet-bg: #2a1e4d; --tone-violet-fg: #c4b5fd;
+      --tone-orange-bg: #3a1e0a; --tone-orange-fg: #fdba74;
+      --tone-teal-bg: #0c2e2b;   --tone-teal-fg: #5eead4;
+      --tone-neutral-bg: #2c3a54;--tone-neutral-fg: #cbd5e1;
+
+      --shadow-sm: 0 1px 2px rgb(0 0 0 / .4);
+      --shadow-lg: 0 12px 34px -12px rgb(0 0 0 / .6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0b1220;
+    --surface: #131d31;
+    --surface-2: #1d2941;
+    --border: #2c3a54;
+    --text: #e6eaf2;
+    --muted: #94a2bc;
+    --hairline: #22304c;
+
+    --brand: #5b83d4;
+    --brand-fg: #ffffff;
+    --brand-600: #3f61ad;
+    --brand-050: #182746;
+
+    --danger: #f87171;
+    --success: #4ade80;
+
+    --marca-lexmark: #10a15a;
+    --marca-lexmark-sr: #e0a93b;
+    --marca-xerox: #e0483a;
+    --marca-alpha: #5b83d4;
+
+    --tone-info-bg: #0c2a3d;   --tone-info-fg: #7dd3fc;
+    --tone-warn-bg: #3a2e08;   --tone-warn-fg: #fde047;
+    --tone-ok-bg: #0f2e1a;     --tone-ok-fg: #86efac;
+    --tone-violet-bg: #2a1e4d; --tone-violet-fg: #c4b5fd;
+    --tone-orange-bg: #3a1e0a; --tone-orange-fg: #fdba74;
+    --tone-teal-bg: #0c2e2b;   --tone-teal-fg: #5eead4;
+    --tone-neutral-bg: #2c3a54;--tone-neutral-fg: #cbd5e1;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / .4);
+    --shadow-lg: 0 12px 34px -12px rgb(0 0 0 / .6);
+  }
+
+  /* ===================================================================
+     BASE
+     =================================================================== */
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.86em;
+    font-variant-ligatures: none;
+  }
+
+  h1, h2, h3 { line-height: 1.2; text-wrap: balance; margin: 0; font-weight: 800; }
+
+  a { color: var(--brand); text-underline-offset: 2px; }
+
+  ::selection { background: color-mix(in srgb, var(--brand) 26%, transparent); }
+
+  /* ---- layout ---- */
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 95%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--hairline);
+  }
+  header.top .wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px 20px; min-height: 60px; flex-wrap: wrap; padding-top: 10px; padding-bottom: 10px;
+  }
+  header.top .brandmark { flex: 1 1 auto; }
+  header.top .themebtn { order: 2; }
+  nav.jump { order: 3; flex: 1 1 100%; }
+  @media (min-width: 900px) {
+    header.top .wrap { flex-wrap: nowrap; }
+    nav.jump { order: 0; flex: 0 1 auto; }
+    header.top .themebtn { order: 0; }
+  }
+  .brandmark { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brandmark .ad {
+    width: 30px; height: 30px; border-radius: 999px; flex: none;
+    background: linear-gradient(150deg, #203f7e 0%, #17305f 100%);
+    display: grid; place-items: center; color: #fff;
+  }
+  .brandmark .ad svg { width: 20px; height: 20px; }
+  .brandmark b { font-weight: 700; font-size: 0.92rem; white-space: nowrap; }
+  .brandmark span { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
+
+  nav.jump { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  nav.jump::-webkit-scrollbar { display: none; }
+  nav.jump a {
+    color: var(--muted); text-decoration: none; font-size: 0.8rem; font-weight: 600;
+    padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+    transition: color .15s var(--ease-out), background-color .15s var(--ease-out);
+  }
+  nav.jump a:hover { color: var(--text); background: var(--surface-2); }
+
+  .themebtn {
+    flex: none;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: background-color .15s var(--ease-out);
+  }
+  .themebtn:hover { background: var(--surface-2); }
+  .themebtn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  /* ---- hero ---- */
+  .hero { padding: 64px 0 40px; border-bottom: 1px solid var(--hairline); }
+  .hero .rule {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--brand); border-left: 4px solid var(--brand); padding-left: 10px;
+    margin-bottom: 18px;
+  }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.1rem); letter-spacing: -0.02em; max-width: 16ch; }
+  .hero p.lede {
+    margin: 18px 0 0; max-width: 62ch; font-size: 1.06rem; color: var(--muted);
+  }
+  .hero .meta {
+    margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .hero .meta span {
+    font-size: 0.78rem; font-weight: 600; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px;
+  }
+
+  /* ---- section ---- */
+  section.doc { padding: 52px 0; border-bottom: 1px solid var(--hairline); }
+  section.doc > .wrap > .rule {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--brand); border-left: 4px solid var(--brand); padding-left: 10px;
+    margin-bottom: 10px;
+  }
+  section.doc h2 { font-size: clamp(1.5rem, 3.4vw, 2rem); letter-spacing: -0.015em; }
+  section.doc > .wrap > p.intro {
+    margin: 14px 0 30px; max-width: 66ch; color: var(--muted);
+  }
+  h3.sub {
+    font-size: 1rem; font-weight: 700; margin: 34px 0 14px;
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  h3.sub::before {
+    content: ""; width: 6px; height: 6px; border-radius: 2px;
+    background: var(--brand); transform: translateY(-1px); flex: none;
+  }
+  h3.sub:first-of-type { margin-top: 0; }
+
+  .note {
+    font-size: 0.9rem; color: var(--muted); max-width: 64ch; margin: 12px 0 0;
+  }
+  .note code { color: var(--text); background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+
+  /* ---- swatch grids ---- */
+  .swatches { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .swatch {
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface);
+  }
+  .swatch .chip { height: 76px; display: block; }
+  .swatch .body { padding: 10px 12px 12px; }
+  .swatch .name { font-weight: 700; font-size: 0.86rem; }
+  .swatch .var { color: var(--muted); font-size: 0.78rem; margin-top: 1px; }
+  .swatch .hex { margin-top: 6px; font-size: 0.8rem; letter-spacing: 0.02em; }
+  .swatch .hex .l { color: var(--muted); }
+
+  /* neutrals row: show them as a stacked strip so the tonal steps read */
+  .strip { display: flex; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .strip > div { flex: 1; padding: 16px 12px 14px; min-width: 0; }
+  .strip .k { font-weight: 700; font-size: 0.8rem; }
+  .strip .v { font-size: 0.74rem; opacity: 0.75; margin-top: 2px; }
+
+  /* ---- tone / status table ---- */
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+  table.ref { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 460px; }
+  table.ref th, table.ref td { text-align: left; padding: 11px 14px; }
+  table.ref thead th {
+    font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); background: var(--surface-2); font-weight: 700;
+  }
+  table.ref tbody tr { border-top: 1px solid var(--hairline); }
+  table.ref td.mono { color: var(--muted); }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    border-radius: 999px; padding: 2px 10px; font-size: 0.78rem; font-weight: 600;
+    white-space: nowrap;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
+
+  .t-info    { background: var(--tone-info-bg);    color: var(--tone-info-fg); }
+  .t-warn    { background: var(--tone-warn-bg);    color: var(--tone-warn-fg); }
+  .t-ok      { background: var(--tone-ok-bg);      color: var(--tone-ok-fg); }
+  .t-violet  { background: var(--tone-violet-bg);  color: var(--tone-violet-fg); }
+  .t-orange  { background: var(--tone-orange-bg);  color: var(--tone-orange-fg); }
+  .t-teal    { background: var(--tone-teal-bg);    color: var(--tone-teal-fg); }
+  .t-neutral { background: var(--tone-neutral-bg); color: var(--tone-neutral-fg); }
+
+  /* ---- order-colour bars ---- */
+  .marca-list { display: grid; gap: 10px; }
+  .marca-row {
+    display: grid; grid-template-columns: 8px 1fr; gap: 14px; align-items: stretch;
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface);
+  }
+  .marca-row .bar { width: 8px; }
+  .marca-row .rc { padding: 12px 14px; }
+  .marca-row .rc .h { font-weight: 700; }
+  .marca-row .rc .d { color: var(--muted); font-size: 0.86rem; margin-top: 2px; }
+  .marca-row .rc .tok { font-size: 0.78rem; margin-top: 6px; color: var(--muted); }
+  .m-lex   { background: var(--marca-lexmark); }
+  .m-sr    { background: var(--marca-lexmark-sr); }
+  .m-xerox { background: var(--marca-xerox); }
+  .m-alpha { background: var(--marca-alpha); }
+
+  /* ---- type specimen ---- */
+  .specimen { display: grid; gap: 4px; }
+  .specimen .row { display: flex; align-items: baseline; gap: 18px; border-bottom: 1px solid var(--hairline); padding: 10px 0; flex-wrap: wrap; }
+  .specimen .row .tag { color: var(--muted); font-size: 0.74rem; width: 128px; flex: none; }
+  .s1 { font-size: 3rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+  .s2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.015em; }
+  .s3 { font-size: 1.375rem; font-weight: 700; }
+  .s4 { font-size: 1rem; font-weight: 700; }
+  .s5 { font-size: 0.875rem; }
+  .s6 { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+  .weights { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 8px; }
+  .weights div { text-align: left; }
+  .weights .w { font-size: 1.6rem; }
+  .weights .n { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+
+  /* ===================================================================
+     COMPONENTES — recrean las clases de lib/ui.ts con los tokens.
+     =================================================================== */
+  .stage {
+    border: 1px solid var(--border); border-radius: 14px; background: var(--surface-2);
+    padding: 22px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  }
+  .stage + .note { margin-top: 10px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border-radius: 8px; padding: 8px 16px; font: inherit; font-size: 0.875rem; font-weight: 600;
+    border: 1px solid transparent; cursor: pointer;
+    transition: background-color .15s var(--ease-out), transform .15s var(--ease-out);
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:focus-visible { outline: 2px solid color-mix(in srgb, var(--brand) 60%, transparent); outline-offset: 2px; }
+  .btn-primary { background: var(--brand); color: var(--brand-fg); box-shadow: var(--shadow-sm); }
+  .btn-primary:hover { background: var(--brand-600); }
+  .btn-sec { background: var(--surface); color: var(--text); border-color: var(--border); font-weight: 500; }
+  .btn-sec:hover { background: var(--surface-2); }
+  .btn-danger { background: var(--danger); color: #fff; box-shadow: var(--shadow-sm); }
+  .btn-danger:hover { filter: brightness(0.95); }
+  .btn-mini { padding: 4px 9px; border-radius: 6px; font-size: 0.78rem; background: var(--brand); color: var(--brand-fg); }
+  .btn-text { background: none; color: var(--brand); font-size: 0.78rem; text-decoration: underline; padding: 2px 4px; }
+  .btn[disabled] { opacity: 0.4; pointer-events: none; }
+
+  .field {
+    width: 260px; max-width: 100%;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    border-radius: 8px; padding: 8px 12px; font: inherit; font-size: 0.875rem;
+  }
+  .field::placeholder { color: var(--muted); }
+  .field:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 22%, transparent); }
+  .field-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+
+  .card {
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: 12px; padding: 18px; box-shadow: var(--shadow-sm); max-width: 300px;
+  }
+  .card h4 { margin: 0 0 4px; font-size: 0.95rem; font-weight: 700; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.86rem; }
+  .card--interactive { transition: transform .15s var(--ease-out), box-shadow .15s var(--ease-out), border-color .15s var(--ease-out); cursor: pointer; }
+  .card--interactive:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--brand) 40%, var(--border)); box-shadow: var(--shadow-lg); }
+
+  /* modal mock */
+  .modal-mock {
+    position: relative; width: 100%; max-width: 420px;
+    background: color-mix(in srgb, var(--brand) 22%, transparent);
+    border-radius: 16px; padding: 34px 22px;
+  }
+  .modal-mock .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px; box-shadow: var(--shadow-lg);
+    animation: adModalIn 0.26s var(--ease-out) both;
+  }
+  .modal-mock .panel h4 { margin: 0 0 6px; font-weight: 800; }
+  .modal-mock .panel p { margin: 0 0 16px; color: var(--muted); font-size: 0.88rem; }
+  .modal-mock .panel .actions { display: flex; gap: 8px; justify-content: flex-end; }
+  @keyframes adModalIn {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ficha mini */
+  .ficha {
+    border-radius: 16px; padding: 18px 18px 16px; color: #fff; position: relative; overflow: hidden;
+    background: var(--marca-lexmark);
+    box-shadow: var(--shadow-lg); max-width: 420px;
+  }
+  .ficha::after {
+    content: "LEXMARK"; position: absolute; right: 10px; bottom: -6px;
+    font-size: 3.4rem; font-weight: 800; letter-spacing: -0.04em; opacity: 0.09;
+  }
+  .ficha .status {
+    display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.85rem;
+    background: rgb(0 0 0 / .2); border: 1px solid rgb(255 255 255 / .2);
+    border-radius: 999px; padding: 5px 12px 5px 8px;
+  }
+  .ficha .num { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.01em; margin-top: 12px; font-variant-numeric: tabular-nums; }
+  .ficha .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; position: relative; }
+  .ficha .acts span {
+    font-size: 0.72rem; font-weight: 600; background: rgb(255 255 255 / .16);
+    padding: 5px 9px; border-radius: 8px; backdrop-filter: blur(4px);
+  }
+
+  /* motion */
+  .curve { display: grid; grid-template-columns: 150px 1fr; gap: 20px; align-items: center; margin-top: 8px; }
+  .curve svg { width: 150px; height: 150px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .durs { display: grid; gap: 8px; }
+  .durs .d { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; }
+  .durs .d b { font-variant-numeric: tabular-nums; min-width: 62px; }
+  .durs .track { flex: 1; height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .durs .track i { display: block; height: 100%; background: var(--brand); border-radius: 999px; }
+
+  .demo-reveal {
+    border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+    padding: 16px; font-size: 0.9rem; color: var(--muted);
+    animation: adReveal 0.46s var(--ease-out) both;
+  }
+  @keyframes adReveal {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .replay {
+    margin-top: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  }
+
+  /* eta block */
+  .eta {
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden; max-width: 380px;
+  }
+  .eta pre {
+    margin: 0; padding: 16px; background: var(--surface); color: var(--text);
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.85rem; line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  .eta .bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; background: var(--surface-2); border-top: 1px solid var(--hairline);
+    font-size: 0.78rem; color: var(--muted);
+  }
+  .eta .bar button {
+    border: 1px solid var(--border); background: var(--surface); color: var(--brand);
+    border-radius: 6px; padding: 4px 10px; font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  }
+
+  /* footer */
+  footer { padding: 44px 0 72px; }
+  footer .files { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin-top: 18px; }
+  footer .file {
+    border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; background: var(--surface);
+  }
+  footer .file b { font-family: "IBM Plex Mono", monospace; font-size: 0.85rem; }
+  footer .file p { margin: 4px 0 0; color: var(--muted); font-size: 0.84rem; }
+
+  @media (max-width: 620px) {
+    .brandmark span { display: none; }
+    .curve { grid-template-columns: 1fr; }
+    .specimen .row .tag { width: 100%; }
+    .hero { padding-top: 40px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brandmark">
+      <span class="ad" aria-hidden="true">
+        <svg viewBox="0 0 743 554" fill="currentColor"><g transform="translate(0,554) scale(0.1,-0.1)"><path d="M3394 5240 c-652 -1009 -1203 -1863 -1263 -1960 l-44 -70 -773 0 -774 0 0 -300 0 -300 578 -2 579 -3 -99 -155 c-99 -155 -237 -372 -393 -615 -113 -178 -689 -1084 -809 -1275 -54 -85 -142 -225 -196 -310 l-98 -155 386 -3 c346 -2 388 -1 397 13 111 179 670 1061 857 1354 86 135 194 305 239 376 45 72 102 159 125 195 23 36 144 224 269 419 271 422 595 923 802 1241 52 80 151 231 219 335 l124 190 0 -502 0 -503 -227 -2 -228 -3 -127 -200 c-70 -110 -154 -243 -187 -295 l-59 -95 414 -3 414 -2 0 -930 0 -930 390 0 390 0 0 930 0 931 833 -3 832 -3 113 -39 c384 -132 623 -441 649 -839 9 -142 -23 -313 -82 -444 -126 -275 -380 -462 -722 -530 -93 -18 -372 -25 -425 -10 l-28 7 0 840 0 840 -387 -2 -388 -3 -3 -45 c-2 -25 -1 -550 3 -1167 l7 -1123 587 0 c332 0 623 4 671 10 205 24 383 77 555 164 426 216 702 599 802 1111 26 137 24 433 -5 583 -41 213 -122 414 -241 592 -69 105 -259 297 -361 367 -187 127 -417 219 -660 264 -123 23 -139 23 -937 27 l-813 3 0 1114 0 1115 -388 0 -388 0 -130 -200z"/></g></svg>
+      </span>
+      <b>Servicio Técnico</b><span>·&nbsp;sistema de diseño</span>
+    </div>
+    <nav class="jump" aria-label="Secciones">
+      <a href="#marca">Marca</a>
+      <a href="#color">Color</a>
+      <a href="#tipografia">Tipografía</a>
+      <a href="#componentes">Componentes</a>
+      <a href="#estados">Estados</a>
+      <a href="#movimiento">Movimiento</a>
+      <a href="#codigo">Código</a>
+    </nav>
+    <button class="themebtn" id="theme" type="button" aria-label="Cambiar tema">
+      <span id="theme-icon">◑</span><span id="theme-label">Tema</span>
+    </button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="rule">Guía visual · Alpha Digital / Baja Digital</p>
+    <h1>El lenguaje de la app de órdenes de servicio</h1>
+    <p class="lede">
+      Un sistema pequeño y honesto: azul Alpha para la interfaz, Montserrat en todo,
+      y el color de cada orden cuenta algo — verde si es una WO de Lexmark, rojo si es
+      de Xerox. Todo vive en tres archivos y esta página los muestra tal como los usa
+      el producto, en claro y en oscuro.
+    </p>
+    <div class="meta">
+      <span>Next.js 16 · React 19</span>
+      <span>Tailwind v4 · tokens semánticos</span>
+      <span>Modo claro / oscuro / sistema</span>
+      <span>Movimiento — principios de Emil Kowalski</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MARCA ================= -->
+<section class="doc" id="marca">
+  <div class="wrap">
+    <p class="rule">Marca</p>
+    <h2>Alpha Digital</h2>
+    <p class="intro">
+      Tres colores corporativos. El azul es el único que aparece de forma sostenida
+      en la interfaz (encabezados, la banda de marca, el botón primario); el rojo y el
+      gris son acentos puntuales. El isotipo «AD» va sobre azul en el ícono de la app.
+    </p>
+
+    <div class="swatches">
+      <div class="swatch">
+        <span class="chip" style="background:#203f7e"></span>
+        <div class="body">
+          <div class="name">Azul Alpha</div>
+          <div class="var mono">--brand</div>
+          <div class="hex"><span class="l">claro</span> #203F7E &nbsp;·&nbsp; <span class="l">oscuro</span> #5B83D4</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <span class="chip" style="background:#e53325"></span>
+        <div class="body">
+          <div class="name">Rojo Alpha</div>
+          <div class="var mono">--red</div>
+          <div class="hex">#E53325</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <span class="chip" style="background:#c6c6c6"></span>
+        <div class="body">
+          <div class="name">Gris Alpha</div>
+          <div class="var mono">--gray</div>
+          <div class="hex">#C6C6C6</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note">
+      El ícono, el splash y el manifiesto PWA usan el azul <code>#203F7E</code> con el
+      monograma en blanco. La tipografía de marca es <strong>Montserrat</strong>.
+    </p>
+  </div>
+</section>
+
+<!-- ================= COLOR ================= -->
+<section class="doc" id="color">
+  <div class="wrap">
+    <p class="rule">Color</p>
+    <h2>Neutros, tonos y color por marca</h2>
+    <p class="intro">
+      Los componentes nunca escriben hex: usan utilidades semánticas
+      (<code>bg-surface</code>, <code>text-muted</code>, <code>bg-tone-warn-bg</code>…)
+      y el token resuelve el valor según el tema. Los grises tienen un leve sesgo
+      azul para que combinen con el acento.
+    </p>
+
+    <h3 class="sub">Superficies y texto</h3>
+    <div class="strip">
+      <div style="background:var(--bg)"><div class="k">bg</div><div class="v">fondo de página</div></div>
+      <div style="background:var(--surface-2)"><div class="k">surface-2</div><div class="v">zonas hundidas</div></div>
+      <div style="background:var(--surface)"><div class="k">surface</div><div class="v">tarjetas, campos</div></div>
+      <div style="background:var(--surface);color:var(--muted)"><div class="k">muted</div><div class="v">texto secundario</div></div>
+      <div style="background:var(--surface);color:var(--text)"><div class="k">text</div><div class="v">texto principal</div></div>
+    </div>
+    <p class="note">Borde: <code>--border</code> (#E5E7EB claro / #2C3A54 oscuro). El <code>body</code> siempre pinta su fondo con el token — nunca transparente.</p>
+
+    <h3 class="sub">Tonos semánticos</h3>
+    <p class="note" style="margin-bottom:14px">
+      Siete pares fondo + texto. Cada estado del sistema mapea a un tono; el tono
+      es independiente del acento y del color por marca.
+    </p>
+    <div class="tbl-scroll">
+      <table class="ref">
+        <thead><tr><th>Tono</th><th>Uso</th><th>Ejemplo</th><th>Tokens</th></tr></thead>
+        <tbody>
+          <tr><td>info</td><td>informativo, «nuevo»</td><td><span class="pill t-info">Nuevo</span></td><td class="mono">--tone-info-bg / -fg</td></tr>
+          <tr><td>warn</td><td>requiere atención</td><td><span class="pill t-warn">Pendiente</span></td><td class="mono">--tone-warn-bg / -fg</td></tr>
+          <tr><td>ok</td><td>en orden, asignado</td><td><span class="pill t-ok">Asignado</span></td><td class="mono">--tone-ok-bg / -fg</td></tr>
+          <tr><td>violet</td><td>reprogramado, apartado</td><td><span class="pill t-violet">Reagendado</span></td><td class="mono">--tone-violet-bg / -fg</td></tr>
+          <tr><td>orange</td><td>bloqueado por piezas</td><td><span class="pill t-orange">Pendiente por partes</span></td><td class="mono">--tone-orange-bg / -fg</td></tr>
+          <tr><td>teal</td><td>listo por el sistema</td><td><span class="pill t-teal">Lista para realizar</span></td><td class="mono">--tone-teal-bg / -fg</td></tr>
+          <tr><td>neutral</td><td>cerrado, cancelado</td><td><span class="pill t-neutral">Concluido</span></td><td class="mono">--tone-neutral-bg / -fg</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">Color por marca / tipo de orden</h3>
+    <p class="note" style="margin-bottom:14px">
+      Regla del negocio, obligatoria en el Gantt y en la ficha:
+      <code>colorOrden(origen, marca)</code> en <code>lib/tema.ts</code>.
+    </p>
+    <div class="marca-list">
+      <div class="marca-row">
+        <div class="bar m-lex"></div>
+        <div class="rc">
+          <div class="h">WO — work order de Lexmark → verde Lexmark</div>
+          <div class="d">La orden correctiva estándar. Barra verde, texto blanco.</div>
+          <div class="tok mono">--marca-lexmark · #008A44</div>
+        </div>
+      </div>
+      <div class="marca-row">
+        <div class="bar m-sr"></div>
+        <div class="rc">
+          <div class="h">SR / proactiva de Lexmark → ámbar</div>
+          <div class="d">Servicio programado; variante cálida del verde. Texto ámbar oscuro.</div>
+          <div class="tok mono">--marca-lexmark-sr · #E0A93B</div>
+        </div>
+      </div>
+      <div class="marca-row">
+        <div class="bar m-xerox"></div>
+        <div class="rc">
+          <div class="h">Xerox → rojo Xerox</div>
+          <div class="d">Cualquier orden de la cuenta Xerox, sin importar el tipo.</div>
+          <div class="tok mono">--marca-xerox · #D92231</div>
+        </div>
+      </div>
+      <div class="marca-row">
+        <div class="bar m-alpha"></div>
+        <div class="rc">
+          <div class="h">Alpha / otras → azul Alpha</div>
+          <div class="d">El resto. Coincide con el acento de la interfaz.</div>
+          <div class="tok mono">--marca-alpha · #203F7E</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TIPOGRAFÍA ================= -->
+<section class="doc" id="tipografia">
+  <div class="wrap">
+    <p class="rule">Tipografía</p>
+    <h2>Montserrat, de 300 a 800</h2>
+    <p class="intro">
+      Una sola familia en toda la app, cargada con <code>next/font</code>. Geométrica,
+      legible en tablas densas y en pantallas de teléfono. El peso hace la jerarquía:
+      títulos 700–800, cuerpo 400, etiquetas 500–600. Para números en columna y IDs,
+      <code>tabular-nums</code>.
+    </p>
+
+    <h3 class="sub">Escala</h3>
+    <div class="specimen">
+      <div class="row"><span class="tag">Número de orden · s1</span><span class="s1">12191300</span></div>
+      <div class="row"><span class="tag">Título de página · s2</span><span class="s2">Tablero de órdenes</span></div>
+      <div class="row"><span class="tag">Sección · s3</span><span class="s3">Asignar visita</span></div>
+      <div class="row"><span class="tag">Subtítulo · s4</span><span class="s4">Datos del servicio</span></div>
+      <div class="row"><span class="tag">Cuerpo · s5</span><span class="s5">El coordinador valida las piezas recomendadas y las aparta cuando el almacén confirma la existencia física.</span></div>
+      <div class="row"><span class="tag">Etiqueta · s6</span><span class="s6">Pendiente por partes</span></div>
+    </div>
+
+    <h3 class="sub">Pesos</h3>
+    <div class="weights">
+      <div><div class="w" style="font-weight:300">Servicio</div><div class="n">300 · Light</div></div>
+      <div><div class="w" style="font-weight:400">Servicio</div><div class="n">400 · cuerpo</div></div>
+      <div><div class="w" style="font-weight:500">Servicio</div><div class="n">500 · etiquetas</div></div>
+      <div><div class="w" style="font-weight:600">Servicio</div><div class="n">600 · énfasis</div></div>
+      <div><div class="w" style="font-weight:700">Servicio</div><div class="n">700 · títulos</div></div>
+      <div><div class="w" style="font-weight:800">Servicio</div><div class="n">800 · display</div></div>
+    </div>
+    <p class="note">
+      Mono (<strong>IBM Plex Mono</strong>) solo para esta guía — nombres de token y
+      clases. La app no usa monoespaciada.
+    </p>
+  </div>
+</section>
+
+<!-- ================= COMPONENTES ================= -->
+<section class="doc" id="componentes">
+  <div class="wrap">
+    <p class="rule">Componentes</p>
+    <h2>El kit de <code style="font-size:0.7em">lib/ui.ts</code></h2>
+    <p class="intro">
+      Un solo lugar para el estilo de campos, botones, tarjetas y modales, en vez de
+      repetir la cadena de clases en cada archivo. Radio <code>rounded-lg</code> (8&nbsp;px)
+      en controles, <code>rounded-xl</code> (12&nbsp;px) en tarjetas, <code>rounded-2xl</code>
+      en modales. Sombra solo donde algo se levanta.
+    </p>
+
+    <h3 class="sub">Botones</h3>
+    <div class="stage">
+      <button class="btn btn-primary">Asignar y generar documento</button>
+      <button class="btn btn-sec">Solo activas</button>
+      <button class="btn btn-danger">Cancelar orden</button>
+      <button class="btn btn-mini">Ir con 2 piezas</button>
+      <button class="btn btn-text">Editar</button>
+      <button class="btn btn-primary" disabled>Deshabilitado</button>
+    </div>
+    <p class="note">
+      <code>boton</code> · <code>botonSec</code> · <code>botonPeligro</code> ·
+      <code>botonMini</code> · <code>botonTexto</code>. Todos con anillo de foco visible
+      (<code>focus-visible</code>) y <code>active:scale-[0.98]</code>.
+    </p>
+
+    <h3 class="sub">Campos</h3>
+    <div class="stage" style="align-items:flex-start">
+      <div>
+        <label class="field-label" for="d1">Fecha ETA</label>
+        <input class="field" id="d1" type="text" value="10/09/2026" />
+      </div>
+      <div>
+        <label class="field-label" for="d2">Buscar</label>
+        <input class="field" id="d2" type="text" placeholder="orden, cliente o ingeniero…" />
+      </div>
+    </div>
+    <p class="note"><code>campo</code> — borde a <code>--brand</code> y anillo suave al enfocar. La etiqueta va arriba, <code>mb-1 block</code>, nunca como placeholder.</p>
+
+    <h3 class="sub">Tarjetas</h3>
+    <div class="stage">
+      <div class="card">
+        <h4>Datos del servicio</h4>
+        <p>Contenedor estándar. Borde, fondo <code>surface</code>, sombra sm.</p>
+      </div>
+      <div class="card card--interactive">
+        <h4>Orden 12218288 · v2</h4>
+        <p>Clicable: se levanta 2&nbsp;px y el borde tira al azul al pasar el ratón.</p>
+      </div>
+    </div>
+    <p class="note"><code>tarjeta</code> y <code>tarjetaInteractiva</code>. Las «cards colapsables» (<code>Colapsable</code>) usan el mismo borde con un encabezado-botón.</p>
+
+    <h3 class="sub">Modal</h3>
+    <div class="stage" style="justify-content:center">
+      <div class="modal-mock">
+        <div class="panel">
+          <h4>Concluir orden 12191300</h4>
+          <p>Concluye la orden y sus visitas. Revísalo antes de continuar.</p>
+          <div class="actions">
+            <button class="btn btn-sec">No</button>
+            <button class="btn btn-primary">Sí, continuar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      <code>Modal</code> + <code>Portal</code> (render a <code>document.body</code>): fondo
+      <code>bg-brand/30</code> con desenfoque, panel que entra con
+      <code>scale .97 → 1</code>. Foco atrapado, Escape cierra, scroll bloqueado.
+    </p>
+
+    <h3 class="sub">Ficha de la orden</h3>
+    <div class="stage">
+      <div class="ficha">
+        <span class="status"><i class="dot" style="background:#86efac"></i> Asignado ▾</span>
+        <div class="num">12191300</div>
+        <div class="acts">
+          <span>PDF</span><span>Mapa</span><span>Llamar</span><span>WhatsApp</span><span>Copiar ETA</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      La banda toma el color por marca (aquí verde = WO Lexmark), con el nombre de la
+      marca como marca de agua. La pastilla de estatus <em>es</em> el selector.
+    </p>
+  </div>
+</section>
+
+<!-- ================= ESTADOS ================= -->
+<section class="doc" id="estados">
+  <div class="wrap">
+    <p class="rule">Estados</p>
+    <h2>Estatus y estado de pieza → tono</h2>
+    <p class="intro">
+      El estado nunca se comunica solo con color: siempre hay texto, y en la ficha
+      además un punto de color. Los nombres de estatus son los reales del enum de la
+      base de datos.
+    </p>
+
+    <h3 class="sub">Estatus de una orden</h3>
+    <div class="tbl-scroll">
+      <table class="ref">
+        <thead><tr><th>Estatus</th><th>Tono</th><th>Chip</th><th>Quién lo pone</th></tr></thead>
+        <tbody>
+          <tr><td>Nuevo</td><td>info</td><td><span class="pill t-info"><i class="dot" style="background:#38bdf8"></i>Nuevo</span></td><td>importación</td></tr>
+          <tr><td>Pendiente</td><td>warn</td><td><span class="pill t-warn"><i class="dot" style="background:#fbbf24"></i>Pendiente</span></td><td>coordinador</td></tr>
+          <tr><td>Asignado</td><td>ok</td><td><span class="pill t-ok"><i class="dot" style="background:#34d399"></i>Asignado</span></td><td>coordinador</td></tr>
+          <tr><td>Reagendado</td><td>violet</td><td><span class="pill t-violet"><i class="dot" style="background:#a78bfa"></i>Reagendado</span></td><td>coordinador</td></tr>
+          <tr><td>Pendiente por partes</td><td>orange</td><td><span class="pill t-orange"><i class="dot" style="background:#fb923c"></i>Pendiente por partes</span></td><td>coordinador / ingeniero</td></tr>
+          <tr><td>Lista para realizar</td><td>teal</td><td><span class="pill t-teal"><i class="dot" style="background:#2dd4bf"></i>Lista para realizar</span></td><td>sistema (arribo de piezas)</td></tr>
+          <tr><td>Listo para continuar</td><td>teal</td><td><span class="pill t-teal"><i class="dot" style="background:#2dd4bf"></i>Listo para continuar</span></td><td>sistema</td></tr>
+          <tr><td>Concluido</td><td>neutral</td><td><span class="pill t-neutral"><i class="dot" style="background:#94a3b8"></i>Concluido</span></td><td>ingeniero / gerencia</td></tr>
+          <tr><td>Cancelado</td><td>neutral</td><td><span class="pill t-neutral"><i class="dot" style="background:#94a3b8"></i>Cancelado</span></td><td>solo gerencia</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">Estado de una pieza</h3>
+    <div class="tbl-scroll">
+      <table class="ref">
+        <thead><tr><th>Estado</th><th>Tono</th><th>Chip</th></tr></thead>
+        <tbody>
+          <tr><td>recomendada</td><td>info</td><td><span class="pill t-info">Recomendada</span></td></tr>
+          <tr><td>en_espera</td><td>warn</td><td><span class="pill t-warn">En espera</span></td></tr>
+          <tr><td>recibida</td><td>ok</td><td><span class="pill t-ok">Recibida</span></td></tr>
+          <tr><td>apartada</td><td>violet</td><td><span class="pill t-violet">Apartada</span></td></tr>
+          <tr><td>usada</td><td>teal</td><td><span class="pill t-teal">Usada</span></td></tr>
+          <tr><td>cancelada</td><td>neutral</td><td><span class="pill t-neutral">Cancelada</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">Bloque de ETA para pegar</h3>
+    <p class="note" style="margin-bottom:12px">
+      Formato fijo que genera <code>textoEta()</code>; el coordinador lo copia y lo
+      pega en WhatsApp al cliente.
+    </p>
+    <div class="eta">
+<pre>ETA
+
+Ing. Gonzalo Casildo Trejo
+Día: Jueves
+Fecha: 10 de septiembre de 2026
+Hora aproximada: 10:00 a. m.</pre>
+      <div class="bar"><span>desde la ficha verde</span><button type="button" id="eta-copy">Copiar</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MOVIMIENTO ================= -->
+<section class="doc" id="movimiento">
+  <div class="wrap">
+    <p class="rule">Movimiento</p>
+    <h2>Entradas suaves, nada que se interponga</h2>
+    <p class="intro">
+      Principios de Emil Kowalski: solo <code>transform</code> y <code>opacity</code>,
+      desaceleración al llegar, una o dos cosas animadas por vista, y se respeta
+      <code>prefers-reduced-motion</code>. Cuatro keyframes cubren toda la app.
+    </p>
+
+    <div class="curve">
+      <svg viewBox="0 0 100 100" aria-label="Curva de easing ease-out">
+        <line x1="12" y1="88" x2="88" y2="88" stroke="var(--border)" stroke-width="1"/>
+        <line x1="12" y1="88" x2="12" y2="12" stroke="var(--border)" stroke-width="1"/>
+        <path d="M12 88 C 24 20, 52 12, 88 12" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="88" cy="12" r="2.5" fill="var(--brand)"/>
+      </svg>
+      <div class="durs">
+        <p class="note" style="margin:0 0 4px">
+          <code>cubic-bezier(0.16, 1, 0.3, 1)</code> — sale rápido, aterriza lento.
+        </p>
+        <div class="d"><b>150 ms</b><span class="track"><i style="width:22%"></i></span><span class="note" style="margin:0">micro (hover, press)</span></div>
+        <div class="d"><b>180–200 ms</b><span class="track"><i style="width:32%"></i></span><span class="note" style="margin:0">fade / colapsar</span></div>
+        <div class="d"><b>260 ms</b><span class="track"><i style="width:46%"></i></span><span class="note" style="margin:0">modal (scale + fade)</span></div>
+        <div class="d"><b>460 ms</b><span class="track"><i style="width:80%"></i></span><span class="note" style="margin:0">entrada al hacer scroll</span></div>
+      </div>
+    </div>
+
+    <h3 class="sub">Entrada al revelar</h3>
+    <div id="reveal-host">
+      <div class="demo-reveal">
+        <code>ad-reveal-up</code> — <code>translateY(14px)</code> + opacidad 0 → <code>transform: none</code>.
+        Termina en <code>none</code>, no en <code>translateY(0)</code>: si no, el elemento queda como
+        bloque contenedor de <code>position: fixed</code> y rompe los modales.
+      </div>
+    </div>
+    <button class="replay" id="replay" type="button">Repetir animación</button>
+
+    <p class="note" style="margin-top:22px">
+      Los otros keyframes: <code>ad-fade-in</code> (0.18&nbsp;s, backdrop de modal),
+      <code>ad-modal-in</code> (0.26&nbsp;s, panel), <code>ad-collapse-in</code>
+      (0.2&nbsp;s, contenido de una card que se abre).
+    </p>
+  </div>
+</section>
+
+<!-- ================= CÓDIGO ================= -->
+<footer id="codigo">
+  <div class="wrap">
+    <p class="rule">Dónde vive</p>
+    <h2>Tres archivos, una fuente de verdad</h2>
+    <div class="files">
+      <div class="file">
+        <b>app/globals.css</b>
+        <p>Todos los tokens (<code>:root</code> + bloques de modo oscuro), el mapeo <code>@theme inline</code>, los keyframes y <code>.banda-marca</code>.</p>
+      </div>
+      <div class="file">
+        <b>lib/ui.ts</b>
+        <p>Las cadenas de clase compartidas: <code>campo</code>, <code>boton*</code>, <code>tarjeta</code>, <code>chip</code>, <code>overlay</code>, <code>panel</code>, <code>enlace</code>.</p>
+      </div>
+      <div class="file">
+        <b>lib/tema.ts</b>
+        <p>Lógica de color: <code>claseEstatus()</code>, <code>claseEstadoPieza()</code>, <code>puntoEstatus()</code>, <code>colorOrden(origen, marca)</code>.</p>
+      </div>
+    </div>
+    <p class="note" style="margin-top:22px">
+      Regla de oro: los componentes usan utilidades semánticas, <strong>nunca hex crudo</strong>.
+      Si un color hace falta y no existe como token, se agrega el token primero.
+    </p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("theme");
+    var icon = document.getElementById("theme-icon");
+    var label = document.getElementById("theme-label");
+    var order = ["system", "light", "dark"];
+    var labels = { system: "Sistema", light: "Claro", dark: "Oscuro" };
+    var icons = { system: "◑", light: "☀", dark: "☾" };
+    var cur = "system";
+
+    try {
+      var saved = localStorage.getItem("ds-theme");
+      if (saved && order.indexOf(saved) > -1) cur = saved;
+    } catch (e) {}
+
+    function apply() {
+      if (cur === "system") root.removeAttribute("data-theme");
+      else root.setAttribute("data-theme", cur);
+      icon.textContent = icons[cur];
+      label.textContent = labels[cur];
+      try { localStorage.setItem("ds-theme", cur); } catch (e) {}
+    }
+    apply();
+
+    btn.addEventListener("click", function () {
+      cur = order[(order.indexOf(cur) + 1) % order.length];
+      apply();
+    });
+
+    var replay = document.getElementById("replay");
+    var host = document.getElementById("reveal-host");
+    if (replay && host) {
+      replay.addEventListener("click", function () {
+        var old = host.firstElementChild;
+        var clone = old.cloneNode(true);
+        host.replaceChild(clone, old);
+      });
+    }
+
+    var etaBtn = document.getElementById("eta-copy");
+    if (etaBtn) {
+      etaBtn.addEventListener("click", function () {
+        var txt = document.querySelector(".eta pre").textContent;
+        navigator.clipboard && navigator.clipboard.writeText(txt).then(function () {
+          etaBtn.textContent = "Copiado";
+          setTimeout(function () { etaBtn.textContent = "Copiar"; }, 1400);
+        });
+      });
+    }
+  })();
+</script>
