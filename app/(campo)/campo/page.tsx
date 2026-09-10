@@ -8,6 +8,7 @@ import {
   type OrdenCampo,
 } from "@/lib/campo/ordenes";
 import { claseEstatus } from "@/lib/tema";
+import { hoyMx } from "@/lib/fechas";
 
 function fmtFecha(f: string | null): string {
   if (!f) return "Sin fecha";
@@ -41,11 +42,45 @@ export default async function CampoInicioPage() {
         ).data ?? []
       ).slice(0, 40) as unknown as OrdenCampo[];
 
+  const hoy = hoyMx();
+  const nHoy = ordenes.filter((o) => o.fecha_eta === hoy).length;
+  const nEnCurso = ordenes.filter((o) => o.hora_inicio_real).length;
+  const primerNombre = perfil.nombre.split(/\s+/)[0];
+
   return (
     <div className="space-y-4">
-      <h1 className="text-xs font-black uppercase tracking-widest text-muted">
-        Órdenes asignadas ({ordenes.length})
-      </h1>
+      <div>
+        <h1 className="text-lg font-extrabold text-[#004B25]">
+          Hola, {primerNombre}
+        </h1>
+        <p className="text-xs font-semibold text-muted">
+          {perfil.zona_nombre ?? "Servicio en sitio"}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { n: ordenes.length, t: "Asignadas" },
+          { n: nHoy, t: "Para hoy" },
+          { n: nEnCurso, t: "En curso" },
+        ].map((k) => (
+          <div
+            key={k.t}
+            className="rounded-2xl border border-border-default bg-surface p-3 text-center"
+          >
+            <div className="text-2xl font-extrabold tabular-nums text-[#004B25]">
+              {k.n}
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-wide text-muted">
+              {k.t}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="pt-1 text-xs font-black uppercase tracking-widest text-muted">
+        Órdenes asignadas
+      </h2>
 
       {ordenes.length === 0 ? (
         <div className="rounded-2xl border border-border-default bg-surface p-8 text-center text-sm text-muted">

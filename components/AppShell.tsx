@@ -8,6 +8,11 @@ import LogoBaja from "@/components/LogoBaja";
 import MenuUsuario from "@/components/MenuUsuario";
 
 const NAV = [
+  {
+    href: "/inicio",
+    label: "Inicio",
+    icon: "M4 21V10l8-6 8 6v11H4zM10 21v-6h4v6",
+  },
   { href: "/tablero", label: "Tablero", icon: "M4 5h16M4 12h16M4 19h10" },
   {
     href: "/tablero-dias",

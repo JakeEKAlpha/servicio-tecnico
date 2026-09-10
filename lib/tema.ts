@@ -3,7 +3,7 @@
  * como tokens theme-aware; aquí solo se devuelven clases de Tailwind.
  */
 
-type Tono =
+export type Tono =
   | "info"
   | "warn"
   | "ok"
@@ -21,6 +21,11 @@ const CLASE_TONO: Record<Tono, string> = {
   teal: "bg-tone-teal-bg text-tone-teal-fg",
   neutral: "bg-tone-neutral-bg text-tone-neutral-fg",
 };
+
+/** Clases de fondo/texto para un tono dado. */
+export function claseTono(tono: Tono): string {
+  return CLASE_TONO[tono];
+}
 
 const TONO_ESTATUS: Record<string, Tono> = {
   Nuevo: "info",
