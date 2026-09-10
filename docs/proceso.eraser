@@ -1,0 +1,105 @@
+title: Proceso operativo — Lexmark OS (Alpha / Baja Digital)
+
+// ─────────────────────────────────────────────────────────────
+// 1. ENTRADA DE LA ORDEN
+// ─────────────────────────────────────────────────────────────
+Entrada [icon: inbox, color: blue] {
+  Pegar reporte WO/SR [icon: clipboard]
+  Alta manual [icon: edit]
+  Formulario web (futuro) [icon: globe]
+}
+
+Pegar reporte WO/SR > Clasifica: 8 dígitos = WO / 1-… = SR
+Alta manual > Orden creada
+Formulario web (futuro) > Orden creada
+Clasifica: 8 dígitos = WO / 1-… = SR > Orden creada [icon: file-text, color: green]
+
+// ─────────────────────────────────────────────────────────────
+// 2. MÁQUINA DE ESTATUS (coordinador de zona)
+// ─────────────────────────────────────────────────────────────
+Coordinador de zona [icon: user, color: blue] {
+  Nuevo / Pendiente [icon: circle]
+  Asignar ingeniero + fecha + hora [icon: calendar]
+  Asignado [icon: user-check]
+  Reagendado [icon: rotate-ccw]
+  Pendiente por partes [icon: package, color: orange]
+}
+
+Orden creada > Nuevo / Pendiente
+Orden creada > Pendiente por partes: SR nace esperando pieza
+Nuevo / Pendiente > Asignar ingeniero + fecha + hora
+Asignar ingeniero + fecha + hora > Asignado
+Asignado > Genera Doc + PDF (Drive) [icon: file]
+Asignado > Reagendado: no se pudo
+Reagendado > Asignar ingeniero + fecha + hora
+Asignado > Pendiente por partes: faltó refacción (crea visita N+1)
+
+// ─────────────────────────────────────────────────────────────
+// 3. ALMACÉN (encargado de almacén por sucursal)
+// ─────────────────────────────────────────────────────────────
+Almacén de la sucursal [icon: package, color: orange] {
+  Encargado de almacén [icon: user] // ej. Alpha Digital Mérida = Juan Carlos Quintal
+  Entrada de piezas [icon: arrow-down, color: green]
+  Salida de piezas [icon: arrow-up, color: red]
+  Ajuste de inventario [icon: sliders]
+  Stock por sucursal [icon: database]
+  Confirmar arribo de pieza pedida [icon: check-circle]
+}
+
+Pendiente por partes > Registra piezas "en espera" (piezas_orden)
+Registra piezas "en espera" (piezas_orden) > Confirmar arribo de pieza pedida
+Entrada de piezas > Stock por sucursal: kardex (movimientos_inventario)
+Salida de piezas > Stock por sucursal
+Ajuste de inventario > Stock por sucursal
+Confirmar arribo de pieza pedida > Trigger arribo (solo Lexmark)
+
+Trigger arribo (solo Lexmark) [icon: zap, color: green] > Lista para realizar: nunca se asignó (SR / pieza antes de visita)
+Trigger arribo (solo Lexmark) > Listo para continuar: WO reactiva, piezas de la 2ª visita
+
+Lista para realizar > Asignar ingeniero + fecha + hora
+Listo para continuar > Asignar ingeniero + fecha + hora
+
+// El coordinador solo CONSULTA su stock; no mueve piezas.
+Coordinador de zona > Stock por sucursal: solo lectura (piezas disponibles y cantidad)
+
+// ─────────────────────────────────────────────────────────────
+// 4. INGENIERO EN CAMPO (app móvil — en construcción)
+// ─────────────────────────────────────────────────────────────
+Ingeniero en campo [icon: tool, color: teal] {
+  Registrar llegada: hora + GPS [icon: map-pin]
+  Fotos antes / durante / después [icon: camera]
+  Checklist 13 puntos Lexmark [icon: check-square]
+  Contadores + diagnóstico [icon: file-text]
+  Generar Orden de Servicio [icon: printer]
+  Foto de OS firmada [icon: pen-tool]
+}
+
+Asignado > Registrar llegada: hora + GPS
+Registrar llegada: hora + GPS > Fotos antes / durante / después
+Fotos antes / durante / después > Checklist 13 puntos Lexmark
+Checklist 13 puntos Lexmark > Contadores + diagnóstico
+Contadores + diagnóstico > Generar Orden de Servicio
+Generar Orden de Servicio > Foto de OS firmada
+Foto de OS firmada > Concluido [icon: check, color: green]
+Contadores + diagnóstico > Salida de piezas: refacciones usadas
+
+// Evidencias y ubicaciones alimentan el panel de gerencia
+Registrar llegada: hora + GPS > Mapa de actividad [icon: map]
+Fotos antes / durante / después > Evidencias (Drive del ingeniero) [icon: image]
+
+// ─────────────────────────────────────────────────────────────
+// 5. CIERRE
+// ─────────────────────────────────────────────────────────────
+Concluido > Cascada: concluye todas las visitas (excepto canceladas) [icon: layers]
+Concluido > Pieza recibida sale del stock de la orden
+
+Gerencia [icon: briefcase, color: blue] {
+  Mueve WO de zona equivocada [icon: shuffle]
+  Configura zonas / sucursales / ingenieros / encargados [icon: settings]
+  Mapa de actividad de ingenieros [icon: map]
+  Ve todos los almacenes [icon: package]
+}
+
+Gerencia > Coordinador de zona
+Gerencia > Almacén de la sucursal
+Gerencia > Ingeniero en campo

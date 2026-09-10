@@ -1,26 +1,287 @@
 @import "tailwindcss";
 
+/* ===================================================================
+   Tokens de tema — identidad Alpha Digital.
+   Modo claro por defecto; el modo oscuro sigue la preferencia del
+   sistema (prefers-color-scheme) y puede forzarse con
+   <html data-theme="light|dark">.
+   Los componentes usan utilidades semánticas (bg-surface, text-muted,
+   border-default, bg-tone-*, text-brand…), nunca hex crudo.
+
+   Paleta de marca: Azul #203F7E · Rojo #E53325 · Gris #C6C6C6 ·
+   Lexmark #008A44 · Xerox #D92231. Tipografía: Montserrat.
+   =================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light dark;
+
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --border: #e5e7eb;
+  --text: #1e293b;
+  --muted: #64748b;
+
+  --brand: #203f7e;
+  --brand-fg: #ffffff;
+  --brand-600: #1b356a;
+  --brand-050: #eef2fb;
+
+  --red: #e53325;
+  --gray: #c6c6c6;
+  --accent: #1d4ed8;
+  --danger: #dc2626;
+  --success: #15803d;
+
+  --marca-lexmark: #008a44;
+  --marca-lexmark-sr: #e0a93b;
+  --marca-xerox: #d92231;
+  --marca-alpha: #203f7e;
+
+  --hl-today: #dcfce7;
+  --hl-tomorrow: #ffedd5;
+
+  --tone-info-bg: #e0f2fe;
+  --tone-info-fg: #075985;
+  --tone-warn-bg: #fef9c3;
+  --tone-warn-fg: #854d0e;
+  --tone-ok-bg: #dcfce7;
+  --tone-ok-fg: #166534;
+  --tone-violet-bg: #ede9fe;
+  --tone-violet-fg: #5b21b6;
+  --tone-orange-bg: #ffedd5;
+  --tone-orange-fg: #9a3412;
+  --tone-teal-bg: #ccfbf1;
+  --tone-teal-fg: #115e59;
+  --tone-neutral-bg: #e2e8f0;
+  --tone-neutral-fg: #475569;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* --- Modo oscuro: sistema, salvo que se fuerce claro --- */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --bg: #0b1220;
+    --surface: #131d31;
+    --surface-2: #1d2941;
+    --border: #2c3a54;
+    --text: #e6eaf2;
+    --muted: #94a2bc;
+
+    --brand: #5b83d4;
+    --brand-fg: #ffffff;
+    --brand-600: #3f61ad;
+    --brand-050: #182746;
+
+    --accent: #60a5fa;
+    --danger: #f87171;
+    --success: #4ade80;
+
+    --marca-lexmark: #10a15a;
+    --marca-lexmark-sr: #e0a93b;
+    --marca-xerox: #e0483a;
+    --marca-alpha: #5b83d4;
+
+    --hl-today: #14532d;
+    --hl-tomorrow: #7c2d12;
+
+    --tone-info-bg: #0c2a3d;
+    --tone-info-fg: #7dd3fc;
+    --tone-warn-bg: #3a2e08;
+    --tone-warn-fg: #fde047;
+    --tone-ok-bg: #0f2e1a;
+    --tone-ok-fg: #86efac;
+    --tone-violet-bg: #2a1e4d;
+    --tone-violet-fg: #c4b5fd;
+    --tone-orange-bg: #3a1e0a;
+    --tone-orange-fg: #fdba74;
+    --tone-teal-bg: #0c2e2b;
+    --tone-teal-fg: #5eead4;
+    --tone-neutral-bg: #2c3a54;
+    --tone-neutral-fg: #cbd5e1;
   }
 }
 
+/* --- Modo oscuro forzado --- */
+:root[data-theme="dark"] {
+  --bg: #0b1220;
+  --surface: #131d31;
+  --surface-2: #1d2941;
+  --border: #2c3a54;
+  --text: #e6eaf2;
+  --muted: #94a2bc;
+
+  --brand: #5b83d4;
+  --brand-fg: #ffffff;
+  --brand-600: #3f61ad;
+  --brand-050: #182746;
+
+  --accent: #60a5fa;
+  --danger: #f87171;
+  --success: #4ade80;
+
+  --marca-lexmark: #10a15a;
+  --marca-lexmark-sr: #e0a93b;
+  --marca-xerox: #e0483a;
+  --marca-alpha: #5b83d4;
+
+  --hl-today: #14532d;
+  --hl-tomorrow: #7c2d12;
+
+  --tone-info-bg: #0c2a3d;
+  --tone-info-fg: #7dd3fc;
+  --tone-warn-bg: #3a2e08;
+  --tone-warn-fg: #fde047;
+  --tone-ok-bg: #0f2e1a;
+  --tone-ok-fg: #86efac;
+  --tone-violet-bg: #2a1e4d;
+  --tone-violet-fg: #c4b5fd;
+  --tone-orange-bg: #3a1e0a;
+  --tone-orange-fg: #fdba74;
+  --tone-teal-bg: #0c2e2b;
+  --tone-teal-fg: #5eead4;
+  --tone-neutral-bg: #2c3a54;
+  --tone-neutral-fg: #cbd5e1;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border-default: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+
+  --color-brand: var(--brand);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-600: var(--brand-600);
+  --color-brand-050: var(--brand-050);
+  --color-red: var(--red);
+  --color-gray: var(--gray);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-marca-lexmark: var(--marca-lexmark);
+  --color-marca-lexmark-sr: var(--marca-lexmark-sr);
+  --color-marca-xerox: var(--marca-xerox);
+  --color-marca-alpha: var(--marca-alpha);
+  --color-hl-today: var(--hl-today);
+  --color-hl-tomorrow: var(--hl-tomorrow);
+
+  --color-tone-info-bg: var(--tone-info-bg);
+  --color-tone-info-fg: var(--tone-info-fg);
+  --color-tone-warn-bg: var(--tone-warn-bg);
+  --color-tone-warn-fg: var(--tone-warn-fg);
+  --color-tone-ok-bg: var(--tone-ok-bg);
+  --color-tone-ok-fg: var(--tone-ok-fg);
+  --color-tone-violet-bg: var(--tone-violet-bg);
+  --color-tone-violet-fg: var(--tone-violet-fg);
+  --color-tone-orange-bg: var(--tone-orange-bg);
+  --color-tone-orange-fg: var(--tone-orange-fg);
+  --color-tone-teal-bg: var(--tone-teal-bg);
+  --color-tone-teal-fg: var(--tone-teal-fg);
+  --color-tone-neutral-bg: var(--tone-neutral-bg);
+  --color-tone-neutral-fg: var(--tone-neutral-fg);
+
+  --font-sans: var(--font-montserrat);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+}
+
+/* Banda azul de marca — SIEMPRE azul Alpha, en claro y oscuro */
+.banda-marca {
+  background: linear-gradient(150deg, #203f7e 0%, #17305f 100%);
+  color: #ffffff;
+}
+
+/* ===================== Movimiento =====================
+   Easing y duración según los principios de Emil Kowalski:
+   - entradas con ease-out (desaceleran al llegar)
+   - solo transform + opacity (GPU)
+   - 150 ms micro, ~260 ms estándar, ~460 ms entradas grandes
+   - se respeta prefers-reduced-motion
+   ==================================================== */
+@keyframes ad-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ad-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes ad-reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none; /* 'none' final → el div deja de ser bloque contenedor de position:fixed */
+  }
+}
+@keyframes ad-collapse-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.anim-modal-backdrop {
+  animation: ad-fade-in 0.18s ease-out both;
+}
+.anim-modal-panel {
+  animation: ad-modal-in 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-reveal {
+  animation: ad-reveal-up 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-collapse {
+  animation: ad-collapse-in 0.2s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scroll sin barra visible (se permite el scroll, no se pinta la barra) */
+.scroll-oculto {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-oculto::-webkit-scrollbar {
+  display: none;
+}
+
+/* Densidad compacta (configuración del usuario) */
+:root[data-densidad="compacta"] table td,
+:root[data-densidad="compacta"] table th {
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+}
+:root[data-densidad="compacta"] .p-6 {
+  padding: 1rem;
 }

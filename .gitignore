@@ -30,8 +30,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files — se ignoran todos SALVO la plantilla de ejemplo
+.env
+.env*.local
+.env.development
+.env.production
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +43,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# editores / SO
+.vscode/
+.idea/
+.obsidian/
+
+# Claude Code / tooling: plugins y skills instalados (no son código del proyecto).
+# `the-architect/` y `whatsapp-agentkit/` traen su propio .git anidado.
+/.claude/
+/.agents/
+/the-architect/
+/whatsapp-agentkit/
+skills-lock.json
