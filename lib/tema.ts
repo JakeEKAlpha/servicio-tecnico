@@ -35,8 +35,8 @@ const TONO_ESTATUS: Record<string, Tono> = {
   Asignado: "ok",
   Reagendado: "violet",
   "Pendiente por partes": "orange",
-  "Lista para realizar": "warn",
-  "Listo para continuar": "warn",
+  "Lista para realizar": "teal",
+  "Listo para continuar": "teal",
   Concluido: "neutral",
   Cancelado: "neutral",
 };
