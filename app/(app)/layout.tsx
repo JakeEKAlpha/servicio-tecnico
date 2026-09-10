@@ -16,6 +16,11 @@ export default async function AppLayout({
     redirect("/actualizar-password");
   }
 
+  // Los ingenieros usan la versión de campo, no el panel de coordinación.
+  if (perfil.rol === "ingeniero") {
+    redirect("/campo");
+  }
+
   const empresa = empresaDeZona(perfil.zona_nombre);
 
   return (

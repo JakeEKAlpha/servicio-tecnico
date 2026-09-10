@@ -22,6 +22,7 @@ export default async function RecursoPage({
     { data: marcas },
     { data: gestores },
     { data: perfiles },
+    { data: ingenieros },
   ] = await Promise.all([
     supabase.from(cfg.tabla).select("*").order(cfg.orden),
     supabase.from("zonas").select("id, nombre").order("nombre"),
@@ -29,6 +30,7 @@ export default async function RecursoPage({
     supabase.from("marcas").select("id, nombre").order("nombre"),
     supabase.from("gestores_cuenta").select("id, nombre").order("nombre"),
     supabase.from("perfiles").select("id, nombre, rol").order("nombre"),
+    supabase.from("ingenieros").select("id, nombre").order("nombre"),
   ]);
 
   const opciones: Record<string, Opcion[]> = {
@@ -48,6 +50,10 @@ export default async function RecursoPage({
       label: s.nombre as string,
     })),
     roles: ROLES_PERFIL.map((r) => ({ value: r, label: etiquetaRol(r) })),
+    ingenieros_id: (ingenieros ?? []).map((i) => ({
+      value: i.id as string,
+      label: i.nombre as string,
+    })),
   };
 
   return (

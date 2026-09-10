@@ -157,7 +157,7 @@ export const RECURSOS: Record<string, RecursoConfig> = {
     tabla: "perfiles",
     titulo: "Usuarios (quién asigna)",
     orden: "nombre",
-    columnas: ["nombre", "rol", "zona_id"],
+    columnas: ["nombre", "rol", "zona_id", "ingeniero_id"],
     soloEditar: true,
     campos: [
       { k: "nombre", label: "Nombre", tipo: "text", requerido: true },
@@ -168,6 +168,13 @@ export const RECURSOS: Record<string, RecursoConfig> = {
         opciones: "roles",
       },
       { k: "zona_id", label: "Zona", tipo: "select", opciones: "zonas" },
+      {
+        k: "ingeniero_id",
+        label: "Ficha de ingeniero",
+        tipo: "select",
+        opciones: "ingenieros_id",
+        ayuda: "Solo para rol 'ingeniero': enlaza el usuario con su ficha del catálogo (la que reciben las órdenes).",
+      },
     ],
   },
 

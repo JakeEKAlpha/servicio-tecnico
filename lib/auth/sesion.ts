@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type Perfil = {
+  id: string;
   nombre: string;
   rol: "coordinador" | "ingeniero" | "almacen" | "gerencia" | "admin";
   zona_id: string | null;
   zona_nombre: string | null;
+  ingeniero_id: string | null;
   debe_cambiar_password: boolean;
 };
 
@@ -30,7 +32,9 @@ export const perfilActual = cache(async (): Promise<{ perfil: Perfil }> => {
 
   const { data: perfil } = await supabase
     .from("perfiles")
-    .select("nombre, rol, zona_id, debe_cambiar_password, zonas(nombre)")
+    .select(
+      "id, nombre, rol, zona_id, ingeniero_id, debe_cambiar_password, zonas(nombre)",
+    )
     .eq("id", user.id)
     .maybeSingle();
 

@@ -16,3 +16,14 @@ export function isoMx(fecha: Date): string {
 export function hoyMx(): string {
   return isoMx(new Date());
 }
+
+/** Hora del día en México, "HH:MM:SS" (para columnas `time`). */
+export function horaMx(fecha: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(fecha);
+}
