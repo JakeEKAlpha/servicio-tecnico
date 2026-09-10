@@ -59,8 +59,9 @@ export default function Panel({
   const snapshot = useRef<PanelLayout>(layoutInicial);
 
   useEffect(() => {
-    // Montaje: react-grid-layout necesita `window`; hasta aquí se pinta un
-    // fallback estático (sin CLS ni riesgo en SSR).
+    // react-grid-layout necesita `window`; hasta aquí se pinta un fallback
+    // estático (sin CLS ni riesgo en SSR). Ya montado, `onBreakpointChange`
+    // ajusta `bp` al ancho real y a los cambios de tamaño de ventana.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMontado(true);
   }, []);
@@ -180,22 +181,16 @@ export default function Panel({
     setSucio(true);
   }
 
-  function onLayoutChange(
-    _actual: Layout[],
-    todos: { lg?: Layout[]; md?: Layout[]; sm?: Layout[] },
-  ) {
-    if (!editando) return;
-    const limpiar = (arr?: Layout[]) =>
-      (arr ?? []).map((l) => ({ i: l.i, x: l.x, y: l.y, w: l.w, h: l.h }));
-    setLayout((prev) => {
-      const next: PanelLayout = {
-        lg: todos.lg ? limpiar(todos.lg) : prev.lg,
-        md: todos.md ? limpiar(todos.md) : prev.md,
-        sm: todos.sm ? limpiar(todos.sm) : prev.sm,
-        ocultos: prev.ocultos,
-      };
-      return JSON.stringify(next) === JSON.stringify(prev) ? prev : next;
-    });
+  /**
+   * Captura el layout del breakpoint activo tras un arrastre/redimensión del
+   * usuario. NO se usa `onLayoutChange` porque también dispara cuando cambiamos
+   * el layout por menú, y RGL a veces devuelve el estado anterior — pisaría el
+   * cambio programático.
+   */
+  function capturarBp(actual: Layout[]) {
+    const limpio = actual.map((l) => ({ i: l.i, x: l.x, y: l.y, w: l.w, h: l.h }));
+    setLayout((prev) => ({ ...prev, [bp]: limpio }));
+    setSucio(true);
   }
 
   function tamano(id: string, t: "s" | "m" | "l") {
@@ -357,10 +352,9 @@ export default function Panel({
             isDraggable={editando && editable}
             isResizable={editando && editable}
             draggableHandle=".arrastrar"
-            onLayoutChange={onLayoutChange}
             onBreakpointChange={(nuevo) => setBp(nuevo as Bp)}
-            onDragStop={() => setSucio(true)}
-            onResizeStop={() => setSucio(true)}
+            onDragStop={(l) => capturarBp(l)}
+            onResizeStop={(l) => capturarBp(l)}
           >
             {idsVisibles.map((id) => (
               <div key={id}>

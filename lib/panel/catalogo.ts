@@ -24,7 +24,7 @@ const TODOS: RolPanel[] = ["coordinador", "gerencia", "admin", "almacen"];
 
 export const CATALOGO: WidgetDef[] = [
   { id: "filtros", titulo: "Filtros rápidos", def: { w: 12, h: 2 }, min: { w: 6, h: 1 }, roles: COORD },
-  { id: "alertas", titulo: "Alertas críticas", def: { w: 12, h: 3 }, min: { w: 6, h: 2 }, roles: TODOS },
+  { id: "alertas", titulo: "Alertas críticas", def: { w: 12, h: 4 }, min: { w: 6, h: 2 }, roles: TODOS },
   { id: "kpi_activas", titulo: "Órdenes activas", def: { w: 3, h: 2 }, min: { w: 2, h: 2 }, roles: COORD },
   { id: "kpi_sin_asignar", titulo: "Sin asignar", def: { w: 3, h: 2 }, min: { w: 2, h: 2 }, roles: COORD },
   { id: "kpi_hoy", titulo: "Para hoy", def: { w: 3, h: 2 }, min: { w: 2, h: 2 }, roles: COORD },
