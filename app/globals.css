@@ -284,6 +284,33 @@ body {
   display: none;
 }
 
+/* ===================== Panel configurable (react-grid-layout) =====================
+   La librería trae su CSS base; aquí se re-tematiza con nuestros tokens y se
+   ocultan las asas fuera del modo edición. */
+.react-grid-item.react-grid-placeholder {
+  background: var(--brand);
+  opacity: 0.14;
+  border-radius: 16px;
+}
+.react-grid-item > .react-resizable-handle {
+  display: none;
+}
+.panel-editando .react-grid-item > .react-resizable-handle {
+  display: block;
+}
+.panel-editando .react-grid-item > .react-resizable-handle::after {
+  border-color: var(--muted);
+}
+.panel-editando .react-grid-item {
+  outline: 1px dashed var(--border);
+  outline-offset: 2px;
+  border-radius: 16px;
+}
+.react-grid-item.resizing,
+.react-grid-item.react-draggable-dragging {
+  z-index: 10;
+}
+
 /* Densidad compacta (configuración del usuario) */
 :root[data-densidad="compacta"] table td,
 :root[data-densidad="compacta"] table th {
