@@ -161,7 +161,11 @@ async function consultasPanel(supabase: SupabaseClient, perfil: Perfil) {
 
   // --- Alertas ---
   const alertas: Alerta[] = [];
+  const ordenesVistas = new Set<string>();
   for (const o of slaRaw.data ?? []) {
+    const num = String(o.numero_orden);
+    if (ordenesVistas.has(num)) continue; // una orden puede tener varias visitas
+    ordenesVistas.add(num);
     alertas.push({
       severidad: "critica",
       titulo: `ETA vencida · ${o.numero_orden}`,

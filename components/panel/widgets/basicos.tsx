@@ -7,37 +7,38 @@ import type { Alerta, SeveridadAlerta } from "@/lib/panel/datos";
 
 export function KpiNumero({ kpi }: { kpi?: Kpi }) {
   if (!kpi) return <Vacio>Sin dato</Vacio>;
+  // El título del widget ya dice la etiqueta; aquí solo el número.
   const cuerpo = (
-    <>
+    <div className="flex h-full flex-col justify-center gap-2">
       <span
         className={
-          "text-3xl font-extrabold tabular-nums " +
+          "text-4xl font-extrabold leading-none tabular-nums " +
           (kpi.tono ? "text-brand" : "text-text")
         }
       >
         {kpi.valor}
       </span>
-      <span className="mt-1 block text-xs font-semibold text-muted">
-        {kpi.etiqueta}
-      </span>
       {kpi.tono && (
         <span
           className={
-            "mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold " +
+            "inline-block w-fit rounded-full px-2 py-0.5 text-[10px] font-bold " +
             claseTono(kpi.tono)
           }
         >
           {kpi.tono === "warn" ? "requiere atención" : "al día"}
         </span>
       )}
-    </>
+    </div>
   );
   return kpi.href ? (
-    <Link href={kpi.href} className="block transition-colors hover:text-brand">
+    <Link
+      href={kpi.href}
+      className="block h-full transition-colors hover:text-brand"
+    >
       {cuerpo}
     </Link>
   ) : (
-    <div>{cuerpo}</div>
+    cuerpo
   );
 }
 
@@ -181,7 +182,7 @@ export function AlertasCriticas({ alertas }: { alertas: Alerta[] }) {
               <span className="block truncate text-sm font-semibold text-text">
                 {a.titulo}
               </span>
-              <span className="block truncate text-xs text-muted">{a.detalle}</span>
+              <span className="line-clamp-2 text-xs text-muted">{a.detalle}</span>
             </span>
           </Link>
         </li>

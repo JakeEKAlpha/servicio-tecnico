@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useActionState, useState } from "react";
+import { Suspense, useActionState, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { iniciarSesion, recuperarPassword } from "./acciones";
 import LogoAlpha from "@/components/LogoAlpha";
@@ -9,12 +9,48 @@ import { boton, campo as inputCls } from "@/lib/ui";
 const cardCls =
   "w-full max-w-sm space-y-4 rounded-2xl border border-border-default bg-surface p-7 text-text shadow-xl";
 
+const CLAVE_CORREO = "login-email";
+
+/**
+ * Recuerda el último correo usado para no reescribirlo. Rellena el campo al
+ * montar y lo guarda al enviar el formulario. Todo dentro de try/catch: en
+ * navegación privada o con el almacenamiento bloqueado simplemente no aplica.
+ */
+function useCorreoRecordado() {
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      const guardado = localStorage.getItem(CLAVE_CORREO);
+      if (guardado && ref.current && !ref.current.value) {
+        ref.current.value = guardado;
+      }
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  }, []);
+
+  const recordar = (e: React.FormEvent<HTMLFormElement>) => {
+    try {
+      const correo = new FormData(e.currentTarget).get("email");
+      if (typeof correo === "string" && correo) {
+        localStorage.setItem(CLAVE_CORREO, correo);
+      }
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  };
+
+  return { ref, recordar };
+}
+
 function FormularioLogin() {
   const [estado, accion, pendiente] = useActionState(iniciarSesion, null);
   const enlaceInvalido =
     useSearchParams().get("error") === "enlace_invalido";
+  const { ref: correoRef, recordar } = useCorreoRecordado();
   return (
-    <form action={accion} className={cardCls}>
+    <form action={accion} onSubmit={recordar} className={cardCls}>
       <div>
         <h1 className="text-lg font-extrabold text-brand">Servicio Técnico</h1>
         <p className="text-sm text-muted">Inicia sesión para continuar</p>
@@ -29,6 +65,7 @@ function FormularioLogin() {
           Correo
         </label>
         <input
+          ref={correoRef}
           id="email"
           name="email"
           type="email"
@@ -64,8 +101,9 @@ function FormularioRecuperar() {
   const [estado, accion, pendiente] = useActionState(recuperarPassword, null);
   const ok = estado && "ok" in estado ? estado.ok : null;
   const error = estado && "error" in estado ? estado.error : null;
+  const { ref: correoRef, recordar } = useCorreoRecordado();
   return (
-    <form action={accion} className={cardCls}>
+    <form action={accion} onSubmit={recordar} className={cardCls}>
       <div>
         <h1 className="text-lg font-extrabold text-brand">
           Recuperar contraseña
@@ -79,6 +117,7 @@ function FormularioRecuperar() {
           Correo
         </label>
         <input
+          ref={correoRef}
           id="email-rec"
           name="email"
           type="email"
