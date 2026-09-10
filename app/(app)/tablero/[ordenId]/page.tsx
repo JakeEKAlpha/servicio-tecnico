@@ -14,13 +14,15 @@ export default async function DetalleOrdenPage({
 }) {
   const { ordenId } = await params;
   const supabase = await createClient();
-  const { perfil } = await perfilActual();
 
-  const { data: orden } = await supabase
-    .from("ordenes")
-    .select("*, ingenieros(nombre), marcas(nombre)")
-    .eq("id", ordenId)
-    .maybeSingle();
+  const [{ perfil }, { data: orden }] = await Promise.all([
+    perfilActual(),
+    supabase
+      .from("ordenes")
+      .select("*, ingenieros(nombre), marcas(nombre)")
+      .eq("id", ordenId)
+      .maybeSingle(),
+  ]);
 
   if (!orden) {
     notFound();

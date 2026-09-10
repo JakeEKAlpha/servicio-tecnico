@@ -12,8 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Scripts de plugins de Claude Code, no son código del proyecto.
+    // Tooling / subproyectos con su propio repo — no son código de esta app.
     ".claude/**",
+    ".agents/**",
+    "the-architect/**",
+    "whatsapp-agentkit/**",
   ]),
 ]);
 

@@ -10,9 +10,17 @@ import { prioridadDe } from "@/lib/ordenes/estatus";
  * Usado por `GET /api/ordenes` y por la página del Tablero.
  */
 
-export type OrdenListada = Record<string, unknown> & {
+/** Columnas que realmente consume el Tablero (evita traer los ~20 campos
+ *  restantes de `ordenes`, incluidos 2 jsonb, en cada fila de la lista). */
+const COLUMNAS_LISTA =
+  "id, zona_id, origen, numero_orden, numero_visita, estatus, fecha_eta, hora_eta, " +
+  "cliente, localidad, estado, sucursal, ingeniero_id, link_doc, link_pdf, " +
+  "ingenieros(nombre), marcas(nombre)";
+
+export type OrdenListada = {
   id: string;
   zona_id: string;
+  origen: string | null;
   numero_orden: string;
   numero_visita: number | null;
   estatus: string | null;
@@ -33,9 +41,7 @@ export async function listarOrdenes(
   supabase: SupabaseClient,
   opts: { soloActivos?: boolean } = {},
 ): Promise<{ ordenes: OrdenListada[]; error: string | null }> {
-  let query = supabase
-    .from("ordenes")
-    .select("*, ingenieros(nombre), marcas(nombre)");
+  let query = supabase.from("ordenes").select(COLUMNAS_LISTA);
 
   if (opts.soloActivos) {
     query = query.not("estatus", "in", "(Concluido,Cancelado)");
@@ -46,19 +52,19 @@ export async function listarOrdenes(
     return { ordenes: [], error: error.message };
   }
 
-  type Fila = Record<string, unknown> & {
-    estatus: string | null;
-    numero_visita: number | null;
-    fecha_eta: string | null;
-    ingenieros: { nombre: string | null } | null;
-    marcas: { nombre: string | null } | null;
+  type Rel = { nombre: string | null } | { nombre: string | null }[] | null;
+  const uno = (r: Rel) => (Array.isArray(r) ? r[0] : r)?.nombre ?? null;
+
+  type Fila = Omit<OrdenListada, "ingeniero_nombre" | "marca_nombre"> & {
+    ingenieros: Rel;
+    marcas: Rel;
   };
 
-  const ordenes = ((filas ?? []) as Fila[])
+  const ordenes = ((filas ?? []) as unknown as Fila[])
     .map(({ ingenieros, marcas, ...orden }) => ({
       ...orden,
-      ingeniero_nombre: ingenieros?.nombre ?? null,
-      marca_nombre: marcas?.nombre ?? null,
+      ingeniero_nombre: uno(ingenieros),
+      marca_nombre: uno(marcas),
     }))
     .sort((a, b) => {
       const pa = prioridadDe(a.estatus);
