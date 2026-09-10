@@ -140,6 +140,34 @@ export const RECURSOS: Record<string, RecursoConfig> = {
     ],
   },
 
+  contactos: {
+    tabla: "contactos_cuenta",
+    titulo: "Mesas de servicio y contactos por cuenta",
+    orden: "cuenta_id",
+    columnas: ["cuenta_id", "nombre", "rol_contacto", "correo", "telefono", "notas", "activo"],
+    campos: [
+      {
+        k: "cuenta_id",
+        label: "Cuenta Lexmark",
+        tipo: "select",
+        opciones: "cuentas_id",
+        requerido: true,
+      },
+      { k: "nombre", label: "Nombre", tipo: "text" },
+      {
+        k: "rol_contacto",
+        label: "Tipo",
+        tipo: "select",
+        opciones: "roles_contacto",
+        ayuda: "mesa = mesa de servicio / help desk",
+      },
+      { k: "correo", label: "Correo", tipo: "text" },
+      { k: "telefono", label: "Teléfono", tipo: "text" },
+      { k: "notas", label: "Notas", tipo: "text" },
+      { k: "activo", label: "Activo", tipo: "bool" },
+    ],
+  },
+
   zonas: {
     tabla: "zonas",
     titulo: "Zonas",

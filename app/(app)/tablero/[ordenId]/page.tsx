@@ -6,6 +6,7 @@ import { esRolQueVeTodo } from "@/lib/auth/roles";
 import DetalleOrden, { type OrdenDetalle } from "@/components/DetalleOrden";
 import SeccionPiezas from "@/components/SeccionPiezas";
 import { detectarNumerosParte, type PiezaOrden } from "@/lib/piezas";
+import { cuentaDeOrden } from "@/lib/cuentas/directorio";
 
 export default async function DetalleOrdenPage({
   params,
@@ -30,28 +31,34 @@ export default async function DetalleOrdenPage({
 
   const esGerencia = esRolQueVeTodo(perfil.rol);
 
-  const [{ data: ingenieros }, { data: historial }, { data: piezas }, { data: zonas }] =
-    await Promise.all([
-      supabase
-        .from("ingenieros")
-        .select("id, nombre, sucursal")
-        .eq("zona_id", orden.zona_id)
-        .eq("activo", true)
-        .order("nombre"),
-      supabase
-        .from("ordenes_historial")
-        .select("estatus_anterior, estatus_nuevo, cambiado_en")
-        .eq("orden_id", ordenId)
-        .order("cambiado_en", { ascending: false }),
-      supabase
-        .from("piezas_orden")
-        .select("*")
-        .eq("orden_id", ordenId)
-        .order("creada_en", { ascending: true }),
-      esGerencia
-        ? supabase.from("zonas").select("id, nombre").order("nombre")
-        : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
-    ]);
+  const [
+    { data: ingenieros },
+    { data: historial },
+    { data: piezas },
+    { data: zonas },
+    cuenta,
+  ] = await Promise.all([
+    supabase
+      .from("ingenieros")
+      .select("id, nombre, sucursal")
+      .eq("zona_id", orden.zona_id)
+      .eq("activo", true)
+      .order("nombre"),
+    supabase
+      .from("ordenes_historial")
+      .select("estatus_anterior, estatus_nuevo, cambiado_en")
+      .eq("orden_id", ordenId)
+      .order("cambiado_en", { ascending: false }),
+    supabase
+      .from("piezas_orden")
+      .select("*")
+      .eq("orden_id", ordenId)
+      .order("creada_en", { ascending: true }),
+    esGerencia
+      ? supabase.from("zonas").select("id, nombre").order("nombre")
+      : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
+    cuentaDeOrden(supabase, orden.cliente),
+  ]);
 
   // Stock de la sucursal de la orden, para mostrar disponibilidad por pieza.
   const stock: Record<string, number> = {};
@@ -98,6 +105,7 @@ export default async function DetalleOrdenPage({
           historial={historial ?? []}
           esGerencia={esGerencia}
           zonas={zonas ?? []}
+          cuenta={cuenta}
           slotPiezas={
             <SeccionPiezas
               ordenId={ordenId}

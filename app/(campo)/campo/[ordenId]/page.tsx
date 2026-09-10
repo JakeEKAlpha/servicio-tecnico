@@ -6,6 +6,7 @@ import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { COLUMNAS_CAMPO, type OrdenCampo } from "@/lib/campo/ordenes";
 import type { Evidencia } from "@/lib/campo/evidencias";
 import type { PiezaOrden } from "@/lib/piezas";
+import { cuentaDeOrden } from "@/lib/cuentas/directorio";
 import ServicioCampo from "@/components/campo/ServicioCampo";
 
 export default async function OrdenCampoPage({
@@ -40,7 +41,7 @@ export default async function OrdenCampoPage({
     );
   }
 
-  const [{ data: evidencias }, { data: piezas }] = await Promise.all([
+  const [{ data: evidencias }, { data: piezas }, cuenta] = await Promise.all([
     supabase
       .from("evidencias")
       .select("*")
@@ -51,6 +52,7 @@ export default async function OrdenCampoPage({
       .select("*")
       .eq("orden_id", ordenId)
       .order("creada_en", { ascending: true }),
+    cuentaDeOrden(supabase, orden.cliente),
   ]);
 
   return (
@@ -65,6 +67,7 @@ export default async function OrdenCampoPage({
         orden={orden}
         evidencias={(evidencias ?? []) as Evidencia[]}
         piezas={(piezas ?? []) as PiezaOrden[]}
+        cuenta={cuenta}
       />
     </div>
   );

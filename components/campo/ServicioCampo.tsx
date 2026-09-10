@@ -13,6 +13,8 @@ import {
 import GrupoEvidencia from "@/components/campo/GrupoEvidencia";
 import PiezasCampo from "@/components/campo/PiezasCampo";
 import DictadoVoz from "@/components/campo/DictadoVoz";
+import CuentaLexmark from "@/components/CuentaLexmark";
+import type { CuentaDirectorio } from "@/lib/cuentas/directorio";
 
 const VERDE = "#00A859";
 const VERDE_OSC = "#004B25";
@@ -40,10 +42,12 @@ export default function ServicioCampo({
   orden,
   evidencias,
   piezas,
+  cuenta = null,
 }: {
   orden: OrdenCampo;
   evidencias: Evidencia[];
   piezas: PiezaOrden[];
+  cuenta?: CuentaDirectorio | null;
 }) {
   const router = useRouter();
 
@@ -244,6 +248,13 @@ export default function ServicioCampo({
         >
           {msg.texto}
         </p>
+      )}
+
+      {/* Cuenta Lexmark: requisitos + mesa de servicio */}
+      {cuenta && (cuenta.indicaciones || cuenta.contactos.length > 0) && (
+        <Tarjeta titulo="Cuenta Lexmark / mesa de servicio">
+          <CuentaLexmark cuenta={cuenta} />
+        </Tarjeta>
       )}
 
       {/* Tiempos */}

@@ -23,6 +23,7 @@ export default async function RecursoPage({
     { data: gestores },
     { data: perfiles },
     { data: ingenieros },
+    { data: cuentas },
   ] = await Promise.all([
     supabase.from(cfg.tabla).select("*").order(cfg.orden),
     supabase.from("zonas").select("id, nombre").order("nombre"),
@@ -31,6 +32,7 @@ export default async function RecursoPage({
     supabase.from("gestores_cuenta").select("id, nombre").order("nombre"),
     supabase.from("perfiles").select("id, nombre, rol").order("nombre"),
     supabase.from("ingenieros").select("id, nombre").order("nombre"),
+    supabase.from("cuentas_lexmark").select("id, nombre").order("nombre"),
   ]);
 
   const opciones: Record<string, Opcion[]> = {
@@ -54,6 +56,19 @@ export default async function RecursoPage({
       value: i.id as string,
       label: i.nombre as string,
     })),
+    cuentas_id: (cuentas ?? []).map((c) => ({
+      value: c.id as string,
+      label: c.nombre as string,
+    })),
+    roles_contacto: [
+      { value: "mesa", label: "Mesa de servicio" },
+      { value: "lider", label: "Líder" },
+      { value: "principal", label: "Contacto principal" },
+      { value: "secundario", label: "Contacto secundario" },
+      { value: "escalacion", label: "Escalación" },
+      { value: "copia", label: "En copia" },
+      { value: "otro", label: "Otro" },
+    ],
   };
 
   return (

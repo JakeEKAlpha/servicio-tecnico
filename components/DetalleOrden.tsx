@@ -12,6 +12,8 @@ import Colapsable from "@/components/Colapsable";
 import FichaOrden from "@/components/FichaOrden";
 import Revelar from "@/components/Revelar";
 import Modal from "@/components/Modal";
+import CuentaLexmark from "@/components/CuentaLexmark";
+import type { CuentaDirectorio } from "@/lib/cuentas/directorio";
 
 function IconoDoc({ d }: { d: string }) {
   return (
@@ -159,6 +161,7 @@ export default function DetalleOrden({
   esGerencia,
   zonas = [],
   slotPiezas,
+  cuenta = null,
 }: {
   orden: OrdenDetalle;
   ingenieros: Ingeniero[];
@@ -166,6 +169,7 @@ export default function DetalleOrden({
   esGerencia: boolean;
   zonas?: { id: string; nombre: string }[];
   slotPiezas?: React.ReactNode;
+  cuenta?: CuentaDirectorio | null;
 }) {
   const router = useRouter();
   const bloqueada =
@@ -433,6 +437,28 @@ export default function DetalleOrden({
 
       </div>
       <div className="space-y-4 lg:col-span-5">
+
+      {/* Cuenta Lexmark: requisitos + mesa de servicio */}
+      {cuenta && (
+        <Revelar delay={75}>
+        <Colapsable
+          id={"cuenta-" + orden.id}
+          titulo="Cuenta Lexmark / mesa de servicio"
+          resumen={
+            cuenta.indicaciones
+              ? "Con requisitos de acceso"
+              : `${cuenta.contactos.length} contacto(s)`
+          }
+          defaultAbierto={!!cuenta.indicaciones}
+          icono={<IconoDoc d="M12 3l8 4v6c0 5-3.5 7.5-8 8-4.5-.5-8-3-8-8V7z" />}
+        >
+          <p className="mb-2 text-xs text-muted">
+            Emparejado con «{cuenta.nombre}».
+          </p>
+          <CuentaLexmark cuenta={cuenta} />
+        </Colapsable>
+        </Revelar>
+      )}
 
       {/* Asignar / reasignar */}
       <Revelar delay={90}>
