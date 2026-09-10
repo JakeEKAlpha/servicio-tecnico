@@ -17,6 +17,7 @@ export type PiezaOrden = {
   estado: EstadoPieza;
   cantidad: number;
   es_reposicion: boolean;
+  disponible_sistema: boolean;
   validada_almacen: boolean;
   creada_en: string;
   recibida_en: string | null;

@@ -36,6 +36,7 @@ export default async function DetalleOrdenPage({
     { data: historial },
     { data: piezas },
     { data: zonas },
+    { data: sucursales },
     cuenta,
   ] = await Promise.all([
     supabase
@@ -57,6 +58,12 @@ export default async function DetalleOrdenPage({
     esGerencia
       ? supabase.from("zonas").select("id, nombre").order("nombre")
       : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
+    supabase
+      .from("sucursales")
+      .select("id, nombre")
+      .eq("zona_id", orden.zona_id)
+      .eq("activa", true)
+      .order("nombre"),
     cuentaDeOrden(supabase, orden.cliente),
   ]);
 
@@ -114,6 +121,8 @@ export default async function DetalleOrdenPage({
               sugeridas={sugeridas}
               tieneSucursal={!!orden.sucursal_id}
               rol={perfil.rol}
+              sucursales={sucursales ?? []}
+              sucursalActual={orden.sucursal_id ?? null}
             />
           }
         />

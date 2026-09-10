@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ETIQUETA_ESTADO_PIEZA, type PiezaOrden } from "@/lib/piezas";
 import { claseEstadoPieza } from "@/lib/tema";
-import { botonMini, botonSecMini, campo, chip } from "@/lib/ui";
+import { boton, botonSec, botonMini, botonSecMini, campo, chip } from "@/lib/ui";
 import Colapsable from "@/components/Colapsable";
+import Modal from "@/components/Modal";
 
 function IconoBasura() {
   return (
@@ -22,6 +23,8 @@ export default function SeccionPiezas({
   sugeridas,
   tieneSucursal,
   rol,
+  sucursales = [],
+  sucursalActual = null,
 }: {
   ordenId: string;
   piezas: PiezaOrden[];
@@ -29,6 +32,8 @@ export default function SeccionPiezas({
   sugeridas: string[];
   tieneSucursal: boolean;
   rol: string;
+  sucursales?: { id: string; nombre: string }[];
+  sucursalActual?: string | null;
 }) {
   const esIngeniero = rol === "ingeniero" || rol === "Ingeniero";
   const estadoAlta = esIngeniero ? "en_espera" : "recomendada";
@@ -38,6 +43,8 @@ export default function SeccionPiezas({
   const [enviando, setEnviando] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [menuNoUsada, setMenuNoUsada] = useState<string | null>(null);
+  const [pedirSucursal, setPedirSucursal] = useState(false);
+  const [sucSel, setSucSel] = useState(sucursalActual ?? "");
 
   async function api(
     url: string,
@@ -85,10 +92,40 @@ export default function SeccionPiezas({
     setEnviando(false);
   }
 
-  async function setValidada(id: string, v: boolean) {
+  /** Marca una validación (sistema o almacén). Si falta sucursal, abre el popup. */
+  async function validar(
+    id: string,
+    campo: "disponible_sistema" | "validada_almacen",
+    v: boolean,
+  ) {
     setEnviando(true);
-    if (await api(`/api/piezas/${id}`, "PATCH", { validada_almacen: v }))
+    setErr(null);
+    const r = await fetch(`/api/piezas/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [campo]: v }),
+    });
+    const data = await r.json();
+    if (data?.error === "SIN_SUCURSAL") {
+      setPedirSucursal(true);
+    } else if (!r.ok || !data.ok) {
+      setErr(data.error ?? "No se pudo validar.");
+    } else {
       router.refresh();
+    }
+    setEnviando(false);
+  }
+
+  async function guardarSucursal() {
+    if (!sucSel) return;
+    const nombre = sucursales.find((s) => s.id === sucSel)?.nombre ?? sucSel;
+    setEnviando(true);
+    if (
+      await api(`/api/ordenes/${ordenId}`, "PATCH", { sucursal: nombre })
+    ) {
+      setPedirSucursal(false);
+      router.refresh();
+    }
     setEnviando(false);
   }
 
@@ -106,10 +143,15 @@ export default function SeccionPiezas({
     setEnviando(false);
   }
 
+  /** Una recomendada está lista para apartar: disponible en sistema (o con
+   *  stock) Y confirmada por almacén. */
+  function lista(p: PiezaOrden): boolean {
+    const enSistema = p.disponible_sistema || (stock[p.numero_parte] ?? 0) > 0;
+    return enSistema && p.validada_almacen;
+  }
+
   async function irConRecomendadas() {
-    const listas = piezas.filter(
-      (p) => p.estado === "recomendada" && p.validada_almacen,
-    );
+    const listas = piezas.filter((p) => p.estado === "recomendada" && lista(p));
     if (listas.length === 0) return;
     setEnviando(true);
     for (const p of listas) {
@@ -154,7 +196,7 @@ export default function SeccionPiezas({
     );
   }
 
-  const validadasListas = recomendadas.filter((p) => p.validada_almacen).length;
+  const validadasListas = recomendadas.filter((p) => lista(p)).length;
 
   const resumen =
     piezas.length === 0
@@ -220,7 +262,7 @@ export default function SeccionPiezas({
               onClick={irConRecomendadas}
               title={
                 validadasListas === 0
-                  ? "Valida al menos una pieza en almacén"
+                  ? "Necesita las 2 validaciones: en sistema y confirmada por almacén"
                   : ""
               }
             >
@@ -241,20 +283,48 @@ export default function SeccionPiezas({
                   )}
                   <Disp n={p.numero_parte} />
                 </div>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setValidada(p.id, !p.validada_almacen)}
-                    disabled={enviando}
-                    className={
-                      "rounded-md px-2.5 py-1 text-xs font-semibold transition-colors " +
-                      (p.validada_almacen
-                        ? "bg-tone-ok-bg text-tone-ok-fg"
-                        : "border border-border-default text-muted hover:bg-surface-2")
-                    }
-                  >
-                    {p.validada_almacen ? "✓ Validada" : "Validar"}
-                  </button>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  {(() => {
+                    const enSistema =
+                      p.disponible_sistema ||
+                      (stock[p.numero_parte] ?? 0) > 0;
+                    return (
+                      <>
+                        <button
+                          type="button"
+                          disabled={enviando}
+                          onClick={() =>
+                            validar(p.id, "disponible_sistema", !p.disponible_sistema)
+                          }
+                          className={
+                            "rounded-md px-2 py-1 text-xs font-semibold transition-colors " +
+                            (enSistema
+                              ? "bg-tone-ok-bg text-tone-ok-fg"
+                              : "border border-border-default text-muted hover:bg-surface-2")
+                          }
+                          title="Validación 1/2 — existencia en sistema"
+                        >
+                          {enSistema ? "✓ En sistema" : "1· En sistema"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={enviando}
+                          onClick={() =>
+                            validar(p.id, "validada_almacen", !p.validada_almacen)
+                          }
+                          className={
+                            "rounded-md px-2 py-1 text-xs font-semibold transition-colors " +
+                            (p.validada_almacen
+                              ? "bg-tone-ok-bg text-tone-ok-fg"
+                              : "border border-border-default text-muted hover:bg-surface-2")
+                          }
+                          title="Validación 2/2 — almacén confirma físicamente"
+                        >
+                          {p.validada_almacen ? "✓ Almacén" : "2· Almacén confirma"}
+                        </button>
+                      </>
+                    );
+                  })()}
                   <button
                     type="button"
                     onClick={() => setEstado(p.id, "cancelada")}
@@ -467,6 +537,50 @@ export default function SeccionPiezas({
           </>
         )}
       </div>
+
+      {pedirSucursal && (
+        <Modal
+          titulo="Asignar sucursal"
+          ancho="max-w-sm"
+          centrado
+          onClose={() => setPedirSucursal(false)}
+        >
+          <h2 className="text-base font-bold">Asignar sucursal</h2>
+          <p className="text-sm text-muted">
+            Para validar la pieza hace falta la sucursal: la revisa el almacén de
+            esa sucursal. Esto cuenta como parte de la asignación.
+          </p>
+          <select
+            value={sucSel}
+            onChange={(e) => setSucSel(e.target.value)}
+            className={campo}
+          >
+            <option value="">— elegir sucursal —</option>
+            {sucursales.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.nombre}
+              </option>
+            ))}
+          </select>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              className={botonSec}
+              onClick={() => setPedirSucursal(false)}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className={boton}
+              disabled={enviando || !sucSel}
+              onClick={guardarSucursal}
+            >
+              Guardar sucursal
+            </button>
+          </div>
+        </Modal>
+      )}
     </Colapsable>
   );
 }

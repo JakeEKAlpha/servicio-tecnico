@@ -57,11 +57,43 @@ export async function PATCH(
     return NextResponse.json({ ok: true, pieza: data });
   }
 
-  // --- Validación de almacén ---
-  if ("validada_almacen" in body) {
+  // --- Validaciones (necesitan sucursal asignada en la orden) ---
+  // 1/2 sistema: `disponible_sistema` (coordinador)   2/2 físico: `validada_almacen` (almacén)
+  const campoValidacion =
+    "validada_almacen" in body
+      ? "validada_almacen"
+      : "disponible_sistema" in body
+        ? "disponible_sistema"
+        : null;
+  if (campoValidacion) {
+    // La sucursal debe estar asignada: la revisa el almacén de esa sucursal.
+    const { data: pieza0 } = await supabase
+      .from("piezas_orden")
+      .select("orden_id")
+      .eq("id", id)
+      .maybeSingle();
+    if (pieza0) {
+      const { data: ord } = await supabase
+        .from("ordenes")
+        .select("sucursal_id")
+        .eq("id", pieza0.orden_id)
+        .maybeSingle();
+      if (!ord?.sucursal_id) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "SIN_SUCURSAL",
+            detalle:
+              "Asigna primero la sucursal: la revisa el almacén de esa sucursal.",
+          },
+          { status: 409 },
+        );
+      }
+    }
+
     const { data, error } = await supabase
       .from("piezas_orden")
-      .update({ validada_almacen: !!body.validada_almacen })
+      .update({ [campoValidacion]: !!body[campoValidacion] })
       .eq("id", id)
       .select()
       .maybeSingle();
@@ -81,6 +113,38 @@ export async function PATCH(
       { ok: false, error: "Estado de pieza no válido." },
       { status: 400 },
     );
+  }
+
+  // "Ir con pieza" (apartar): requiere sucursal asignada + las 2 validaciones.
+  if (estado === "apartada") {
+    const { data: pz } = await supabase
+      .from("piezas_orden")
+      .select("orden_id, disponible_sistema, validada_almacen")
+      .eq("id", id)
+      .maybeSingle();
+    if (pz) {
+      const { data: ord } = await supabase
+        .from("ordenes")
+        .select("sucursal_id")
+        .eq("id", pz.orden_id)
+        .maybeSingle();
+      if (!ord?.sucursal_id) {
+        return NextResponse.json(
+          { ok: false, error: "Asigna primero la sucursal de la visita." },
+          { status: 409 },
+        );
+      }
+      if (!pz.disponible_sistema || !pz.validada_almacen) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Falta validar la pieza: disponible en sistema y confirmada por almacén.",
+          },
+          { status: 409 },
+        );
+      }
+    }
   }
 
   const update: Record<string, unknown> = { estado };

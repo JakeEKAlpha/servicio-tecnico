@@ -363,16 +363,15 @@ export async function PATCH(
     update.estatus = "Asignado";
     fueAsignacion = true;
   } else if (traeSucursal && !nuevoEstatus) {
-    // Sólo sucursal, sin asignación ni cambio de estatus: es una edición de
-    // detalle, fuera del alcance del punto 2.
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          "Para editar sólo la sucursal usa el endpoint de detalles (pendiente).",
-      },
-      { status: 400 },
-    );
+    // Sólo sucursal (ej. desde el popup de "validar pieza sin sucursal"):
+    // cuenta como parte de la asignación. El trigger resuelve sucursal_id.
+    if (estatusActual === "Concluido" && !veTodo) {
+      return NextResponse.json(
+        { ok: false, error: "Orden concluida: ya no se puede editar." },
+        { status: 409 },
+      );
+    }
+    update.sucursal = textoONull(datos.sucursal);
   }
 
   // -----------------------------------------------------------------------
