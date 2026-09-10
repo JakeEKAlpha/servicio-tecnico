@@ -472,9 +472,11 @@ export default function DetalleOrden({
         }
         icono={<IconoDoc d="M5 4h14v16H5zM5 9h14M9 4v16" />}
       >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="text-sm">
-            Fecha ETA
+        <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 sm:items-start">
+          <div>
+            <span className="mb-1 block text-xs font-semibold text-muted">
+              Fecha ETA
+            </span>
             <input
               type="date"
               value={fecha}
@@ -482,9 +484,11 @@ export default function DetalleOrden({
               disabled={bloqueada}
               className={campo}
             />
-          </label>
-          <div className="text-sm">
-            <span className="mb-1 block">Hora ETA</span>
+          </div>
+          <div>
+            <span className="mb-1 block text-xs font-semibold text-muted">
+              Hora ETA
+            </span>
             <SelectorHora valor={hora} onCambio={setHora} disabled={bloqueada} />
           </div>
           <SelectorIngenieroSucursal

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { colorOrden, puntoEstatus } from "@/lib/tema";
+import { textoEta } from "@/lib/eta";
 
 type IconoProps = { d: string; className?: string };
 function Ico({ d, className = "h-4 w-4" }: IconoProps) {
@@ -47,6 +48,9 @@ export type OrdenFicha = {
   tel_movil: string | null;
   link_doc: string | null;
   link_pdf: string | null;
+  ingeniero_nombre: string | null;
+  fecha_eta: string | null;
+  hora_eta: string | null;
 };
 
 export default function FichaOrden({
@@ -156,6 +160,7 @@ export default function FichaOrden({
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir)}`
     : null;
   const tel = (orden.tel_movil ?? "").replace(/\D/g, "");
+  const eta = textoEta(orden.ingeniero_nombre, orden.fecha_eta, orden.hora_eta);
 
   const btn =
     "inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-2.5 py-1.5 text-xs font-semibold backdrop-blur transition-colors hover:bg-white/25";
@@ -323,6 +328,16 @@ export default function FichaOrden({
                 <Ico d={I.wa} className="h-3.5 w-3.5" /> WhatsApp
               </a>
             </>
+          )}
+          {eta && (
+            <button
+              type="button"
+              onClick={() => copiar(eta, "ETA")}
+              className={btn}
+              title={eta}
+            >
+              <Ico d={I.copy} className="h-3.5 w-3.5" /> Copiar ETA
+            </button>
           )}
           {copiado && (
             <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1.5 text-xs font-semibold">

@@ -62,10 +62,12 @@ export default function SelectorIngenieroSucursal({
     if (ing?.sucursal) onSucursal(ing.sucursal);
   }
 
+  const label = "mb-1 block text-xs font-semibold text-muted";
+
   return (
     <>
-      <label className="text-sm">
-        Sucursal
+      <div>
+        <span className={label}>Sucursal</span>
         <select
           value={sucursal}
           onChange={(e) => elegirSucursal(e.target.value)}
@@ -79,9 +81,9 @@ export default function SelectorIngenieroSucursal({
             </option>
           ))}
         </select>
-      </label>
-      <label className="text-sm">
-        Ingeniero
+      </div>
+      <div>
+        <span className={label}>Ingeniero</span>
         <select
           value={ingenieroId}
           onChange={(e) => elegirIngeniero(e.target.value)}
@@ -101,7 +103,7 @@ export default function SelectorIngenieroSucursal({
             </option>
           )}
         </select>
-      </label>
+      </div>
     </>
   );
 }
