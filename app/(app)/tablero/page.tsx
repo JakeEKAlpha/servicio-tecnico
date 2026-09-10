@@ -6,6 +6,7 @@ import { listarOrdenes } from "@/lib/ordenes/listar";
 import { prioridadDe } from "@/lib/ordenes/estatus";
 import { claseEstatus } from "@/lib/tema";
 import { chip, campo, botonSec } from "@/lib/ui";
+import { Buscar } from "@/lib/iconos";
 import Revelar from "@/components/Revelar";
 import TablaOrdenes from "@/components/TablaOrdenes";
 import ModalPegarWOSR from "@/components/ModalPegarWOSR";
@@ -72,18 +73,19 @@ export default async function TableroPage({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <form method="GET" className="flex items-center gap-1">
+          <form method="GET" className="relative flex items-center">
             {soloActivos && <input type="hidden" name="activos" value="1" />}
             <label htmlFor="buscar-orden" className="sr-only">
               Buscar por número de orden, cliente o ingeniero
             </label>
+            <Buscar className="pointer-events-none absolute left-3 h-4 w-4 text-muted" />
             <input
               id="buscar-orden"
               type="search"
               name="q"
               defaultValue={q ?? ""}
               placeholder="Buscar orden, cliente, ingeniero…"
-              className={campo + " w-64"}
+              className={campo + " w-64 pl-9"}
             />
           </form>
           <Link

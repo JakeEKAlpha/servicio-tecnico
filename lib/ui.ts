@@ -15,18 +15,25 @@ export const campo =
 
 export const etiqueta = "block text-xs font-semibold text-muted";
 
-/* --- Botones --- */
+/* --- Botones ---
+ * Regla: la etiqueta es de UNA palabra (la acción, no la narración).
+ * Deshabilitado NO se colorea: pierde el relleno de marca y queda gris —
+ * así "puedo tocarlo" y "no puedo" se distinguen de un vistazo.
+ */
+const desactivado =
+  "disabled:bg-surface-2 disabled:text-muted disabled:shadow-none disabled:cursor-not-allowed disabled:hover:bg-surface-2 disabled:active:scale-100";
+
 export const boton =
-  "inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-fg shadow-sm transition-[background-color,transform] duration-150 ease-out hover:bg-brand-600 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 " +
-  foco;
+  "inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-fg shadow-sm transition-[background-color,transform] duration-150 ease-out hover:bg-brand-600 active:scale-[0.98] " +
+  desactivado + " " + foco;
 
 export const botonSec =
-  "inline-flex items-center justify-center gap-1.5 rounded-lg border border-border-default bg-surface px-4 py-2 text-sm font-medium text-text transition-[background-color,transform] duration-150 ease-out hover:bg-surface-2 active:scale-[0.98] disabled:opacity-40 " +
+  "inline-flex items-center justify-center gap-1.5 rounded-lg border border-border-default bg-surface px-4 py-2 text-sm font-medium text-text transition-[background-color,transform] duration-150 ease-out hover:bg-surface-2 active:scale-[0.98] disabled:text-muted disabled:cursor-not-allowed disabled:hover:bg-surface disabled:active:scale-100 " +
   foco;
 
 export const botonPeligro =
-  "inline-flex items-center justify-center gap-1.5 rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-white shadow-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-90 active:scale-[0.98] disabled:opacity-40 " +
-  foco;
+  "inline-flex items-center justify-center gap-1.5 rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-white shadow-sm transition-[opacity,transform] duration-150 ease-out hover:opacity-90 active:scale-[0.98] " +
+  desactivado + " " + foco;
 
 /** Botón chico de texto, para celdas de tabla / acciones inline. */
 export const botonTexto =
@@ -35,7 +42,7 @@ export const botonTexto =
 
 /** Botón compacto (celdas de tabla): relleno azul, pequeño. */
 export const botonMini =
-  "inline-flex items-center gap-1 rounded-md bg-brand px-2 py-1 text-xs font-semibold text-brand-fg transition-colors duration-150 hover:bg-brand-600 disabled:opacity-40 " +
+  "inline-flex items-center gap-1 rounded-md bg-brand px-2 py-1 text-xs font-semibold text-brand-fg transition-colors duration-150 hover:bg-brand-600 disabled:bg-surface-2 disabled:text-muted disabled:cursor-not-allowed disabled:hover:bg-surface-2 " +
   foco;
 
 /** Botón compacto secundario. */

@@ -10,6 +10,7 @@ export type Tono =
   | "violet"
   | "orange"
   | "teal"
+  | "rojo"
   | "neutral";
 
 const CLASE_TONO: Record<Tono, string> = {
@@ -19,6 +20,7 @@ const CLASE_TONO: Record<Tono, string> = {
   violet: "bg-tone-violet-bg text-tone-violet-fg",
   orange: "bg-tone-orange-bg text-tone-orange-fg",
   teal: "bg-tone-teal-bg text-tone-teal-fg",
+  rojo: "bg-tone-rojo-bg text-tone-rojo-fg",
   neutral: "bg-tone-neutral-bg text-tone-neutral-fg",
 };
 
@@ -33,8 +35,8 @@ const TONO_ESTATUS: Record<string, Tono> = {
   Asignado: "ok",
   Reagendado: "violet",
   "Pendiente por partes": "orange",
-  "Lista para realizar": "teal",
-  "Listo para continuar": "teal",
+  "Lista para realizar": "warn",
+  "Listo para continuar": "warn",
   Concluido: "neutral",
   Cancelado: "neutral",
 };
@@ -44,7 +46,7 @@ const TONO_PIEZA: Record<string, Tono> = {
   en_espera: "warn",
   recibida: "ok",
   apartada: "violet",
-  usada: "teal",
+  usada: "rojo",
   cancelada: "neutral",
 };
 
@@ -55,6 +57,7 @@ const PUNTO_TONO: Record<Tono, string> = {
   violet: "bg-violet-400",
   orange: "bg-orange-400",
   teal: "bg-teal-400",
+  rojo: "bg-red-400",
   neutral: "bg-slate-400",
 };
 

@@ -53,6 +53,8 @@
   --tone-orange-fg: #9a3412;
   --tone-teal-bg: #ccfbf1;
   --tone-teal-fg: #115e59;
+  --tone-rojo-bg: #fee2e2;
+  --tone-rojo-fg: #991b1b;
   --tone-neutral-bg: #e2e8f0;
   --tone-neutral-fg: #475569;
 }
@@ -96,6 +98,8 @@
     --tone-orange-fg: #fdba74;
     --tone-teal-bg: #0c2e2b;
     --tone-teal-fg: #5eead4;
+    --tone-rojo-bg: #3f1414;
+    --tone-rojo-fg: #fca5a5;
     --tone-neutral-bg: #2c3a54;
     --tone-neutral-fg: #cbd5e1;
   }
@@ -139,6 +143,8 @@
   --tone-orange-fg: #fdba74;
   --tone-teal-bg: #0c2e2b;
   --tone-teal-fg: #5eead4;
+  --tone-rojo-bg: #3f1414;
+  --tone-rojo-fg: #fca5a5;
   --tone-neutral-bg: #2c3a54;
   --tone-neutral-fg: #cbd5e1;
 }
@@ -179,6 +185,8 @@
   --color-tone-orange-fg: var(--tone-orange-fg);
   --color-tone-teal-bg: var(--tone-teal-bg);
   --color-tone-teal-fg: var(--tone-teal-fg);
+  --color-tone-rojo-bg: var(--tone-rojo-bg);
+  --color-tone-rojo-fg: var(--tone-rojo-fg);
   --color-tone-neutral-bg: var(--tone-neutral-bg);
   --color-tone-neutral-fg: var(--tone-neutral-fg);
 
