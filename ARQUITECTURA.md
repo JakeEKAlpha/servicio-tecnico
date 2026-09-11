@@ -229,8 +229,14 @@ que sí existe hoy. Reescrito contra el estado verificado.
 - [x] **`ingenieros.sucursal_id` + selector de asignación lee `sucursales`** — cerrado 2026-09-11
       (diagnóstico corregido: `ordenes.sucursal_id` no era la deuda real, ya lo resolvía un
       trigger). Ver Deuda técnica #6.
-- [ ] Agregar vinculación manual similar a la de clientes también para casos borde de sucursal
-      (typos en `ingenieros.sucursal` que el backfill exacto no haya podido resolver).
+- [x] **Casos borde de sucursal — cerrado 2026-09-11, sin componente nuevo.** No hacía falta una
+      UI de vinculación manual: `sucursal_id` ya es un campo editable en el panel de Gerencia de
+      Ingenieros (agregado en la ronda anterior). 7/23 ingenieros habían quedado sin `sucursal_id`
+      tras el backfill exacto — no por typos, sino porque `sucursales.nombre` siempre lleva el
+      prefijo de empresa ("Alpha Digital Mérida") y `ingenieros.sucursal` a veces solo trae la
+      ciudad ("Mérida"). Corregidos 3 (Mérida ×2, Cancún ×1); los 4 restantes son ingenieros de
+      "Soporte"/"Soporte Chiapas" sin sucursal física — correcto que queden sin vincular. 19/23
+      con `sucursal_id` ahora.
 - [x] "Leaked password protection" — **descartado 2026-09-11**, es un servicio de paga (plan Pro
       de Supabase), no un toggle gratuito. Ver Deuda técnica #7.
 - [x] **Gantt — cerrado 2026-09-11.** Reportado por el usuario: soltar una tarjeta se sentía
