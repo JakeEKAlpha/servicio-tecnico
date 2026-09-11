@@ -4,10 +4,11 @@ import { Suspense, useActionState, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { iniciarSesion, recuperarPassword } from "./acciones";
 import LogoAlpha from "@/components/LogoAlpha";
+import { EMPRESA_ALPHA } from "@/lib/empresa";
 import { boton, campo as inputCls } from "@/lib/ui";
+import { Correo, Llamar } from "@/lib/iconos";
 
-const cardCls =
-  "w-full max-w-sm space-y-4 rounded-2xl border border-border-default bg-surface p-7 text-text shadow-xl";
+const cardCls = "w-full max-w-sm space-y-4 text-text";
 
 const CLAVE_CORREO = "login-email";
 
@@ -52,8 +53,8 @@ function FormularioLogin() {
   return (
     <form action={accion} onSubmit={recordar} className={cardCls}>
       <div>
-        <h1 className="text-lg font-extrabold text-brand">Servicio Técnico</h1>
-        <p className="text-sm text-muted">Inicia sesión para continuar</p>
+        <h1 className="text-xl font-extrabold text-brand">Inicia sesión</h1>
+        <p className="text-sm text-muted">Entra con tu cuenta de Servicio Técnico.</p>
       </div>
       {enlaceInvalido && (
         <p className="rounded-lg bg-tone-warn-bg px-3 py-2 text-sm text-tone-warn-fg">
@@ -105,7 +106,7 @@ function FormularioRecuperar() {
   return (
     <form action={accion} onSubmit={recordar} className={cardCls}>
       <div>
-        <h1 className="text-lg font-extrabold text-brand">
+        <h1 className="text-xl font-extrabold text-brand">
           Recuperar contraseña
         </h1>
         <p className="text-sm text-muted">
@@ -139,18 +140,58 @@ function LoginContenido() {
   const [modo, setModo] = useState<"login" | "recuperar">("login");
 
   return (
-    <main className="banda-marca flex min-h-screen flex-col items-center justify-center gap-5 p-4">
-      <LogoAlpha variante="blanco" className="h-10 w-auto" />
-      {modo === "login" ? <FormularioLogin /> : <FormularioRecuperar />}
-      <button
-        type="button"
-        onClick={() => setModo(modo === "login" ? "recuperar" : "login")}
-        className="text-sm text-white/80 underline hover:text-white"
-      >
-        {modo === "login"
-          ? "¿Olvidaste tu contraseña?"
-          : "Volver a iniciar sesión"}
-      </button>
+    <main className="flex min-h-screen flex-col md:flex-row">
+      {/* Izquierda: marca + a quién sirve + a quién llamar (wireframe 10d) */}
+      <div className="banda-marca flex shrink-0 flex-col justify-between gap-8 p-8 md:w-[42%] md:min-h-screen md:p-12">
+        <LogoAlpha variante="blanco" className="h-9 w-auto" />
+
+        <div className="max-w-sm space-y-3 text-white">
+          <h2 className="text-2xl font-extrabold leading-tight">
+            Servicio Técnico
+          </h2>
+          <p className="text-sm leading-relaxed text-white/85">
+            Coordina visitas, piezas y documentación de servicio Lexmark y
+            Xerox. Lo usan coordinadores de zona, ingenieros en campo,
+            almacén y gerencia — cada quien ve solo lo suyo.
+          </p>
+        </div>
+
+        <div className="space-y-2 text-sm text-white/85">
+          <p className="text-xs font-bold uppercase tracking-wide text-white/60">
+            ¿No puedes entrar?
+          </p>
+          <a
+            href={`mailto:${EMPRESA_ALPHA.correo}`}
+            className="flex items-center gap-2 hover:text-white"
+          >
+            <Correo className="h-4 w-4 shrink-0" />
+            {EMPRESA_ALPHA.correo}
+          </a>
+          <a
+            href={`tel:${EMPRESA_ALPHA.telefono.replace(/\D/g, "")}`}
+            className="flex items-center gap-2 hover:text-white"
+          >
+            <Llamar className="h-4 w-4 shrink-0" />
+            {EMPRESA_ALPHA.telefono}
+          </a>
+        </div>
+      </div>
+
+      {/* Derecha: formulario */}
+      <div className="flex flex-1 items-center justify-center bg-bg p-6">
+        <div className="w-full max-w-sm">
+          {modo === "login" ? <FormularioLogin /> : <FormularioRecuperar />}
+          <button
+            type="button"
+            onClick={() => setModo(modo === "login" ? "recuperar" : "login")}
+            className="mt-4 text-sm font-medium text-muted underline hover:text-brand"
+          >
+            {modo === "login"
+              ? "¿Olvidaste tu contraseña?"
+              : "Volver a iniciar sesión"}
+          </button>
+        </div>
+      </div>
     </main>
   );
 }
