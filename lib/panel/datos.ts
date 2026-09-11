@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Perfil } from "@/lib/auth/sesion";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { hoyMx, isoMx } from "@/lib/fechas";
+import { horasParaVencerSla } from "@/lib/ordenes/sla";
 import { resumenInicio, type ResumenInicio } from "@/lib/inicio/datos";
 
 export type SeveridadAlerta = "critica" | "alta" | "media";
@@ -15,6 +16,22 @@ export type Alerta = {
 export type PuntoFlujo = { dia: string; proyectadas: number; completadas: number };
 export type Fase = { estatus: string; n: number };
 
+/** Fila del widget "Necesita tu atención" — fusiona lo que antes eran 3
+ *  piezas separadas (KPI "Sin asignar", "Alertas críticas", "Órdenes por
+ *  asignar") en una sola lista. Decisión del usuario 2026-09-11: esas 3
+ *  piezas contaban lo mismo dos veces. */
+export type ItemAtencion = {
+  id: string;
+  numero_orden: string;
+  cliente: string | null;
+  origen: string | null;
+  marca_nombre: string | null;
+  /** "vencido" pesa más que "sin_asignar" si una orden es las dos cosas —
+   *  es la más urgente de las dos. */
+  motivo: "vencido" | "sin_asignar";
+  href: string;
+};
+
 export type DatosPanel = {
   base: ResumenInicio;
   flujo: PuntoFlujo[];
@@ -22,6 +39,7 @@ export type DatosPanel = {
   /** % de órdenes concluidas en los últimos 7 días que cerraron en o antes de su ETA. */
   cumplimientoEta: number | null;
   alertas: Alerta[];
+  atencion: ItemAtencion[];
 };
 
 const CERRADAS = "(Concluido,Cancelado)";
@@ -64,7 +82,7 @@ async function consultasPanel(supabase: SupabaseClient, perfil: Perfil) {
   const desde = dias[0];
   const hace7 = new Date(Date.now() - 7 * 864e5).toISOString();
 
-  const [proyRaw, compRaw, fasesRaw, etaRaw, slaRaw, reagRaw, piezaRaw] =
+  const [proyRaw, compRaw, fasesRaw, etaRaw, slaRaw, reagRaw, piezaRaw, atencionRaw] =
     await Promise.all([
       // Flujo — proyectadas: órdenes con ETA en la ventana
       supabase
@@ -118,6 +136,19 @@ async function consultasPanel(supabase: SupabaseClient, perfil: Perfil) {
         .eq("estado", "en_espera")
         .order("creada_en", { ascending: true })
         .limit(10),
+      // "Necesita tu atención" — SLA vencido (misma regla de Lexmark que ya
+      // ordena el Tablero y evalúa Reportes, no el heurístico de fecha_eta
+      // de arriba) o sin asignar. Tope de 300 filas: hoy el volumen real es
+      // bajísimo (sistema nuevo), pero sin límite esta consulta crecería sin
+      // tope conforme se acumulen órdenes activas.
+      supabase
+        .from("ordenes")
+        .select(
+          "id, numero_orden, cliente, ingeniero_id, origen, datos_especificos, creado_en, marcas(nombre)",
+        )
+        .match(zona)
+        .not("estatus", "in", CERRADAS)
+        .limit(300),
     ]);
 
   // --- Flujo ---
@@ -192,7 +223,48 @@ async function consultasPanel(supabase: SupabaseClient, perfil: Perfil) {
     });
   }
 
-  return { flujo, fases, cumplimientoEta, alertas };
+  // --- Necesita tu atención ---
+  const ahora = new Date();
+  type FilaAtencion = {
+    id: string;
+    numero_orden: string;
+    cliente: string | null;
+    ingeniero_id: string | null;
+    origen: string | null;
+    datos_especificos: Record<string, string> | null;
+    creado_en: string | null;
+    marcas: { nombre: string | null } | { nombre: string | null }[] | null;
+  };
+  const unaMarca = (r: FilaAtencion["marcas"]) => (Array.isArray(r) ? r[0] : r)?.nombre ?? null;
+
+  const atencion: ItemAtencion[] = ((atencionRaw.data ?? []) as unknown as FilaAtencion[])
+    .map((o) => {
+      const horas = horasParaVencerSla(o.origen, o.datos_especificos, o.creado_en, ahora);
+      const vencido = horas !== null && horas < 0;
+      const sinAsignar = !o.ingeniero_id;
+      if (!vencido && !sinAsignar) return null;
+      return {
+        id: o.id,
+        numero_orden: o.numero_orden,
+        cliente: o.cliente,
+        origen: o.origen,
+        marca_nombre: unaMarca(o.marcas),
+        motivo: (vencido ? "vencido" : "sin_asignar") as ItemAtencion["motivo"],
+        href: `/tablero/${o.id}`,
+        _horas: horas, // usado solo para ordenar, se descarta abajo
+      };
+    })
+    .filter((x): x is ItemAtencion & { _horas: number | null } => x !== null)
+    .sort((a, b) => {
+      if (a.motivo !== b.motivo) return a.motivo === "vencido" ? -1 : 1;
+      if (a.motivo === "vencido") return (a._horas ?? 0) - (b._horas ?? 0); // más vencida primero
+      return 0;
+    })
+    .slice(0, 8)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(({ _horas, ...item }) => item);
+
+  return { flujo, fases, cumplimientoEta, alertas, atencion };
 }
 
 /** Lee varias preferencias del usuario. Devuelve `{}` si la tabla aún no existe. */

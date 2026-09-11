@@ -25,6 +25,7 @@ import {
   ListaPendientes,
   AgendaHoy,
   AlertasCriticas,
+  NecesitaAtencion,
   AccesosRapidos,
   FiltrosRapidos,
 } from "@/components/panel/widgets/basicos";
@@ -78,6 +79,8 @@ export default function Panel({
         return <FiltrosRapidos kpis={datos.base.kpis} />;
       case "alertas":
         return <AlertasCriticas alertas={datos.alertas} />;
+      case "atencion":
+        return <NecesitaAtencion items={datos.atencion} />;
       case "kpi_activas":
         return <KpiNumero kpi={kpi("Órdenes activas")} />;
       case "kpi_sin_asignar":

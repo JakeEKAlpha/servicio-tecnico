@@ -24,6 +24,10 @@ const TODOS: RolPanel[] = ["coordinador", "gerencia", "admin", "almacen"];
 
 export const CATALOGO: WidgetDef[] = [
   { id: "filtros", titulo: "Filtros rápidos", def: { w: 12, h: 2 }, min: { w: 6, h: 1 }, roles: COORD },
+  // "Necesita tu atención" — fusiona lo que antes eran 3 piezas separadas
+  // (KPI "Sin asignar", "Alertas críticas", "Órdenes por asignar"), que
+  // contaban lo mismo dos veces. Decisión del usuario 2026-09-11.
+  { id: "atencion", titulo: "Necesita tu atención", def: { w: 8, h: 5 }, min: { w: 6, h: 3 }, roles: COORD },
   { id: "alertas", titulo: "Alertas críticas", def: { w: 12, h: 4 }, min: { w: 6, h: 2 }, roles: TODOS },
   { id: "kpi_activas", titulo: "Órdenes activas", def: { w: 3, h: 2 }, min: { w: 2, h: 2 }, roles: COORD },
   { id: "kpi_sin_asignar", titulo: "Sin asignar", def: { w: 3, h: 2 }, min: { w: 2, h: 2 }, roles: COORD },
@@ -62,15 +66,12 @@ export function widgetsDeRol(rol: string): WidgetDef[] {
 export const ORDEN_DEFECTO: Record<"coord" | "almacen", string[]> = {
   coord: [
     "filtros",
-    "alertas",
     "kpi_activas",
-    "kpi_sin_asignar",
     "kpi_hoy",
     "kpi_eta",
-    "flujo",
-    "fases",
-    "pendientes",
+    "atencion",
     "agenda",
+    "fases",
     "accesos",
   ],
   almacen: ["alertas", "alm_validar", "alm_minimo", "alm_arribos", "fases", "accesos"],

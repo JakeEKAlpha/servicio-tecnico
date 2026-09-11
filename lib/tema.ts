@@ -126,3 +126,23 @@ export function colorOrden(
   }
   return { barra: "bg-marca-alpha", texto: "text-white", punto: "bg-marca-alpha" };
 }
+
+/**
+ * Insignia de tipo de servicio — color Y texto (nunca solo un punto de
+ * color), para identificar WO/SR/Xerox/Alpha de un vistazo en cualquier
+ * tema. Reusa el vocabulario de tonos ya existente (`claseTono`) en vez de
+ * inventar una paleta nueva. Decisión del usuario 2026-09-11 (feedback en
+ * vivo sobre el rediseño): "con solo verlo debo identificar qué servicio es".
+ */
+export function chipServicio(
+  origen: string | null | undefined,
+  marca?: string | null,
+): { texto: string; tono: Tono } {
+  const m = String(marca ?? "").toLowerCase();
+  const o = String(origen ?? "").toUpperCase();
+
+  if (m.includes("xerox")) return { texto: "Xerox", tono: "rojo" };
+  if (o === "SR") return { texto: "SR", tono: "warn" };
+  if (o === "WO" || m.includes("lexmark")) return { texto: "WO", tono: "ok" };
+  return { texto: "Alpha", tono: "info" };
+}

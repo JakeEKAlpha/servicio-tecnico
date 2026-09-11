@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { claseTono, type Tono } from "@/lib/tema";
+import { claseTono, chipServicio, type Tono } from "@/lib/tema";
 import type { Kpi, Pendiente, Acceso, AgendaFila } from "@/lib/inicio/datos";
-import type { Alerta, SeveridadAlerta } from "@/lib/panel/datos";
+import type { Alerta, SeveridadAlerta, ItemAtencion } from "@/lib/panel/datos";
 
 /* ------------------------------------------------------------------ */
 
@@ -195,6 +195,70 @@ export function AlertasCriticas({ alertas }: { alertas: Alerta[] }) {
           </Link>
         </li>
       ))}
+    </ul>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+const ETIQUETA_MOTIVO: Record<ItemAtencion["motivo"], string> = {
+  vencido: "Vencido",
+  sin_asignar: "Sin asignar",
+};
+const TONO_MOTIVO: Record<ItemAtencion["motivo"], Tono> = {
+  vencido: "rojo",
+  sin_asignar: "warn",
+};
+
+/**
+ * "Necesita tu atención" — fusiona lo que antes eran 3 widgets separados
+ * (KPI "Sin asignar", "Alertas críticas" de SLA, "Órdenes por asignar") en
+ * una sola lista, con el chip de marca/servicio (WO/SR/Xerox/Alpha) para
+ * identificar de un vistazo qué tipo de orden es. Decisión del usuario
+ * 2026-09-11 tras validar el mockup: esas piezas contaban lo mismo dos veces.
+ */
+export function NecesitaAtencion({ items }: { items: ItemAtencion[] }) {
+  if (items.length === 0) {
+    return <Vacio>Nada requiere atención ahora mismo. 👌</Vacio>;
+  }
+  return (
+    <ul className="scroll-oculto flex h-full flex-col gap-2 overflow-auto">
+      {items.map((item) => {
+        const chip = chipServicio(item.origen, item.marca_nombre);
+        return (
+          <li key={item.id}>
+            <Link
+              href={item.href}
+              className="flex items-center gap-3 rounded-lg bg-surface-2 p-2.5 transition-colors hover:bg-brand-050"
+            >
+              <span
+                className={
+                  "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold " +
+                  claseTono(TONO_MOTIVO[item.motivo])
+                }
+              >
+                {ETIQUETA_MOTIVO[item.motivo]}
+              </span>
+              <span
+                className={
+                  "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold " +
+                  claseTono(chip.tono)
+                }
+              >
+                {chip.texto}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-text">
+                  {item.numero_orden}
+                </span>
+                <span className="block truncate text-xs text-muted">
+                  {item.cliente ?? "Sin cliente"}
+                </span>
+              </span>
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }
