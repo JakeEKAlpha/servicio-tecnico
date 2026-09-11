@@ -290,59 +290,61 @@ export default function GanttDia({
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <div className="w-52 shrink-0">
-          <h2 className="mb-2 text-sm font-bold">
-            Sin agendar{" "}
-            <span className="font-normal text-muted">
-              ({sinAgendar.length})
-            </span>
-          </h2>
-          <p className="mb-2 text-xs text-muted">
-            Arrastra una tarjeta a la cuadrícula para agendarla.
-          </p>
-          <ul className="space-y-1.5">
-            {sinAgendar.map((o) => {
-              const c = colorOrden(o.origen, o.marca_nombre);
-              return (
-                <li
-                  key={o.id}
-                  onPointerDown={(e) => onDown(e, o.id, "chip", o.hora_eta)}
-                  className="cursor-grab touch-none rounded-lg border border-border-default border-l-4 bg-surface p-2 text-xs shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing"
-                  style={{
-                    borderLeftColor: `var(--marca-${
-                      String(o.marca_nombre ?? "").toLowerCase().includes("xerox")
-                        ? "xerox"
-                        : o.origen === "SR"
-                          ? "lexmark-sr"
-                          : "lexmark"
-                    })`,
-                  }}
-                >
-                  <div className="font-semibold">{o.numero_orden}</div>
-                  <div className="truncate text-muted">{o.cliente}</div>
-                  <span
-                    className={
-                      "mt-1 inline-block rounded px-1.5 py-0.5 font-medium " +
-                      c.barra +
-                      " " +
-                      c.texto
-                    }
+      {/* Sin agendar — tira horizontal arriba de la cuadrícula (wireframe
+          11h): antes era un riel vertical que se comía ancho útil. */}
+      <div>
+        <h2 className="mb-1.5 text-sm font-bold">
+          Sin agendar{" "}
+          <span className="font-normal text-muted">({sinAgendar.length})</span>
+        </h2>
+        {sinAgendar.length === 0 ? (
+          <p className="text-xs text-muted">Nada pendiente.</p>
+        ) : (
+          <>
+            <p className="mb-2 text-xs text-muted">
+              Arrastra una tarjeta a la cuadrícula para agendarla.
+            </p>
+            <ul className="scroll-oculto flex gap-2 overflow-x-auto pb-1">
+              {sinAgendar.map((o) => {
+                const c = colorOrden(o.origen, o.marca_nombre);
+                return (
+                  <li
+                    key={o.id}
+                    onPointerDown={(e) => onDown(e, o.id, "chip", o.hora_eta)}
+                    className="w-40 shrink-0 cursor-grab touch-none rounded-lg border border-border-default border-l-4 bg-surface p-2 text-xs shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing"
+                    style={{
+                      borderLeftColor: `var(--marca-${
+                        String(o.marca_nombre ?? "").toLowerCase().includes("xerox")
+                          ? "xerox"
+                          : o.origen === "SR"
+                            ? "lexmark-sr"
+                            : "lexmark"
+                      })`,
+                    }}
                   >
-                    {o.origen === "SR" ? "SR" : "WO"} · {o.estatus}
-                  </span>
-                </li>
-              );
-            })}
-            {sinAgendar.length === 0 && (
-              <li className="text-xs text-muted">Nada pendiente.</li>
-            )}
-          </ul>
-        </div>
+                    <div className="truncate font-semibold">{o.numero_orden}</div>
+                    <div className="truncate text-muted">{o.cliente}</div>
+                    <span
+                      className={
+                        "mt-1 inline-block rounded px-1.5 py-0.5 font-medium " +
+                        c.barra +
+                        " " +
+                        c.texto
+                      }
+                    >
+                      {o.origen === "SR" ? "SR" : "WO"} · {o.estatus}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+      </div>
 
-        <div className="scroll-oculto overflow-auto rounded-xl border border-border-default shadow-sm">
-          <div
-            ref={gridRef}
+      <div className="scroll-oculto overflow-auto rounded-xl border border-border-default shadow-sm">
+        <div
+          ref={gridRef}
             className="relative touch-none select-none bg-surface text-xs"
             style={{ width: anchoGrid, height: altoGrid }}
           >
@@ -457,7 +459,6 @@ export default function GanttDia({
                 </div>
               );
             })}
-          </div>
         </div>
       </div>
     </div>

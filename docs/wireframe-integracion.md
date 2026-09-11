@@ -16,7 +16,7 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
 |---|---|---|---|---|
 | 1 | Tablero `/tablero` | 11a | ✅ hecho | `docs`+commit |
 | 2 | Detalle de orden `/tablero/[id]` | 11e+11f | 🔧 ancho ampliado; ficha de color se conserva (ver D3) | — |
-| 3 | Gantt del día `/tablero-dias` | 11g+11h+11i | ⏳ pendiente | — |
+| 3 | Gantt del día `/tablero-dias` | 11g+11h+11i | 🔧 riel "sin agendar" a tira horizontal; 11g ya estaba (drag con feedback); ancho 100%/zoom → D7 | — |
 | 4 | Mapa por ingeniero | 11j | ⏳ pendiente (placeholder de imagen, sin geografía real) | — |
 | 5 | Almacén `/almacen` | 11k+11l | 🔧 riel + detalle + resumen hechos; bandeja "validar/apartados" → D6 | — |
 | 6 | Flujo de pedir pieza | 11m | ⏳ pendiente (ya cubierto por `lib/piezas.ts` + `SeccionPiezas.tsx`; no se tocó, ver D6) | — |
@@ -72,6 +72,15 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
   sección "Pedidas para órdenes" (arribos) como estaba, ahora dentro del
   panel de la sucursal activa. Evaluar si de plano quieren la bandeja de
   validar aquí también.
+- **D7 — Gantt: se movió el riel "Sin agendar" a tira horizontal (11h),
+  pero NO se tocó el ancho de la cuadrícula ni se agregó el zoom
+  día/jornada/franja.** `PX_HORA` (72px) es una constante usada en TODA
+  la matemática de arrastrar/soltar y redimensionar (`onMove`, `onUp`,
+  `onResizeDown`) — volverla responsiva (100% del ancho) o agregar zoom
+  significa tocar esa matemática en varios sitios sin poder probar el
+  arrastre en vivo con una sesión real. 11g (feedback visual del
+  arrastre: se levanta, la fila se ilumina, guía de hora) YA estaba
+  implementado en el código actual, mejor que el wireframe incluso.
 
 ## Notas de implementación
 
