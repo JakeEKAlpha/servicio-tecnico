@@ -236,7 +236,12 @@ export default function GanttDia({
     hora = Math.round(hora * 4) / 4;
     hora = Math.max(HORA_INI, Math.min(HORA_FIN - 0.5, hora));
 
-    setMsg("Guardando…");
+    // Al agendar desde "Sin agendar" (chip), el PATCH genera el Doc + PDF de
+    // verdad antes de responder (llamadas reales a Google) — eso tarda unos
+    // segundos. "Guardando…" a secas se siente como que se congeló; avisar
+    // qué está pasando no cambia nada de cómo/cuándo se genera el documento.
+    const generaDoc = d.origen === "chip";
+    setMsg(generaDoc ? "Generando documento…" : "Guardando…");
     try {
       const r = await fetch(`/api/ordenes/${d.ordenId}`, {
         method: "PATCH",
@@ -248,7 +253,7 @@ export default function GanttDia({
             fmtHora(Math.min(hora + d.durHoras, HORA_FIN)),
           ),
           ingeniero_id: ing.id,
-          regenerar_doc: d.origen === "chip",
+          regenerar_doc: generaDoc,
         }),
       });
       const data = await r.json();
