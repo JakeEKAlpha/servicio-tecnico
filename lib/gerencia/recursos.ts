@@ -45,6 +45,7 @@ export const RECURSOS: Record<string, RecursoConfig> = {
       "correo",
       "telefono",
       "empresa",
+      "empresa_id",
       "nombre_corto",
       "viaje_min",
       "activo",
@@ -74,7 +75,18 @@ export const RECURSOS: Record<string, RecursoConfig> = {
       },
       { k: "correo", label: "Correo", tipo: "text" },
       { k: "telefono", label: "Teléfono", tipo: "text" },
-      { k: "empresa", label: "Empresa", tipo: "text" },
+      {
+        k: "empresa",
+        label: "Empresa (texto — legado)",
+        tipo: "text",
+        enTabla: false,
+      },
+      {
+        k: "empresa_id",
+        label: "Empresa",
+        tipo: "select",
+        opciones: "empresas_id",
+      },
       {
         k: "nombre_corto",
         label: "Nombre corto",
@@ -90,12 +102,19 @@ export const RECURSOS: Record<string, RecursoConfig> = {
     tabla: "sucursales",
     titulo: "Sucursales",
     orden: "nombre",
-    columnas: ["nombre", "ciudad", "estado", "empresa", "zona_id", "lat", "lng", "activa"],
+    columnas: ["nombre", "ciudad", "estado", "empresa", "empresa_id", "zona_id", "lat", "lng", "activa"],
     campos: [
       { k: "nombre", label: "Nombre", tipo: "text", requerido: true },
       { k: "ciudad", label: "Ciudad", tipo: "text" },
       { k: "estado", label: "Estado", tipo: "text" },
-      { k: "empresa", label: "Empresa", tipo: "text", ayuda: "alpha o baja" },
+      {
+        k: "empresa",
+        label: "Empresa (texto — legado)",
+        tipo: "text",
+        ayuda: "alpha o baja. empresa_id es la referencia formal.",
+        enTabla: false,
+      },
+      { k: "empresa_id", label: "Empresa", tipo: "select", opciones: "empresas_id" },
       { k: "zona_id", label: "Zona", tipo: "select", opciones: "zonas" },
       { k: "lat", label: "Lat", tipo: "num" },
       { k: "lng", label: "Lng", tipo: "num" },
@@ -282,12 +301,35 @@ export const RECURSOS: Record<string, RecursoConfig> = {
     tabla: "zonas",
     titulo: "Zonas",
     orden: "nombre",
-    columnas: ["nombre", "coordinador_nombre", "drive_folder_id"],
+    columnas: ["nombre", "coordinador_nombre", "drive_folder_id", "empresa_id"],
     soloEditar: true,
     campos: [
       { k: "nombre", label: "Nombre", tipo: "text", requerido: true },
       { k: "coordinador_nombre", label: "Coordinador", tipo: "text" },
       { k: "drive_folder_id", label: "Carpeta Drive (ID)", tipo: "text" },
+      {
+        k: "empresa_id",
+        label: "Empresa",
+        tipo: "select",
+        opciones: "empresas_id",
+        ayuda: "El nombre de la zona sigue diciendo la empresa (ej. \"Alpha Digital Zona 1\") — esto es solo la referencia formal.",
+      },
+    ],
+  },
+
+  marcas: {
+    tabla: "marcas",
+    titulo: "Marcas",
+    orden: "nombre",
+    columnas: ["nombre", "es_partner"],
+    campos: [
+      { k: "nombre", label: "Nombre", tipo: "text", requerido: true },
+      {
+        k: "es_partner",
+        label: "Somos partner oficial",
+        tipo: "bool",
+        ayuda: "Marca el fabricante real del equipo (Lexmark, Xerox, HP...). Actívalo solo si Alpha Digital es partner oficial de esa marca — hoy: Lexmark y Xerox. \"Propio\" nunca es partner, representa servicios directos sin importar la marca del equipo.",
+      },
     ],
   },
 
@@ -352,6 +394,7 @@ export const GRUPOS_RECURSOS: { titulo: string; recursos: string[] }[] = [
     titulo: "Clientes",
     recursos: ["gestores", "cuentas", "contactos", "equipos", "contratos"],
   },
+  { titulo: "Catálogo", recursos: ["marcas"] },
 ];
 
 export const ROLES_PERFIL = [

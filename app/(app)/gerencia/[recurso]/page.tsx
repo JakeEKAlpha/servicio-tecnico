@@ -26,6 +26,7 @@ export default async function RecursoPage({
     { data: ingenieros },
     { data: cuentas },
     { data: equipos },
+    { data: empresas },
   ] = await Promise.all([
     supabase.from(cfg.tabla).select("*").order(cfg.orden),
     supabase.from("zonas").select("id, nombre").order("nombre"),
@@ -36,6 +37,7 @@ export default async function RecursoPage({
     supabase.from("ingenieros").select("id, nombre").order("nombre"),
     supabase.from("clientes").select("id, nombre").order("nombre"),
     supabase.from("equipos").select("id, modelo, serie").order("modelo"),
+    supabase.from("empresas").select("id, nombre").order("nombre"),
   ]);
 
   const opciones: Record<string, Opcion[]> = {
@@ -66,6 +68,10 @@ export default async function RecursoPage({
     equipos_id: (equipos ?? []).map((e) => ({
       value: e.id as string,
       label: [e.modelo, e.serie].filter(Boolean).join(" · ") || "(sin datos)",
+    })),
+    empresas_id: (empresas ?? []).map((e) => ({
+      value: e.id as string,
+      label: e.nombre as string,
     })),
     tipos_contrato: TIPOS_CONTRATO,
     subtipos_tym: SUBTIPOS_TYM,
