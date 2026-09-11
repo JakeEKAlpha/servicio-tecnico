@@ -4,7 +4,9 @@
 > Google Sheets + Apps Script a una app web. Documento vivo — actualízalo
 > cuando cambie el diseño, no cuando cambie una línea.
 
-Última revisión: 2026-09-10
+Última revisión: 2026-09-11 — auditoría completa contra el código real (ver
+`blueprints/cerrar-deuda-datos-blueprint.md` para el detalle de lo que
+motivó esta actualización).
 
 ---
 
@@ -54,13 +56,24 @@ se replican **al pie de la letra**. No se inventa comportamiento.
 | Tabla | Para qué | Notas |
 |---|---|---|
 | `zonas` | 3 zonas (Zona 1, Zona 2, Baja Digital) | `coordinador_nombre`, `drive_folder_id` |
-| `marcas` | Lexmark / Xerox / Propio | hoy solo Lexmark migrado |
+| `marcas` | Lexmark / Xerox / Propio | **las 3 migradas** — Xerox (captura manual) y servicios propios de Alpha Digital (renta/garantía/póliza/TyM) en producción desde `docs/plan-arquitectura-multimarca.md` (Fases A-D) |
 | `perfiles` | usuarios de la app (FK `auth.users`) | `rol` enum, `zona_id`, `debe_cambiar_password` |
-| `ingenieros` | catálogo (NO entran a la app) | `sucursal`, `activo`, `nombre_corto` (carpetas Drive) |
-| `ordenes` | una fila = una **visita** | `numero_orden` + `numero_visita`; `datos_especificos` jsonb (campos Lexmark) |
+| `ingenieros` | catálogo (NO entran a la app) | `sucursal` (texto, no FK), `activo`, `nombre_corto` (carpetas Drive) |
+| `ordenes` | una fila = una **visita** | `numero_orden` + `numero_visita`; `datos_especificos` jsonb (campos Lexmark); `cliente_id`/`equipo_id`/`contrato_id` (FK nullable, agregadas en Fase B — **aún sin poblar de forma sistemática**, ver Deuda) |
 | `ordenes_historial` | auditoría de cambios de estatus | lo llena el trigger |
 | `piezas_orden` | piezas por orden | `estado`: recomendada → en_espera → recibida → cancelada |
 | `piezas_catalogo` | autocompletado de números de parte | |
+| `clientes` | cuentas (antes `cuentas_lexmark`, renombrada y generalizada) | `nombre` unique, `tipo`, `contacto_*`, `gestor_id` |
+| `equipos` | impresoras/equipos por cliente | FK `cliente_id` (nullable), `marca_id` (requerido), `modelo`, `serie` — **vacía en producción hoy**, la llena Gerencia |
+| `contratos` | garantía/póliza/TyM — 3 valores de un mismo concepto | FK `cliente_id`, `equipo_id` (nullable = cubre todos los equipos), `tipo_contrato` (`text` + `CHECK`, no enum) — **vacía en producción hoy** |
+| `inventario`, `movimientos_inventario` | almacén por sucursal | `sucursal_id` (uuid, FK a `sucursales` — **sí** usa id, a diferencia de `ingenieros`/`ordenes`) |
+| `evidencias` | fotos/evidencia capturada desde `/campo` | FK `orden_id` |
+
+**Inconsistencia conocida, no resuelta:** `ingenieros.sucursal` y `ordenes.sucursal` son texto
+(nombre); `inventario.sucursal_id`/`movimientos_inventario.sucursal_id` son uuid FK a
+`sucursales`. Documentado como Non-Goal en `blueprints/cerrar-deuda-datos-blueprint.md` — armonizar
+esto toca el flujo de asignación de ingenieros (`SelectorIngenieroSucursal.tsx`), es un cambio de
+mayor alcance que se hará como blueprint aparte.
 
 ### Enum `estatus_orden`
 `Nuevo · Pendiente · Asignado · Reagendado · Pendiente por partes ·
@@ -98,12 +111,21 @@ con RLS) y tienen `revoke execute` a anon/authenticated (no se llaman por RPC).
 | `GET /api/ordenes` | parte de datos de `reconstruirVistaGeneral()` | ✅ (vía `lib/ordenes/listar`) |
 | `GET/PATCH /api/ordenes/[id]` | `cambiarEstatus()` / `guardarAsignacion()` | ✅ — el update, los triggers hacen el resto. `regenerar_doc:false` para el Gantt |
 | `POST /api/importar/lexmark` | `agregarFilaCruda()` + `importarDesdeHoja()` | ✅ — parseo por posición (28 cols), sin encabezados, detecta WO/SR por 1ª celda |
+| `POST /api/importar/xerox` | (nuevo — multimarca) | ✅ — captura de reportes Xerox (SR/tarea) |
 | `POST /api/documentos/generar` | `generarDocumentoDesdeDatosDocumento()` | ✅ — copia plantilla → 16 marcadores → PDF → Unidad compartida |
 | `GET/POST /api/ordenes/[id]/piezas`, `PATCH/DELETE /api/piezas/[id]` | (nuevo — Almacén) | ✅ |
+| `GET/POST /api/inventario`, `PATCH/DELETE /api/inventario/[id]` | (nuevo — Almacén/Inventario) | ✅ |
+| `GET/POST /api/movimientos` | (nuevo — trazabilidad de inventario) | ✅ |
+| `GET/PATCH/DELETE /api/gerencia/[recurso]`, `/api/gerencia/[recurso]/[id]` | (nuevo — CRUD genérico de Gerencia) | ✅ — whitelist de tabla/columnas en `lib/gerencia/recursos.ts`; cubre ingenieros, sucursales, clientes, equipos, contratos |
+| `GET/POST /api/campo/[ordenId]`, `POST /api/campo/[ordenId]/evidencia` | (nuevo — app de campo) | ✅ — checklist, evidencia fotográfica, dictado de voz para ingenieros |
+| `GET/POST /api/preferencias` | (nuevo — Configuración) | ✅ — tema/densidad por usuario |
 | `GET /api/auth/confirm` | (nuevo — enlaces de correo) | ✅ |
 
 Patrón: cada handler valida sesión + lee `perfiles` + resuelve zona, luego
-opera con RLS. **Duplicación conocida:** ese bloque se repite en 3 handlers.
+opera con RLS. **Duplicación conocida:** ese bloque se repite en varios handlers.
+
+**Deuda nueva (auditoría 2026-09-11):** `POST /api/ordenes` no escribe `cliente_id`/`equipo_id`
+todavía — ver `blueprints/cerrar-deuda-datos-blueprint.md`.
 
 ---
 
@@ -111,12 +133,16 @@ opera con RLS. **Duplicación conocida:** ese bloque se repite en 3 handlers.
 
 | Pantalla | Archivo | Estado |
 |---|---|---|
-| Tablero | `tablero/page.tsx` + `TablaOrdenes` + `AccionesOrden` | ✅ — chips de conteo, búsqueda, estatus inline, "Asignar" popup, aviso al Concluir |
-| Detalle de orden | `tablero/[ordenId]/page.tsx` + `DetalleOrden` + `SeccionPiezas` | ✅ — datos, cambiar estatus, asignar, doc, historial, piezas |
-| Tablero por día (Gantt) | `tablero-dias/page.tsx` + `GanttDia` | ⚠️ funcional pero **el arrastre se siente torpe** |
-| Almacén por sucursal | `almacen/page.tsx` + `AlmacenPiezas` | ✅ — en espera / en stock, confirmar arribo |
-| Login / recuperar / cambiar contraseña | `app/login`, `app/actualizar-password` | ✅ |
-| Modales | `ModalNuevaOrden`, `ModalPegarWOSR` | ✅ |
+| Tablero | `tablero/page.tsx` + `TablaOrdenes` + `AccionesOrden` | ✅ — chips de conteo, búsqueda, estatus inline, "Asignar" popup, aviso al Concluir, panel deslizante de detalle sin salir de la lista |
+| Detalle de orden | `tablero/[ordenId]/page.tsx` + `DetalleOrdenCargado` + `SeccionPiezas` | ✅ — datos, cambiar estatus, asignar, doc, historial, piezas, cobertura de contrato (`CuentaLexmark`) |
+| Tablero por día (Gantt) | `tablero-dias/page.tsx` + `GanttDia` | ⚠️ pendiente re-verificar tras el pulido de wireframe reciente — última nota conocida era "arrastre torpe" |
+| Almacén + Inventario | `almacen/page.tsx` + `AlmacenPiezas` | ✅ — en espera / en stock, confirmar arribo, riel de sucursales |
+| Inicio (dashboard) | `inicio/page.tsx` + `Dashboard` + `panel/*` | ✅ — panel configurable por rol, widgets con drag/resize |
+| Gerencia | `gerencia/page.tsx`, `gerencia/[recurso]/page.tsx` + `GestionRecurso`/`RielRecursos` | ✅ — CRUD genérico de ingenieros, sucursales, clientes, equipos, contratos. Esto **ya cubre** lo que el roadmap viejo llamaba "Panel de Gerencia" |
+| Configuración | `configuracion/page.tsx` + `Configuracion` | ✅ — preferencias de usuario, vista previa en vivo de tema/densidad |
+| Campo (app de ingenieros) | `app/(campo)/campo/[ordenId]` + `components/campo/*` | ✅ — checklist, evidencia fotográfica, dictado de voz. **Congelado** — no se toca fuera de una iniciativa dedicada a `/campo` |
+| Login / recuperar / cambiar contraseña | `app/login`, `app/actualizar-password` | ✅ — pantalla partida |
+| Modales | `ModalNuevaOrden`, `ModalPegarWOSR`, `ModalPegarXerox` | ✅ |
 
 Convención: Server Component consulta directo con `createClient()`; Client
 Component llama `fetch('/api/...')` + `router.refresh()`. Colores en
@@ -138,38 +164,69 @@ Usuarios: 3 coordinadores + Fredy (gerencia). Ver `.claude` memory del proyecto.
 
 ## 7. Evaluación de salud
 
-**Verde:** `next build` limpio · `tsc` + `eslint` sin warnings · security
-advisors resueltos (salvo el toggle de "leaked password protection", que es
-del dashboard) · reglas de negocio probadas con SQL contra los triggers reales.
+**Verde (verificado 2026-09-11):** `npx tsc --noEmit` limpio · `npm run lint` limpio ·
+`get_advisors` sin hallazgos nuevos (Fase D de `docs/plan-arquitectura-multimarca.md`) · reglas de
+negocio probadas con SQL contra los triggers reales.
 
-**Deuda técnica (por gravedad):**
+**Deuda técnica (por gravedad, actualizada):**
 
 1. **Cero pruebas automatizadas.** Lógica delicada sin red de regresión.
 2. **BD sin versionar** — DDL aplicado como SQL suelto, no como `supabase/migrations/`.
-3. **Sin repo remoto, sin CI, sin deploy.**
-4. **Nunca se probó el flujo completo en navegador con un usuario real.**
-5. **Generación de docs probada 1 vez** — sin reintentos ni cola.
-6. Menores: auth repetido ×3 · Gantt sin pulir · multi-marca sin probar · sin responsive/móvil.
+3. **Sin CI, sin deploy.** (Corrección: **sí hay repo remoto** —
+   `github.com/JakeEKAlpha/servicio-tecnico` — el documento anterior decía lo contrario.)
+4. **`ordenes.cliente_id`/`equipo_id` — código construido 2026-09-11, faltan 2 acciones manuales.**
+   `ModalNuevaOrden` ya tiene selector de cliente/equipo, `cuentaDeOrden()` ya prioriza el FK sobre
+   el fuzzy-match, y hay un backfill de un solo uso en `/gerencia/clientes` ("Correr backfill").
+   **Falta:** correrlo (nadie lo ha corrido todavía) — ver `blueprints/cerrar-deuda-datos-blueprint.md`
+   Paso 2/5.
+5. **14 políticas RLS sin optimizar** (`docs/db-optimizacion-rls.sql`, ya escrito, **sigue
+   pendiente de correr a mano** en el SQL editor de Supabase — no se pudo automatizar) + 3 tablas
+   con políticas SELECT duplicadas. Mismo blueprint del punto 4, Paso 4.
+6. **`ordenes.sucursal` (texto) vs `sucursal_id` (uuid) sin armonizar** — y resulta ser más grande
+   de lo que parecía: casi toda la app (incluyendo asignación de ingenieros) usa sucursal por
+   nombre, no por id. Deliberadamente pospuesto a un blueprint propio.
+7. **"Leaked password protection" sigue apagado** — toggle manual en el dashboard de Supabase,
+   nadie lo puede activar por herramienta.
+8. **`equipos`/`contratos` están vacíos en producción** — la feature de garantía/póliza/TyM está
+   construida pero sin datos reales; los tiene que cargar Gerencia.
+9. Menores: auth repetido en varios handlers · Gantt pendiente de re-verificar tras el pulido de
+   wireframe · sin responsive/móvil confirmado end-to-end.
 
 ---
 
-## 8. Ruta (orden recomendado)
+## 8. Ruta (orden recomendado — reescrito 2026-09-11, el anterior ya no reflejaba la realidad)
 
-### AHORA — Frontend (lo pidió el usuario, antes de GitHub)
-- [ ] **Sistema visual coherente** — tokens de tema theme-aware, arreglar contraste en dark mode, un layout consistente.
-- [ ] **Gantt usable** — arrastre fluido, línea de "ahora", crear/reasignar sin fricción.
-- [ ] **Badge "piezas listas"** en el tablero para las órdenes en `Lista para realizar` / `Listo para continuar`.
-- [ ] **Panel de Gerencia** — ver todas las zonas, cancelar órdenes (único que puede).
-- [ ] **Responsive** — el tablero y el detalle en pantallas chicas.
-- [ ] **Prueba end-to-end manual** con sesión real: crear → asignar → doc → pendiente por partes → almacén → lista para realizar.
+El roadmap anterior (AHORA/DESPUÉS/LUEGO) daba por pendiente trabajo que ya está hecho —
+"Migrar Xerox/Propio" y "Panel de Gerencia" ya están en producción — y no mencionaba deuda real
+que sí existe hoy. Reescrito contra el estado verificado.
 
-### DESPUÉS — Endurecer
+### AHORA — Deuda de datos (prioridad #1, elegida por el usuario)
+- [x] Código: selector de cliente/equipo en Nueva orden, lectura por FK, backfill de un solo uso —
+      `blueprints/cerrar-deuda-datos-blueprint.md`, Pasos 1-3, 5 (parte automatizada) hechos.
+      `tsc`/`eslint`/`next build` limpios.
+- [ ] **Acción manual 1:** aplicar `docs/db-optimizacion-rls.sql` en el SQL editor de Supabase
+      (Paso 4 — no se pudo automatizar, ver blueprint).
+- [ ] **Acción manual 2:** entrar a `/gerencia/clientes` y presionar "Correr backfill" — vincula
+      las órdenes históricas a su cliente (Paso 2 — nadie lo ha corrido todavía).
+- [ ] **Verificación manual:** crear una orden de prueba con cliente/equipo elegidos, importar una
+      WO/SR de prueba, generar un PDF de prueba — confirmar cero regresión (Paso 5).
+
+### DESPUÉS — Deuda de datos, segunda ronda
+- [ ] **Armonizar `ordenes.sucursal` vs `sucursal_id`** — pospuesto deliberadamente del blueprint
+      de arriba por su alcance real (toca asignación de ingenieros); blueprint propio.
+- [ ] Activar "leaked password protection" (30 segundos, dashboard de Supabase, manual).
+- [ ] Re-verificar el Gantt (`tablero-dias/GanttDia`) tras el pulido de wireframe reciente —
+      confirmar si "el arrastre se siente torpe" sigue siendo cierto.
+
+### LUEGO — Endurecer
 - [ ] Volcar todo el DDL a `supabase/migrations/`.
-- [ ] Crear repo GitHub + CI (`tsc` + `eslint` + `next build` en cada PR).
-- [ ] Suite de pruebas (Vitest): parser Lexmark, helpers fecha/hora, máquina de estatus, marcadores; integración contra un branch de Supabase para los triggers.
+- [ ] Crear CI (`tsc` + `eslint` + `next build` en cada PR — el repo remoto ya existe).
+- [ ] Suite de pruebas (Vitest): parser Lexmark/Xerox, helpers fecha/hora, máquina de estatus,
+      marcadores; integración contra un branch de Supabase para los triggers.
 - [ ] Deploy a Vercel (staging) + validar generación de docs en ese runtime.
 
-### LUEGO — Features
+### DESPUÉS DE ESO — Features
 - [ ] Notificaciones / realtime (Supabase Realtime).
-- [ ] Migrar Xerox / Propio.
+- [ ] Cargar `equipos`/`contratos` reales desde Gerencia (la feature ya existe, falta la data).
 - [ ] Reportes / métricas.
+- [ ] Confirmar responsive end-to-end en tablero/detalle/Gantt en pantallas chicas.
