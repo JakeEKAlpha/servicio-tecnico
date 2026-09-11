@@ -174,14 +174,15 @@ negocio probadas con SQL contra los triggers reales.
 2. **BD sin versionar** — DDL aplicado como SQL suelto, no como `supabase/migrations/`.
 3. **Sin CI, sin deploy.** (Corrección: **sí hay repo remoto** —
    `github.com/JakeEKAlpha/servicio-tecnico` — el documento anterior decía lo contrario.)
-4. **`ordenes.cliente_id`/`equipo_id` — código construido 2026-09-11, faltan 2 acciones manuales.**
-   `ModalNuevaOrden` ya tiene selector de cliente/equipo, `cuentaDeOrden()` ya prioriza el FK sobre
-   el fuzzy-match, y hay un backfill de un solo uso en `/gerencia/clientes` ("Correr backfill").
-   **Falta:** correrlo (nadie lo ha corrido todavía) — ver `blueprints/cerrar-deuda-datos-blueprint.md`
-   Paso 2/5.
-5. **14 políticas RLS sin optimizar** (`docs/db-optimizacion-rls.sql`, ya escrito, **sigue
-   pendiente de correr a mano** en el SQL editor de Supabase — no se pudo automatizar) + 3 tablas
-   con políticas SELECT duplicadas. Mismo blueprint del punto 4, Paso 4.
+4. ~~`ordenes.cliente_id`/`equipo_id` sin poblar~~ **Cerrado 2026-09-11.**
+   `ModalNuevaOrden` tiene selector de cliente/equipo, `cuentaDeOrden()` prioriza el FK sobre el
+   fuzzy-match, y el backfill de `/gerencia/cuentas` ya corrió sobre las órdenes históricas —
+   `blueprints/cerrar-deuda-datos-blueprint.md`. Quedan 8 órdenes sin vincular porque su cliente
+   (AUTOZONE MEXICO, DHL EXPRESS MEXICO, OPERADORA OMX ×5, AT&T COMUNICACIONES DIGITALES)
+   **no existe todavía en `clientes`** — no es deuda de código, es que falta darlos de alta en
+   Gerencia. Al agregarlos, "Correr backfill" (idempotente) los toma solo.
+5. ~~14 políticas RLS sin optimizar~~ **Cerrado 2026-09-11.** `docs/db-optimizacion-rls.sql`
+   aplicado por el usuario en el SQL editor de Supabase.
 6. **`ordenes.sucursal` (texto) vs `sucursal_id` (uuid) sin armonizar** — y resulta ser más grande
    de lo que parecía: casi toda la app (incluyendo asignación de ingenieros) usa sucursal por
    nombre, no por id. Deliberadamente pospuesto a un blueprint propio.
@@ -200,16 +201,14 @@ El roadmap anterior (AHORA/DESPUÉS/LUEGO) daba por pendiente trabajo que ya est
 "Migrar Xerox/Propio" y "Panel de Gerencia" ya están en producción — y no mencionaba deuda real
 que sí existe hoy. Reescrito contra el estado verificado.
 
-### AHORA — Deuda de datos (prioridad #1, elegida por el usuario)
+### AHORA — Deuda de datos (prioridad #1, elegida por el usuario) — ✅ Cerrado 2026-09-11
 - [x] Código: selector de cliente/equipo en Nueva orden, lectura por FK, backfill de un solo uso —
-      `blueprints/cerrar-deuda-datos-blueprint.md`, Pasos 1-3, 5 (parte automatizada) hechos.
-      `tsc`/`eslint`/`next build` limpios.
-- [ ] **Acción manual 1:** aplicar `docs/db-optimizacion-rls.sql` en el SQL editor de Supabase
-      (Paso 4 — no se pudo automatizar, ver blueprint).
-- [ ] **Acción manual 2:** entrar a `/gerencia/clientes` y presionar "Correr backfill" — vincula
-      las órdenes históricas a su cliente (Paso 2 — nadie lo ha corrido todavía).
-- [ ] **Verificación manual:** crear una orden de prueba con cliente/equipo elegidos, importar una
-      WO/SR de prueba, generar un PDF de prueba — confirmar cero regresión (Paso 5).
+      `blueprints/cerrar-deuda-datos-blueprint.md`. `tsc`/`eslint`/`next build` limpios.
+- [x] `docs/db-optimizacion-rls.sql` aplicado en el SQL editor de Supabase.
+- [x] Backfill corrido desde `/gerencia/cuentas` — vinculó todo lo vinculable; 8 órdenes quedan
+      pendientes solo porque su cliente no está dado de alta todavía (ver Deuda técnica #4).
+- [ ] Pendiente, menor: dar de alta AUTOZONE MEXICO, DHL EXPRESS MEXICO, OPERADORA OMX, AT&T
+      COMUNICACIONES DIGITALES en `/gerencia/cuentas` y volver a correr el backfill.
 
 ### DESPUÉS — Deuda de datos, segunda ronda
 - [ ] **Armonizar `ordenes.sucursal` vs `sucursal_id`** — pospuesto deliberadamente del blueprint
