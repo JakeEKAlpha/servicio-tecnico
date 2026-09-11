@@ -6,6 +6,7 @@ import { ESTATUS_MANUALES, ESTATUS_ORDEN } from "@/lib/ordenes/estatus";
 import { claseEstatus } from "@/lib/tema";
 import { boton, botonSec, botonPeligro, botonTexto, botonMini, campo } from "@/lib/ui";
 import Modal from "@/components/Modal";
+import PanelDeslizante from "@/components/tablero/PanelDeslizante";
 import SelectorIngenieroSucursal, {
   type IngenieroOpcion,
 } from "@/components/SelectorIngenieroSucursal";
@@ -206,23 +207,16 @@ export default function AccionesOrden({
         </Modal>
       )}
 
-      {/* Popup de asignación rápida */}
+      {/* Asignar — panel lateral, no modal (wireframe 9e: "la decisión deja
+          de ser a ciegas"; la disponibilidad real por ingeniero/fecha queda
+          pendiente, ver D5 en docs/wireframe-integracion.md). */}
       {asignando && (
-        <Modal
+        <PanelDeslizante
           titulo={`Asignar ${orden.numero_orden}`}
-          onClose={() => setAsignando(false)}
+          onCerrar={() => setAsignando(false)}
         >
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold">Asignar {orden.numero_orden}</h2>
-            <button
-              type="button"
-              onClick={() => setAsignando(false)}
-              className="text-sm text-muted hover:text-text"
-            >
-              Cerrar
-            </button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm">
                 Fecha ETA
                 <input
@@ -262,7 +256,8 @@ export default function AccionesOrden({
                 {enviando ? "Asignando…" : "Asignar y generar documento"}
               </button>
             </div>
-        </Modal>
+          </div>
+        </PanelDeslizante>
       )}
 
       {/* Piezas pedidas al pasar a "Pendiente por partes" */}

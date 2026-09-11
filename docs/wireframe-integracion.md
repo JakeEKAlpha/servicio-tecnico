@@ -24,8 +24,8 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
 | 7b | Fichas por entidad (cuentas/sucursales) | 11q | ⏳ pendiente — requiere agregar encargados+ingenieros por sucursal | — |
 | 8 | Campo — agenda `/campo` | t7b | ⏳ pendiente | — |
 | 9 | Campo — servicio `/campo/[id]` | t8b/8c | ⏳ pendiente | — |
-| 10 | Modal nueva orden | t9b | ⏳ pendiente | — |
-| 11 | Asignar sin modal | t9e | ⏳ pendiente | — |
+| 10 | Modal nueva orden | t9b | ✅ hecho (2 pasos) | — |
+| 11 | Asignar sin modal | t9e | 🔧 pasó a panel lateral; disponibilidad real (carga/distancia) → D5 | — |
 | 12 | Configuración `/configuracion` | t10b | 🔧 vista previa en vivo hecha; "fila por defecto" y "pantalla de inicio" → D4 | — |
 | 13 | Login `/login` | t10d | ✅ hecho (pantalla partida) | — |
 | 14 | Inicio `/inicio` | 11n/11o | ⚠️ ya cubierto por el panel configurable — ver decisión D1 | — |
@@ -55,6 +55,12 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
   otras pantallas). La segunda requeriría tocar el redirect de login en
   `lib/supabase/proxy.ts` (código de autenticación, alto impacto). Ninguna
   se implementó a la espera de decidir si vale la pena.
+- **D5 — "Asignar" ya es panel lateral, pero sin "disponibilidad real".**
+  9e pide ver quién tiene hueco ese día y a qué distancia queda la visita.
+  Se hizo el cambio de modal → panel; falta la consulta de carga por
+  ingeniero/fecha y, sobre todo, distancia (necesita lat/lng, que sigue
+  pendiente por otra tarea — mapa de gerencia). Evaluar si se agrega un
+  conteo simple ("3 visitas ese día") sin la parte de distancia.
 
 ## Notas de implementación
 
