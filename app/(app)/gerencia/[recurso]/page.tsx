@@ -82,7 +82,14 @@ export default async function RecursoPage({
 
   return (
     <>
-      {recurso === "cuentas" && <BackfillClientes />}
+      {recurso === "cuentas" && (
+        <BackfillClientes
+          clientes={(cuentas ?? []).map((c) => ({
+            id: c.id as string,
+            nombre: c.nombre as string,
+          }))}
+        />
+      )}
       <GestionRecurso
         recurso={recurso}
         cfg={cfg}
