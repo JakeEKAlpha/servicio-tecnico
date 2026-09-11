@@ -265,4 +265,7 @@ que sí existe hoy. Reescrito contra el estado verificado.
 - [ ] Notificaciones / realtime (Supabase Realtime).
 - [ ] Cargar `equipos`/`contratos` reales desde Gerencia (la feature ya existe, falta la data).
 - [ ] Reportes / métricas.
-- [ ] Confirmar responsive end-to-end en tablero/detalle/Gantt en pantallas chicas.
+- [x] **Responsive — verificado 2026-09-11 (375px, mobile).** `/tablero` (tarjetas), detalle de
+      orden y `/tablero-dias` revisados en vivo con sesión real. Sin bugs encontrados — el Gantt
+      necesita scroll horizontal para ver más de ~2 horas a la vez, esperable en este tipo de
+      vista (igual que un calendario semanal). No se probó drag-and-drop táctil real (solo visual).
