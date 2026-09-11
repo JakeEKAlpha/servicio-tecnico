@@ -83,7 +83,7 @@ function VistaPreviaTabla({ densidad }: { densidad: Densidad }) {
     <div className="overflow-hidden rounded-lg border border-border-default bg-surface">
       <table className="w-full text-xs">
         <thead>
-          <tr className="border-b border-border-default bg-surface-2 text-left font-semibold uppercase tracking-wide text-muted">
+          <tr className="border-b border-border-default bg-surface-2 text-left text-[10px] font-extrabold uppercase tracking-wide text-muted">
             <th className={"px-3 " + py}>Orden</th>
             <th className={"px-3 " + py}>Cliente</th>
             <th className={"px-3 " + py}>Estatus</th>

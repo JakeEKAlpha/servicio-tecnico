@@ -203,7 +203,7 @@ export default function GestionRecurso({
       <div className="scroll-oculto overflow-x-auto rounded-xl border border-border-default bg-surface shadow-sm">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border-default bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+            <tr className="border-b border-border-default bg-surface-2 text-left text-[10px] font-extrabold uppercase tracking-wide text-muted">
               {cfg.campos.map((c) => (
                 <th key={c.k} className="px-3 py-2.5">
                   {c.label}

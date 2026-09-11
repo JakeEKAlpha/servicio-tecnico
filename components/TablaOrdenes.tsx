@@ -202,7 +202,7 @@ export default function TablaOrdenes({
       <div className="scroll-oculto hidden overflow-x-auto md:block">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b border-border-default bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+            <tr className="border-b border-border-default bg-surface-2 text-left text-[10px] font-extrabold uppercase tracking-wide text-muted">
               {COLUMNAS.filter((col) => !compacto || !OCULTA_CON_PANEL.has(col)).map(
                 (col) => (
                   <th key={col} className="whitespace-nowrap px-3 py-2.5">
