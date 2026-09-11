@@ -103,7 +103,7 @@ export default function FiltrosReportes({
       </div>
       <div className="flex items-center gap-2">
         <button type="submit" className={boton}>Aplicar</button>
-        <Link href="/gerencia/reportes" className={botonSec}>Limpiar</Link>
+        <Link href="/gerencia/reportes?limpio=1" className={botonSec}>Limpiar</Link>
       </div>
     </form>
   );

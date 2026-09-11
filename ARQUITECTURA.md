@@ -427,12 +427,20 @@ fluida, intuitiva, personalizable, fresca y cohesiva entre pantallas. Se usa la 
       sin garantía de que la hoja de estilos global esté cargada. Revisé que `GestionRecurso` y
       `AlmacenPiezas` ya tenían hover/transition consistentes — no hacía falta un pase de motion
       adicional ahí, el hallazgo real estaba concentrado en `/campo` (ya cerrado arriba).
-- [ ] **Pendiente (siguiente fase):** personalización extendida más allá del panel de `/inicio`
-      (ej. sincronizar tema/densidad de Configuración a `preferencias_usuario` en vez de solo
-      `localStorage` — es un cambio de alcance/arquitectura, no solo visual, por eso no se hizo
-      en esta pasada); verificación visual en vivo de Tablero/Gantt/Reportes/`error.tsx`/
-      `not-found.tsx` con sesión real (el navegador de esta sesión no tiene login y el agente no
-      puede introducir credenciales — nota: una ruta inexistente sin sesión redirige a `/login`
-      antes de llegar a `not-found.tsx`, así que ese límite en particular solo se puede probar
-      autenticado); y el `impeccable-finish-reviewer` formal (necesita capturas de pantalla que
-      no se pudieron tomar por la misma razón).
+- [x] **Personalización: Reportes recuerda los últimos filtros usados.** Reusa
+      `preferencias_usuario` (misma tabla del panel de `/inicio`, sin migración nueva) con la
+      clave `reportes_filtros`. Una visita CON filtros en la URL los guarda como "los últimos
+      usados" (fire-and-forget, no bloquea el render); una visita SIN ningún filtro los
+      recupera — salvo `?limpio=1` (el link "Limpiar"), que respeta la intención explícita de
+      empezar en blanco y no los vuelve a cargar. `esFiltrosReportes()` en
+      `app/api/preferencias/route.ts` valida forma (objeto plano, solo las 8 claves conocidas,
+      todo texto) — 5 pruebas nuevas. Sincronizar tema/densidad de Configuración de la misma
+      forma (hoy solo `localStorage`) queda fuera de esta pasada a propósito: es un cambio de
+      alcance/arquitectura (decide si las preferencias siguen al usuario entre dispositivos),
+      no una tarea visual.
+- [ ] **Pendiente:** verificación visual en vivo de Tablero/Gantt/Reportes/`error.tsx`/
+      `not-found.tsx`/filtros recordados con sesión real (el navegador de esta sesión no tiene
+      login y el agente no puede introducir credenciales — nota: una ruta inexistente sin sesión
+      redirige a `/login` antes de llegar a `not-found.tsx`, así que ese límite en particular
+      solo se puede probar autenticado); y el `impeccable-finish-reviewer` formal (necesita
+      capturas de pantalla que no se pudieron tomar por la misma razón).

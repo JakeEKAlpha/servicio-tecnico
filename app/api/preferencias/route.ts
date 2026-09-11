@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
  * la validación de abajo es cortesía para dar errores claros.
  */
 
-const CLAVES_VALIDAS = ["inicio_vista", "panel_layout"] as const;
+const CLAVES_VALIDAS = ["inicio_vista", "panel_layout", "reportes_filtros"] as const;
 const MAX_BYTES = 32 * 1024;
 
 function esLayoutPanel(v: unknown): boolean {
@@ -22,6 +22,29 @@ function esLayoutPanel(v: unknown): boolean {
     Array.isArray(o.md) &&
     Array.isArray(o.sm) &&
     Array.isArray(o.ocultos)
+  );
+}
+
+/** Todos los campos son opcionales y, si están, deben ser texto — mismas
+ *  claves que `FiltrosReportes` en `/gerencia/reportes`. */
+const CAMPOS_FILTROS_REPORTES = [
+  "desde",
+  "hasta",
+  "zona",
+  "sucursal",
+  "marca",
+  "ingeniero",
+  "origen",
+  "estatus",
+] as const;
+
+export function esFiltrosReportes(v: unknown): boolean {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+  const o = v as Record<string, unknown>;
+  return Object.keys(o).every(
+    (k) =>
+      (CAMPOS_FILTROS_REPORTES as readonly string[]).includes(k) &&
+      typeof o[k] === "string",
   );
 }
 
@@ -82,6 +105,9 @@ export async function PUT(request: Request) {
   }
   if (clave === "panel_layout" && !esLayoutPanel(valor)) {
     return NextResponse.json({ error: "Layout con forma inválida." }, { status: 400 });
+  }
+  if (clave === "reportes_filtros" && !esFiltrosReportes(valor)) {
+    return NextResponse.json({ error: "Filtros con forma inválida." }, { status: 400 });
   }
 
   const { error } = await supabase
