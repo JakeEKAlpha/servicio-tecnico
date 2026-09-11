@@ -263,15 +263,54 @@ que sí existe hoy. Reescrito contra el estado verificado.
       Revisitar si se vuelve a considerar necesario.
 
 ### DESPUÉS DE ESO — Features
-- [ ] Notificaciones / realtime (Supabase Realtime).
+- [ ] **Notificaciones push — Fase 1 cerrada 2026-09-11, Fase 2 pendiente.** Web Push real (PWA +
+      service worker), no in-app ni Realtime. 13 disparadores en 3 roles:
+
+      | Rol | Disparador | Tipo | Estado |
+      |---|---|---|---|
+      | Ingeniero | Nueva asignación | Evento | ✅ Fase 1 |
+      | Ingeniero | Pieza disponible (apartada) | Evento | ✅ Fase 1 |
+      | Ingeniero | Hora del ETA sin marcar inicio | Programado | ⏳ Fase 2 |
+      | Ingeniero | +2h desde inicio sin marcar salida | Programado | ⏳ Fase 2 |
+      | Ingeniero | Documentación pendiente (30min/1h/2h post-cierre) | Programado | ⏳ Fase 2 |
+      | Coordinación | Pieza arribó al almacén | Evento | ⏳ Fase 2 |
+      | Coordinación | Nuevo servicio entrante | Evento | ⏳ Fase 2 |
+      | Coordinación | Urge asignar (SLA corto, usa `horasParaVencerSla`) | Programado | ⏳ Fase 2 |
+      | Coordinación | No han documentado | Programado | ⏳ Fase 2 |
+      | Coordinación | Resumen 5:00pm (pendientes/no realizados/no documentados) | Programado, diario | ⏳ Fase 2 |
+      | Gerencia | Caso extremo: >3 servicios no realizados, por ingeniero individual | Programado | ⏳ Fase 2 |
+      | Gerencia | Ingeniero no documenta — 2+ veces en la misma semana | Programado | ⏳ Fase 2 |
+      | Gerencia | Retraso +2h — mismo evento que el del ingeniero, copia a gerencia | Programado | ⏳ Fase 2 |
+
+      **Fase 1** (nueva asignación + pieza disponible): construida, migrada, desplegada — ver
+      `lib/push/*`, `public/sw.js`, `components/campo/ActivarNotificaciones.tsx`.
+
+      **Fase 2** necesita cron externo (decisión del usuario: cron-job.org gratis, cada 15 min,
+      no Vercel Pro) llamando a un endpoint nuevo que revise los 9 disparadores programados de
+      una vez + el resumen diario. Ese endpoint corre sin sesión de usuario → necesita
+      `SUPABASE_SERVICE_ROLE_KEY` (Supabase Dashboard ▸ Settings ▸ API) como variable de entorno,
+      que el usuario tiene que agregar — es una credencial real de su proyecto, el agente no la
+      genera ni la maneja.
+
+      Fuera de alcance de esta pantalla (es reporte, no reordenamiento): la pantalla de
+      análisis/reportes con justificantes del SLA (ver el ítem de Reportes abajo) sí usa un
+      dashboard de referencia que el usuario diseñó — el reordenamiento del Tablero (ya cerrado,
+      ver Deuda técnica) es distinto y no depende de esto.
 - [ ] Cargar `equipos`/`contratos` reales desde Gerencia (la feature ya existe, falta la data).
-- [ ] **Reportes / métricas — pantalla de análisis para gerencia+coordinación (SLA Lexmark).**
-      Notas 2026-09-11 para cuando se diseñe: el usuario ya lleva tracking manual en un Sheet
-      ("DATOS WO" en su Drive) con columnas que le interesan a gerencia: `SLA`, `TIEMPO QUE PASO
-      DEL SLA`, `VALIDEZ DEL SLA`, `JUSTIFICANTE`, `RESULTADO`, `VALIDEZ JUSTIFICADA`. Lexmark ya
-      etiqueta motivos de retraso (ej. "DELAYED DUE TO CUSTOMER") que a veces excusan el
-      incumplimiento — la pantalla de análisis necesita capturar esa justificación humana, no solo
-      la comparación mecánica de fechas. El usuario va a compartir un dashboard que ya diseñó.
+- [ ] **Reportes / métricas — pantalla de análisis ("gerente de análisis") con SLA Lexmark.**
+      El usuario ya compartió un dashboard de referencia (`dashboard_ejecutivo_work_orders.html`,
+      Chart.js + PapaParse) que lee **en vivo un Google Sheet** ("DATOS WO", pestaña "LIMPIOS")
+      con columnas donde un humano llena a mano, después de cerrar cada WO: `SLA`,
+      `TIEMPO QUE PASO DEL SLA`, `VALIDEZ DEL SLA`, `JUSTIFICANTE`, `RESULTADO`,
+      `VALIDEZ JUSTIFICADA`. Lexmark ya etiqueta motivos de retraso (ej. "DELAYED DUE TO
+      CUSTOMER") que a veces excusan el incumplimiento — no es una comparación mecánica de
+      fechas como el reordenamiento del Tablero (ese ya está cerrado, ver Deuda técnica).
+      Decisión del usuario: **no inventar campos nuevos en la BD, no crear tablas** — un humano
+      llena esas columnas donde sea (el Sheet, probablemente). Pendiente antes de diseñar: si
+      la pantalla lee directo del Sheet (como el HTML de referencia) o se migra ese flujo a la
+      app — no se resolvió del todo. KPIs/gráficas del dashboard de referencia: estatus de WO,
+      cumplimiento de SLA, por sucursal, top ingenieros por volumen, motivos de incumplimiento,
+      top clientes, tabla detalle con paginación y filtros.
       Distinto del reordenamiento de la cola de asignación (ver abajo), que sí ya está implementado.
 - [x] **Responsive — verificado 2026-09-11 (375px, mobile).** `/tablero` (tarjetas), detalle de
       orden y `/tablero-dias` revisados en vivo con sesión real. Sin bugs encontrados — el Gantt
