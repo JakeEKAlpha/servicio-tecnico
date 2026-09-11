@@ -183,9 +183,16 @@ negocio probadas con SQL contra los triggers reales.
    Gerencia. Al agregarlos, "Correr backfill" (idempotente) los toma solo.
 5. ~~14 políticas RLS sin optimizar~~ **Cerrado 2026-09-11.** `docs/db-optimizacion-rls.sql`
    aplicado por el usuario en el SQL editor de Supabase.
-6. **`ordenes.sucursal` (texto) vs `sucursal_id` (uuid) sin armonizar** — y resulta ser más grande
-   de lo que parecía: casi toda la app (incluyendo asignación de ingenieros) usa sucursal por
-   nombre, no por id. Deliberadamente pospuesto a un blueprint propio.
+6. **Sucursal por texto vs por id — diagnóstico corregido 2026-09-11.** `ordenes.sucursal_id`
+   **ya estaba resuelto**: un trigger de BD lo deriva automáticamente de `ordenes.sucursal`
+   (texto) en cada escritura — no era deuda real. La deuda de verdad era más chica y más precisa:
+   **`ingenieros` no tenía FK a `sucursales`**, y el selector de asignación (`SelectorIngenieroSucursal`)
+   armaba sus opciones de los valores únicos de `ingenieros.sucursal`, no de la tabla `sucursales`
+   — una sucursal sin ingenieros todavía no aparecía como opción. **Código construido**: FK
+   `ingenieros.sucursal_id` agregada a Gerencia, el selector ya puede leer la tabla canónica
+   (`sucursales` prop, con compatibilidad hacia atrás si no se pasa). **Falta:** correr
+   `docs/ingenieros-sucursal-id.sql` (ALTER TABLE + backfill) en el SQL editor de Supabase — sin
+   esto la columna `sucursal_id` no existe todavía en la BD real.
 7. **"Leaked password protection" sigue apagado** — toggle manual en el dashboard de Supabase,
    nadie lo puede activar por herramienta.
 8. **`equipos`/`contratos` están vacíos en producción** — la feature de garantía/póliza/TyM está
