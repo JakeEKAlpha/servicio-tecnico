@@ -3,6 +3,7 @@ import { perfilActual } from "@/lib/auth/sesion";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { cerrarSesion } from "@/app/login/acciones";
 import IconoAD from "@/components/IconoAD";
+import ActivarNotificaciones from "@/components/campo/ActivarNotificaciones";
 
 /**
  * Shell de la versión de ingeniería (`/campo`).
@@ -52,7 +53,10 @@ export default async function CampoLayout({
         )}
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 pt-4">{children}</main>
+      <main className="mx-auto max-w-2xl px-4 pt-4">
+        {esIngeniero && <ActivarNotificaciones />}
+        {children}
+      </main>
     </div>
   );
 }

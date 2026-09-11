@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ESTATUS_ORDEN, ESTATUS_MANUALES } from "@/lib/ordenes/estatus";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { generarDocumento } from "@/lib/documentos/generar";
+import { enviarPushAPerfil } from "@/lib/push/enviar";
 
 /**
  * Una orden concreta (identificada por su `id` uuid).
@@ -249,6 +250,7 @@ export async function PATCH(
   const update: Record<string, unknown> = {};
   let crearVisitaSiguiente = false;
   let fueAsignacion = false;
+  let huboNuevoIngeniero = false;
 
   if (nuevaZona !== undefined && nuevaZona !== ordenActual.zona_id) {
     update.zona_id = nuevaZona;
@@ -362,6 +364,10 @@ export async function PATCH(
     if (traeSucursal) update.sucursal = textoONull(datos.sucursal);
     update.estatus = "Asignado";
     fueAsignacion = true;
+    // Distinto de "hubo asignación" (fueAsignacion, que también es true al
+    // reprogramar sin cambiar de ingeniero, ej. arrastrar en el Gantt) — el
+    // push de "nueva asignación" es solo cuando el ingeniero SÍ cambia.
+    huboNuevoIngeniero = ingenieroId !== (ordenActual.ingeniero_id as string | null);
   } else if (traeSucursal && !nuevoEstatus) {
     // Sólo sucursal (ej. desde el popup de "validar pieza sin sucursal"):
     // cuenta como parte de la asignación. El trigger resuelve sucursal_id.
@@ -484,6 +490,28 @@ export async function PATCH(
         "La orden quedó asignada pero el documento no se generó: " +
         (e instanceof Error ? e.message : String(e));
       console.error(avisoDoc);
+    }
+  }
+
+  // Push al ingeniero recién asignado — no a un reagendado con el mismo
+  // ingeniero (ver huboNuevoIngeniero más arriba). Un error de push no debe
+  // tumbar la respuesta: la asignación ya quedó guardada.
+  if (huboNuevoIngeniero && ordenActualizada.ingeniero_id) {
+    try {
+      const { data: perfil } = await supabase
+        .from("perfiles")
+        .select("id")
+        .eq("ingeniero_id", ordenActualizada.ingeniero_id)
+        .maybeSingle();
+      if (perfil) {
+        await enviarPushAPerfil(supabase, perfil.id, {
+          titulo: "Nueva asignación",
+          cuerpo: `Orden ${ordenActualizada.numero_orden} · ${ordenActualizada.cliente ?? ""}`,
+          url: `/campo/${id}`,
+        });
+      }
+    } catch (e) {
+      console.error("No se pudo mandar el push de nueva asignación:", e);
     }
   }
 

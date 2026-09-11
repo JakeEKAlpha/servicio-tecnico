@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { ESTADOS_PIEZA } from "@/lib/piezas";
+import { enviarPushAPerfil } from "@/lib/push/enviar";
 
 /**
  * Una pieza concreta.
@@ -172,6 +173,36 @@ export async function PATCH(
       { status: 404 },
     );
   }
+
+  // Push al ingeniero: la pieza ya está lista para recoger. Un error de
+  // push no debe tumbar la respuesta — la pieza ya quedó apartada de
+  // verdad, avisar es una mejora, no una condición para el éxito.
+  if (estado === "apartada") {
+    try {
+      const { data: orden } = await supabase
+        .from("ordenes")
+        .select("numero_orden, ingeniero_id")
+        .eq("id", data.orden_id)
+        .maybeSingle();
+      if (orden?.ingeniero_id) {
+        const { data: perfil } = await supabase
+          .from("perfiles")
+          .select("id")
+          .eq("ingeniero_id", orden.ingeniero_id)
+          .maybeSingle();
+        if (perfil) {
+          await enviarPushAPerfil(supabase, perfil.id, {
+            titulo: "Pieza disponible",
+            cuerpo: `Ya puedes recoger la pieza de la orden ${orden.numero_orden}.`,
+            url: `/campo/${data.orden_id}`,
+          });
+        }
+      }
+    } catch (e) {
+      console.error("No se pudo mandar el push de pieza apartada:", e);
+    }
+  }
+
   return NextResponse.json({ ok: true, pieza: data });
 }
 

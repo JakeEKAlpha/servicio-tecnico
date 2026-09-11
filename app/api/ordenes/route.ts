@@ -4,6 +4,7 @@ import { listarOrdenes } from "@/lib/ordenes/listar";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { MARCA_LEXMARK_ID } from "@/lib/marcas";
 import { generarDocumento } from "@/lib/documentos/generar";
+import { enviarPushAPerfil } from "@/lib/push/enviar";
 
 /**
  * Colección de órdenes.
@@ -354,6 +355,27 @@ export async function POST(request: Request) {
         "La orden se creó pero el documento no se generó: " +
         (e instanceof Error ? e.message : String(e));
       console.error(avisoDoc);
+    }
+
+    // Push al ingeniero — nace asignada directo, es igual de "nueva
+    // asignación" que si se asignara después. No tumba la respuesta si falla.
+    if (orden.ingeniero_id) {
+      try {
+        const { data: perfil } = await supabase
+          .from("perfiles")
+          .select("id")
+          .eq("ingeniero_id", orden.ingeniero_id)
+          .maybeSingle();
+        if (perfil) {
+          await enviarPushAPerfil(supabase, perfil.id, {
+            titulo: "Nueva asignación",
+            cuerpo: `Orden ${orden.numero_orden} · ${orden.cliente ?? ""}`,
+            url: `/campo/${orden.id}`,
+          });
+        }
+      } catch (e) {
+        console.error("No se pudo mandar el push de nueva asignación:", e);
+      }
     }
   }
 
