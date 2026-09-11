@@ -135,7 +135,7 @@ todavía — ver `blueprints/cerrar-deuda-datos-blueprint.md`.
 |---|---|---|
 | Tablero | `tablero/page.tsx` + `TablaOrdenes` + `AccionesOrden` | ✅ — chips de conteo, búsqueda, estatus inline, "Asignar" popup, aviso al Concluir, panel deslizante de detalle sin salir de la lista |
 | Detalle de orden | `tablero/[ordenId]/page.tsx` + `DetalleOrdenCargado` + `SeccionPiezas` | ✅ — datos, cambiar estatus, asignar, doc, historial, piezas, cobertura de contrato (`CuentaLexmark`) |
-| Tablero por día (Gantt) | `tablero-dias/page.tsx` + `GanttDia` | ⚠️ pendiente re-verificar tras el pulido de wireframe reciente — última nota conocida era "arrastre torpe" |
+| Tablero por día (Gantt) | `tablero-dias/page.tsx` + `GanttDia` | ✅ Revisión estática 2026-09-11: el arrastre ya usa `PointerEvent` + `style.transform` por DOM directo (sin re-render de React durante el drag), patrón correcto para que se sienta fluido. La nota vieja "arrastre torpe" parece resuelta por los commits de pulido posteriores — falta confirmar en vivo (es sensación, no verificable por código) |
 | Almacén + Inventario | `almacen/page.tsx` + `AlmacenPiezas` | ✅ — en espera / en stock, confirmar arribo, riel de sucursales |
 | Inicio (dashboard) | `inicio/page.tsx` + `Dashboard` + `panel/*` | ✅ — panel configurable por rol, widgets con drag/resize |
 | Gerencia | `gerencia/page.tsx`, `gerencia/[recurso]/page.tsx` + `GestionRecurso`/`RielRecursos` | ✅ — CRUD genérico de ingenieros, sucursales, clientes, equipos, contratos. Esto **ya cubre** lo que el roadmap viejo llamaba "Panel de Gerencia" |
@@ -230,8 +230,8 @@ que sí existe hoy. Reescrito contra el estado verificado.
 - [ ] Agregar vinculación manual similar a la de clientes también para casos borde de sucursal
       (typos en `ingenieros.sucursal` que el backfill exacto no haya podido resolver).
 - [ ] Activar "leaked password protection" (30 segundos, dashboard de Supabase, manual).
-- [ ] Re-verificar el Gantt (`tablero-dias/GanttDia`) tras el pulido de wireframe reciente —
-      confirmar si "el arrastre se siente torpe" sigue siendo cierto.
+- [x] Gantt revisado (estático) 2026-09-11 — sin bug de código encontrado, ver Estado #5. Falta
+      confirmación en vivo de que "se siente" bien (subjetivo).
 
 ### LUEGO — Endurecer — ✅ Cerrado 2026-09-11 (los 4 puntos originales)
 - [x] **CI** — `.github/workflows/ci.yml` (`tsc` + `eslint` + `vitest` + `next build` en cada PR
