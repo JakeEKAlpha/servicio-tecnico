@@ -462,9 +462,24 @@ fluida, intuitiva, personalizable, fresca y cohesiva entre pantallas. Se usa la 
       con la dirección invertida, mismo timing) porque el drawer entra por la izquierda y el
       existente entra por la derecha. Es el gesto más repetido de toda la experiencia móvil
       (abrir el menú), así que era el hueco de mayor impacto real que quedaba.
-- [ ] **Pendiente:** verificación visual en vivo de Tablero/Gantt/Reportes/`error.tsx`/
-      `not-found.tsx`/filtros recordados/drawer móvil con sesión real (el navegador de esta
-      sesión no tiene login y el agente no puede introducir credenciales — nota: una ruta
-      inexistente sin sesión redirige a `/login` antes de llegar a `not-found.tsx`, así que ese
-      límite en particular solo se puede probar autenticado); y el `impeccable-finish-reviewer`
-      formal (necesita capturas de pantalla que no se pudieron tomar por la misma razón).
+- [x] **Verificación visual en vivo — cerrada 2026-09-11** (una sesión posterior sí tenía una
+      pestaña ya autenticada en producción, `lexmark-os-web.vercel.app`, con un usuario real de
+      gerencia). Confirmado con capturas reales: `/inicio` (panel con KPIs y alertas), `/tablero`
+      (con los puntos de color y las insignias de SLA nuevas visibles), `/gerencia/reportes`
+      (ícono de Reportes, filtros, gráficas) y `/campo` (lista y detalle: verde consolidado,
+      chips "Hoy"/"Atrasada", botones con ícono) — todo se ve y funciona como se diseñó.
+      **Hallazgo durante esa verificación, investigado y no bloqueante:** la consola muestra un
+      error de hidratación de React (#418, minificado) al cargar `/campo` — la página siempre
+      terminó renderizando correctamente en todas las pruebas (React se recupera solo,
+      re-dibujando esa parte en el cliente). Se investigó a fondo (revisado layout, íconos,
+      cálculo de fechas, estructura del DOM) sin poder aislar la causa exacta porque el mensaje
+      viene minificado en producción; se encontró además un `<div>` vacío inyectado como primer
+      hijo de `<body>` en TODAS las páginas por igual (no solo `/campo`), lo que sugiere que es
+      un artefacto de la propia herramienta de navegación automatizada usada para probar, no del
+      código de la app — consistente con que el usuario reportó y luego confirmó resuelto un
+      problema de pantalla en negro que no se pudo reproducir de forma permanente en ninguna
+      pantalla probada. Si vuelve a aparecer una pantalla negra real en `/campo`, revisar este
+      hallazgo primero.
+      **Pendiente, no urgente:** el `impeccable-finish-reviewer` formal (pase de revisión con
+      capturas de pantalla estructuradas) no se corrió — la verificación manual de arriba lo
+      cubre razonablemente por ahora.
