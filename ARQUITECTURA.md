@@ -135,7 +135,7 @@ todavía — ver `blueprints/cerrar-deuda-datos-blueprint.md`.
 |---|---|---|
 | Tablero | `tablero/page.tsx` + `TablaOrdenes` + `AccionesOrden` | ✅ — chips de conteo, búsqueda, estatus inline, "Asignar" popup, aviso al Concluir, panel deslizante de detalle sin salir de la lista |
 | Detalle de orden | `tablero/[ordenId]/page.tsx` + `DetalleOrdenCargado` + `SeccionPiezas` | ✅ — datos, cambiar estatus, asignar, doc, historial, piezas, cobertura de contrato (`CuentaLexmark`) |
-| Tablero por día (Gantt) | `tablero-dias/page.tsx` + `GanttDia` | ✅ Revisión estática 2026-09-11: el arrastre ya usa `PointerEvent` + `style.transform` por DOM directo (sin re-render de React durante el drag), patrón correcto para que se sienta fluido. La nota vieja "arrastre torpe" parece resuelta por los commits de pulido posteriores — falta confirmar en vivo (es sensación, no verificable por código) |
+| Tablero por día (Gantt) | `tablero-dias/page.tsx` + `GanttDia` | ✅ El arrastre en sí usa `PointerEvent` + `style.transform` por DOM directo (sin re-render de React), fluido. **Encontrado 2026-09-11:** soltar una tarjeta de "Sin agendar" se sentía lento/colgado — no es bug, el `PATCH` genera el Google Doc + PDF de verdad de forma síncrona antes de responder (varios segundos reales de Google). Arreglado el mensaje ("Generando documento…" en vez de "Guardando…"); la generación en sí sigue igual (congelada) |
 | Almacén + Inventario | `almacen/page.tsx` + `AlmacenPiezas` | ✅ — en espera / en stock, confirmar arribo, riel de sucursales |
 | Inicio (dashboard) | `inicio/page.tsx` + `Dashboard` + `panel/*` | ✅ — panel configurable por rol, widgets con drag/resize |
 | Gerencia | `gerencia/page.tsx`, `gerencia/[recurso]/page.tsx` + `GestionRecurso`/`RielRecursos` | ✅ — CRUD genérico de ingenieros, sucursales, clientes, equipos, contratos. Esto **ya cubre** lo que el roadmap viejo llamaba "Panel de Gerencia" |
@@ -231,8 +231,9 @@ que sí existe hoy. Reescrito contra el estado verificado.
 - [ ] Agregar vinculación manual similar a la de clientes también para casos borde de sucursal
       (typos en `ingenieros.sucursal` que el backfill exacto no haya podido resolver).
 - [ ] Activar "leaked password protection" (30 segundos, dashboard de Supabase, manual).
-- [x] Gantt revisado (estático) 2026-09-11 — sin bug de código encontrado, ver Estado #5. Falta
-      confirmación en vivo de que "se siente" bien (subjetivo).
+- [x] **Gantt — cerrado 2026-09-11.** Reportado por el usuario: soltar una tarjeta se sentía
+      colgado. Causa real: generación síncrona del Doc/PDF (varios segundos de Google), no un
+      bug. Arreglado el mensaje ("Generando documento…"); ver Estado #5.
 
 ### LUEGO — Endurecer — ✅ Cerrado 2026-09-11 (los 4 puntos originales)
 - [x] **CI** — `.github/workflows/ci.yml` (`tsc` + `eslint` + `vitest` + `next build` en cada PR
