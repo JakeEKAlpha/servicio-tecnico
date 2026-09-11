@@ -44,6 +44,7 @@ export type ContactoCuenta = {
 export type ContratoResumen = {
   id: string;
   tipo_contrato: string;
+  subtipo_tym: string | null;
   fecha_inicio: string | null;
   fecha_fin: string | null;
   visitas_incluidas: number | null;
@@ -53,8 +54,33 @@ export type ContratoResumen = {
 export const ETIQUETA_TIPO_CONTRATO: Record<string, string> = {
   garantia: "Garantía",
   poliza: "Póliza",
+  renta: "Renta",
   tym: "TyM",
+  instalacion: "Instalación",
+  garantia_consumible: "Garantía de consumible",
 };
+
+export const ETIQUETA_SUBTIPO_TYM: Record<string, string> = {
+  mo: "MO",
+  ip: "IP",
+  instalacion: "Instalación",
+};
+
+/**
+ * "Modo aprendizaje": garantía/póliza/renta son ventanas de cobertura que se
+ * capturan antes de tener el vencimiento real — hasta que una persona las
+ * valide con `fecha_fin`, NO cuentan como dato vigente (decisión del
+ * usuario, 2026-09-11). TyM y los servicios de ejecutivo no son ventanas de
+ * cobertura, así que null en `fecha_fin` sigue significando "sin vencimiento".
+ */
+const TIPOS_REQUIEREN_FECHA_FIN = new Set(["garantia", "poliza", "renta"]);
+
+function contratoVigente(c: { tipo_contrato: string; fecha_fin: string | null }, hoy: string): boolean {
+  if (TIPOS_REQUIEREN_FECHA_FIN.has(c.tipo_contrato)) {
+    return !!c.fecha_fin && c.fecha_fin >= hoy;
+  }
+  return !c.fecha_fin || c.fecha_fin >= hoy;
+}
 
 export type CuentaDirectorio = {
   id: string;
@@ -112,11 +138,13 @@ export async function cuentaDeOrden(
       .eq("activo", true),
     supabase
       .from("contratos")
-      .select("id, tipo_contrato, fecha_inicio, fecha_fin, visitas_incluidas, equipo_id")
+      .select("id, tipo_contrato, subtipo_tym, fecha_inicio, fecha_fin, visitas_incluidas, equipo_id")
       .eq("cliente_id", mejor.id)
-      .eq("activo", true)
-      .or(`fecha_fin.is.null,fecha_fin.gte.${hoy}`),
+      .eq("activo", true),
   ]);
+  const contratosVigentes = ((contratos ?? []) as ContratoResumen[]).filter((c) =>
+    contratoVigente(c, hoy),
+  );
 
   const orden = (contactos ?? []).slice().sort(
     (a, b) =>
@@ -130,6 +158,6 @@ export async function cuentaDeOrden(
     tipo: (mejor.tipo as string | null) ?? null,
     indicaciones: (mejor.indicaciones as string | null) ?? null,
     contactos: orden as ContactoCuenta[],
-    contratos: (contratos ?? []) as ContratoResumen[],
+    contratos: contratosVigentes,
   };
 }

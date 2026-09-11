@@ -1,6 +1,7 @@
 import {
   ETIQUETA_ROL_CONTACTO,
   ETIQUETA_TIPO_CONTRATO,
+  ETIQUETA_SUBTIPO_TYM,
   type CuentaDirectorio,
 } from "@/lib/cuentas/directorio";
 
@@ -43,6 +44,7 @@ export default function CuentaLexmark({
               }
             >
               {ETIQUETA_TIPO_CONTRATO[c.tipo_contrato] ?? c.tipo_contrato}
+              {c.subtipo_tym ? ` (${ETIQUETA_SUBTIPO_TYM[c.subtipo_tym] ?? c.subtipo_tym})` : ""}
               {c.fecha_fin ? ` · hasta ${fechaCorta(c.fecha_fin)}` : " · indefinida"}
             </span>
           ))}

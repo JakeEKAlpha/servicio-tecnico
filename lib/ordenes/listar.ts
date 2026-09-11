@@ -1,11 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { prioridadDe } from "@/lib/ordenes/estatus";
+import { prioridadDe, prioridadServicio } from "@/lib/ordenes/estatus";
 
 /**
  * Lista las órdenes visibles para el usuario (RLS filtra por zona) con el
- * nombre de ingeniero y marca resueltos, ordenadas como el `items.sort()` de
- * `reconstruirVistaGeneral()`:
- *   1) prioridad de estatus  2) numero_visita  3) fecha_eta (sin fecha al final)
+ * nombre de ingeniero y marca resueltos, ordenadas:
+ *   1) prioridad de estatus  2) prioridad de tipo de servicio (WO Lexmark >
+ *      Xerox > SR Lexmark > Renta > Garantía/Póliza > TyM > resto, ver
+ *      `prioridadServicio`)  3) numero_visita  4) fecha_eta (sin fecha al final)
  *
  * Usado por `GET /api/ordenes` y por la página del Tablero.
  */
@@ -15,7 +16,7 @@ import { prioridadDe } from "@/lib/ordenes/estatus";
 const COLUMNAS_LISTA =
   "id, zona_id, origen, numero_orden, numero_visita, estatus, fecha_eta, hora_eta, " +
   "cliente, localidad, estado, sucursal, ingeniero_id, link_doc, link_pdf, " +
-  "ingenieros(nombre), marcas(nombre)";
+  "ingenieros(nombre), marcas(nombre), contratos(tipo_contrato)";
 
 export type OrdenListada = {
   id: string;
@@ -55,21 +56,33 @@ export async function listarOrdenes(
   type Rel = { nombre: string | null } | { nombre: string | null }[] | null;
   const uno = (r: Rel) => (Array.isArray(r) ? r[0] : r)?.nombre ?? null;
 
+  type RelContrato =
+    | { tipo_contrato: string | null }
+    | { tipo_contrato: string | null }[]
+    | null;
+  const tipoDe = (r: RelContrato) => (Array.isArray(r) ? r[0] : r)?.tipo_contrato ?? null;
+
   type Fila = Omit<OrdenListada, "ingeniero_nombre" | "marca_nombre"> & {
     ingenieros: Rel;
     marcas: Rel;
+    contratos: RelContrato;
   };
 
   const ordenes = ((filas ?? []) as unknown as Fila[])
-    .map(({ ingenieros, marcas, ...orden }) => ({
+    .map(({ ingenieros, marcas, contratos, ...orden }) => ({
       ...orden,
       ingeniero_nombre: uno(ingenieros),
       marca_nombre: uno(marcas),
+      _tipoContrato: tipoDe(contratos),
     }))
     .sort((a, b) => {
       const pa = prioridadDe(a.estatus);
       const pb = prioridadDe(b.estatus);
       if (pa !== pb) return pa - pb;
+
+      const sa = prioridadServicio(a.origen, a.marca_nombre, a._tipoContrato);
+      const sb = prioridadServicio(b.origen, b.marca_nombre, b._tipoContrato);
+      if (sa !== sb) return sa - sb;
 
       const va = Number(a.numero_visita) || 1;
       const vb = Number(b.numero_visita) || 1;
@@ -78,7 +91,9 @@ export async function listarOrdenes(
       const fa = a.fecha_eta || "9999-12-31";
       const fb = b.fecha_eta || "9999-12-31";
       return fa < fb ? -1 : fa > fb ? 1 : 0;
-    }) as OrdenListada[];
+    })
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(({ _tipoContrato, ...orden }) => orden) as OrdenListada[];
 
   return { ordenes, error: null };
 }

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { RECURSOS, ROLES_PERFIL, TIPOS_CONTRATO } from "@/lib/gerencia/recursos";
+import { RECURSOS, ROLES_PERFIL, TIPOS_CONTRATO, SUBTIPOS_TYM } from "@/lib/gerencia/recursos";
 import { etiquetaRol } from "@/lib/auth/roles";
 import GestionRecurso, { type Opcion } from "@/components/gerencia/GestionRecurso";
 
@@ -67,6 +67,7 @@ export default async function RecursoPage({
       label: [e.modelo, e.serie].filter(Boolean).join(" · ") || "(sin datos)",
     })),
     tipos_contrato: TIPOS_CONTRATO,
+    subtipos_tym: SUBTIPOS_TYM,
     roles_contacto: [
       { value: "mesa", label: "Mesa de servicio" },
       { value: "lider", label: "Líder" },

@@ -55,3 +55,42 @@ export function prioridadDe(estatus: string | null | undefined): number {
   const key = String(estatus ?? "").trim();
   return PRIORIDAD_ESTATUS[key] ?? 9;
 }
+
+/**
+ * Prioridad de urgencia por TIPO de servicio (decisión del usuario,
+ * 2026-09-11) — dentro de un mismo estatus, quién urge más asignar:
+ *   1) WO Lexmark  2) Visita Xerox  3) SR Lexmark
+ *   4) Renta Alpha  5) Garantía/Póliza Alpha  6) TyM
+ *   7) todo lo demás (instalación/garantía de consumible de ejecutivo,
+ *      o una orden de Alpha sin contrato vinculado todavía).
+ *
+ * Limitación conocida: solo puede ver el tipo de contrato si
+ * `ordenes.contrato_id` está lleno — hoy nada lo escribe todavía (el
+ * emparejamiento cliente↔orden sigue siendo por nombre difuso), así que la
+ * mayoría de las órdenes de Alpha caen en el nivel 7 hasta que se conecte
+ * un selector de contrato en la captura de la orden.
+ */
+export function prioridadServicio(
+  origen: string | null | undefined,
+  marca: string | null | undefined,
+  tipoContrato: string | null | undefined,
+): number {
+  const m = String(marca ?? "").toLowerCase();
+  if (m.includes("xerox")) return 2;
+
+  const o = String(origen ?? "").toUpperCase();
+  if (o === "WO") return 1;
+  if (o === "SR") return 3;
+
+  switch (tipoContrato) {
+    case "renta":
+      return 4;
+    case "garantia":
+    case "poliza":
+      return 5;
+    case "tym":
+      return 6;
+    default:
+      return 7;
+  }
+}

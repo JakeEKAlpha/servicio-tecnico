@@ -171,13 +171,15 @@ export const RECURSOS: Record<string, RecursoConfig> = {
 
   contratos: {
     tabla: "contratos",
-    titulo: "Contratos (garantía / póliza / TyM)",
+    titulo: "Contratos (garantía / póliza / renta / TyM)",
     orden: "cliente_id",
     columnas: [
       "cliente_id",
       "equipo_id",
       "marca_id",
       "tipo_contrato",
+      "subtipo_tym",
+      "solicitado_por_gestor_id",
       "fecha_inicio",
       "fecha_fin",
       "visitas_incluidas",
@@ -201,8 +203,28 @@ export const RECURSOS: Record<string, RecursoConfig> = {
         opciones: "tipos_contrato",
         requerido: true,
       },
+      {
+        k: "subtipo_tym",
+        label: "Subtipo TyM",
+        tipo: "select",
+        opciones: "subtipos_tym",
+        ayuda: "Solo si Tipo = TyM: mano de obra, inspección o instalación.",
+      },
+      {
+        k: "solicitado_por_gestor_id",
+        label: "Solicitado por (ejecutivo)",
+        tipo: "select",
+        opciones: "gestores",
+        ayuda: "Solo si lo pidió un ejecutivo (instalación / garantía de consumible), no el cliente.",
+      },
       { k: "fecha_inicio", label: "Inicio", tipo: "fecha", requerido: true },
-      { k: "fecha_fin", label: "Fin", tipo: "fecha", ayuda: "Vacío = indefinido." },
+      {
+        k: "fecha_fin",
+        label: "Fin",
+        tipo: "fecha",
+        ayuda:
+          "En garantía/póliza/renta: mientras esté vacío NO cuenta como vigente (dato sin validar). Ponla al validarlo con el vencimiento real.",
+      },
       {
         k: "visitas_incluidas",
         label: "Visitas incluidas",
@@ -326,9 +348,19 @@ export const ROLES_PERFIL = [
   "admin",
 ] as const;
 
-/** Los 3 valores de `contratos.tipo_contrato` (texto + CHECK, no enum). */
+/** Valores de `contratos.tipo_contrato` (texto + CHECK, no enum). */
 export const TIPOS_CONTRATO: { value: string; label: string }[] = [
   { value: "garantia", label: "Garantía" },
   { value: "poliza", label: "Póliza" },
+  { value: "renta", label: "Renta" },
   { value: "tym", label: "TyM" },
+  { value: "instalacion", label: "Instalación (ejecutivo)" },
+  { value: "garantia_consumible", label: "Garantía de consumible (ejecutivo)" },
+];
+
+/** Subtipos de un contrato TyM (`contratos.subtipo_tym`). */
+export const SUBTIPOS_TYM: { value: string; label: string }[] = [
+  { value: "mo", label: "Mantenimiento correctivo / MO" },
+  { value: "ip", label: "Inspección (IP)" },
+  { value: "instalacion", label: "Instalación" },
 ];
