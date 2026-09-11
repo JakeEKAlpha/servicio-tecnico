@@ -68,7 +68,7 @@ export default async function DetalleOrdenCargado({
       .eq("zona_id", orden.zona_id)
       .eq("activa", true)
       .order("nombre"),
-    cuentaDeOrden(supabase, orden.cliente),
+    cuentaDeOrden(supabase, orden.cliente, orden.cliente_id),
   ]);
 
   // Stock de la sucursal de la orden, para mostrar disponibilidad por pieza.
