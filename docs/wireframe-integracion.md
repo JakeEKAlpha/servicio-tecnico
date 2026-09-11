@@ -3,107 +3,99 @@
 Fuente: `Wireframes Servicio Tecnico.dc.html` (Claude Design), importado
 2026-09-10 desde `Descargas/Project wireframe screens.zip`. Se implementa
 turno **t11 (Ronda 2)** — ya combina/afina las propuestas de la Ronda 1
-(t1–t10) por pantalla.
+(t1–t10) por pantalla. El sistema de componentes real del wireframe está
+en `_ds/.../_ds_bundle.js` (Button, Input, Chip, StatusPill, Panel,
+DetailField, BrandCard, RailItem, TicketCard, Modal, Tabs, KanbanBoard,
+StatWidget, DataTable) — de ahí sale la regla exacta de densidad/mayúsculas
+que se está aplicando en la Fase 2.
 
 Regla del usuario: **el sistema de diseño del proyecto (`app/globals.css`,
 `lib/tema.ts`, `lib/ui.ts`) manda sobre los tokens del wireframe** cuando
 haya conflicto. El panel configurable de `/inicio` (mover/redimensionar/
-quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
+quitar/agregar, `components/panel/*`) **no se toca ni se regresa**. La
+ficha de la orden **se conserva de color sólido por marca** (confirmado
+por el usuario — D3).
 
-## Estado por pantalla
+## Regla de mayúsculas (confirmada contra el bundle del wireframe)
 
-| # | Pantalla | Ref. | Estado | Commit |
-|---|---|---|---|---|
-| 1 | Tablero `/tablero` | 11a | ✅ hecho | `docs`+commit |
-| 2 | Detalle de orden `/tablero/[id]` | 11e+11f | 🔧 ancho ampliado; ficha de color se conserva (ver D3) | — |
-| 3 | Gantt del día `/tablero-dias` | 11g+11h+11i | 🔧 riel "sin agendar" a tira horizontal; 11g ya estaba (drag con feedback); ancho 100%/zoom → D7 | — |
-| 4 | Mapa por ingeniero | 11j | ⏳ pendiente (placeholder de imagen, sin geografía real) | — |
-| 5 | Almacén `/almacen` | 11k+11l | 🔧 riel + detalle + resumen hechos; bandeja "validar/apartados" → D6 | — |
-| 6 | Flujo de pedir pieza | 11m | ⏳ pendiente (ya cubierto por `lib/piezas.ts` + `SeccionPiezas.tsx`; no se tocó, ver D6) | — |
-| 7 | Gerencia `/gerencia/[recurso]` | 11p | ✅ hecho (riel agrupado + panel lateral) | — |
-| 7b | Fichas por entidad (cuentas/sucursales) | 11q | ⏳ pendiente — requiere agregar encargados+ingenieros por sucursal | — |
-| 8 | Campo — agenda `/campo` | t7b | ⏳ pendiente | — |
-| 9 | Campo — servicio `/campo/[id]` | t8b/8c | ⏳ pendiente | — |
-| 10 | Modal nueva orden | t9b | ✅ hecho (2 pasos) | — |
-| 11 | Asignar sin modal | t9e | 🔧 pasó a panel lateral; disponibilidad real (carga/distancia) → D5 | — |
-| 12 | Configuración `/configuracion` | t10b | 🔧 vista previa en vivo hecha; "fila por defecto" y "pantalla de inicio" → D4 | — |
-| 13 | Login `/login` | t10d | ✅ hecho (pantalla partida) | — |
-| 14 | Inicio `/inicio` | 11n/11o | ✅ panel a todo el ancho (D1); "cola priorizada" widget → pendiente | — |
+MAYÚSCULAS solo en: etiquetas de campo (`etiqueta` en `lib/ui.ts`),
+encabezados de columna de tabla, etiquetas de categoría/grupo (riel,
+carril). Todo lo demás — botones, pestañas, chips, títulos de sección,
+valores — va en formato normal, extra bold.
 
-## Decisiones a definir al final (no bloquean el avance)
+---
 
-- **D1 — Inicio vs. wireframe 5b/11n. RESUELTO parcialmente.** El wireframe
-  pide "cola priorizada + carga del día + almacén, sin max-w". Se conservó
-  el panel configurable (no se reemplaza) y se le quitó el `max-w-6xl` →
-  ahora usa el ancho completo, como pide 5b. Falta evaluar si conviene
-  agregar un widget "cola priorizada" al catálogo (`lib/panel/catalogo.ts`)
-  — confirmar al final.
-- **D2 — pendiente de llenar conforme aparezcan ambigüedades.**
-- **D3 — Ficha de la orden: SE CONSERVA el bloque de color por marca.**
-  11e propone quitar el color y dejar solo una barra de acento de 6px sobre
-  panel blanco. Nuestro sistema de diseño ya definió y confirmó (varias veces,
-  con el usuario viendo capturas) la ficha de color por marca — Lexmark
-  verde, SR ámbar, Xerox rojo, Alpha azul — como identidad, no como "as-is"
-  a corregir. Regla del usuario: el sistema de diseño del proyecto manda
-  sobre el wireframe. Se implementó solo la parte de 11e/11f que no choca:
-  ancho ampliado (`max-w-6xl` → `max-w-[1400px]`). Confirmar que esto es
-  correcto al final.
-- **D4 — Configuración: "fila por defecto del tablero" y "pantalla de
-  inicio" (10b) no se implementaron.** La primera choca con el toggle
-  "Solo activas / Ver todas" que ya existe (ambos usan la ausencia del
-  query param `activos` con distinto significado — se resuelve con un
-  flag "ya se aplicó" en `sessionStorage`, no es difícil, se priorizaron
-  otras pantallas). La segunda requeriría tocar el redirect de login en
-  `lib/supabase/proxy.ts` (código de autenticación, alto impacto). Ninguna
-  se implementó a la espera de decidir si vale la pena.
-- **D5 — "Asignar" ya es panel lateral, pero sin "disponibilidad real".**
-  9e pide ver quién tiene hueco ese día y a qué distancia queda la visita.
-  Se hizo el cambio de modal → panel; falta la consulta de carga por
-  ingeniero/fecha y, sobre todo, distancia (necesita lat/lng, que sigue
-  pendiente por otra tarea — mapa de gerencia). Evaluar si se agrega un
-  conteo simple ("3 visitas ese día") sin la parte de distancia.
-- **D6 — Almacén: NO se tocó el flujo de doble validación de piezas.**
-  11k pide una "bandeja de pendientes" con validar/arribos/apartados. Se
-  hizo riel de sucursales + detalle + resumen (11k/11l), pero "validar"
-  toca `disponible_sistema`/`validada_almacen`, el mecanismo de doble
-  validación ya afinado en `components/SeccionPiezas.tsx` (reglas de
-  negocio confirmadas por el usuario en otra sesión). Duplicarlo en
-  Almacén sin poder probarlo en vivo era demasiado riesgo — queda la
-  sección "Pedidas para órdenes" (arribos) como estaba, ahora dentro del
-  panel de la sucursal activa. Evaluar si de plano quieren la bandeja de
-  validar aquí también.
-- **D7 — Gantt: se movió el riel "Sin agendar" a tira horizontal (11h),
-  pero NO se tocó el ancho de la cuadrícula ni se agregó el zoom
-  día/jornada/franja.** `PX_HORA` (72px) es una constante usada en TODA
-  la matemática de arrastrar/soltar y redimensionar (`onMove`, `onUp`,
-  `onResizeDown`) — volverla responsiva (100% del ancho) o agregar zoom
-  significa tocar esa matemática en varios sitios sin poder probar el
-  arrastre en vivo con una sesión real. 11g (feedback visual del
-  arrastre: se levanta, la fila se ilumina, guía de hora) YA estaba
-  implementado en el código actual, mejor que el wireframe incluso.
+## Plan de acción — lo que falta
 
-## Sin empezar (por riesgo, no por descuido)
+### Fase 1 — pantallas (estructura/layout del wireframe) — hecho
 
-- **Mapa por ingeniero (11j).** El propio wireframe lo deja como "bloque de
-  imagen, sin dibujar geografía" — o sea, ni el wireframe implementa un mapa
-  real. Necesita lat/lng de ingenieros/sucursales (pendiente de otra tarea)
-  y un proveedor de mapas. No se empezó.
-- **Fichas por entidad — cuentas/sucursales (11q).** Requiere agregar a las
-  consultas de Gerencia los encargados de almacén y los ingenieros por
-  sucursal (hoy no se cargan juntos). Cambio acotado pero no se priorizó
-  frente a pantallas de más tráfico.
-- **Campo — agenda (`/campo`, t7b) y servicio en sitio (`/campo/[id]`,
-  t8b/8c).** Son pantallas **solo móviles**, para ingenieros. No tengo forma
-  de iniciar sesión como ingeniero ni de probar gestos táctiles en este
-  entorno — tocar estas pantallas sin poder verlas en un teléfono real es
-  el riesgo más alto de toda la lista (la ficha verde de campo además ya
-  tiene reglas de negocio propias afinadas en otra sesión). Se dejaron sin
-  tocar a propósito.
+Tablero (panel de detalle), Detalle de orden (ancho), Gerencia (riel +
+panel), Login/nueva contraseña (partido), Modales (2 pasos / panel),
+Almacén (riel + resumen), Configuración (vista previa), Gantt (riel
+horizontal), Inicio (ancho completo). Detalle de cada una más abajo, en
+"Estado por pantalla".
+
+### Fase 2 — densidad/tipografía real del wireframe — EN CURSO
+
+Ya aplicado a `lib/ui.ts` (botones, campos, chips, tarjetas, modales) y a
+las etiquetas de formulario de: login, nueva contraseña, nueva orden,
+asignar, gerencia, almacén. **Faltan estos archivos — nunca se tocaron
+para peso/tamaño/radio y se nota porque son de alto tráfico:**
+
+**Prioridad alta (se ven en cada pantalla):**
+- `components/AppShell.tsx` — sidebar, header, nav. El más visible de
+  todos y el único que falta.
+- `components/MenuUsuario.tsx` — menú del usuario (esquina superior).
+- `components/SelectorHora.tsx` y `components/SelectorIngenieroSucursal.tsx`
+  — controles dentro de casi todos los formularios de agendar/asignar.
+
+**Prioridad media (secciones específicas):**
+- `components/DetalleOrden.tsx` — etiquetas de `CampoEditable`, historial,
+  cuenta Lexmark.
+- `components/SeccionPiezas.tsx` — 2 etiquetas sin actualizar + botones.
+- `components/GanttDia.tsx` — etiqueta de fecha y leyenda de colores.
+- `components/Colapsable.tsx`, `components/CuentaLexmark.tsx`,
+  `components/TemaToggle.tsx`, `components/ModalPegarWOSR.tsx` — radios y
+  pesos sueltos.
+
+### Fase 3 — funcionalidad pendiente / decisiones abiertas
+
+| # | Qué falta | Referencia | Bloqueo |
+|---|---|---|---|
+| D1 | Widget "cola priorizada" en el catálogo del panel de `/inicio` | 5b/11n | Ninguno — se puede hacer |
+| D4 | "Fila por defecto del tablero" y "pantalla de inicio" en Configuración | 10b | La 1ª choca con el toggle actual (se resuelve con `sessionStorage`); la 2ª toca el redirect de login |
+| D5 | "Asignar": disponibilidad real (carga del día por ingeniero, distancia) | 9e | Distancia necesita lat/lng (pendiente de otra tarea) |
+| D6 | Almacén: bandeja "validar" (además de "arribos") | 11k | Toca el flujo de doble validación de piezas ya afinado — alto cuidado |
+| D7 | Gantt: ancho 100% + zoom día/jornada/franja | 11h | `PX_HORA` fijo se usa en toda la matemática de arrastrar — riesgo si no se prueba en vivo |
+| 7b | Fichas por entidad (cuentas Lexmark, sucursales) en Gerencia | 11q | Falta agregar encargados+ingenieros por sucursal a la consulta |
+| — | Mapa por ingeniero | 11j | El wireframe mismo lo deja como imagen de referencia, no hay mapa real que construir todavía |
+| — | Campo — agenda (`/campo`) y servicio en sitio (`/campo/[id]`) | t7b/t8b/8c | Pantallas solo-móvil para ingenieros; no hay forma de probarlas aquí (ni sesión de ingeniero ni gestos táctiles). La ficha verde ya tiene reglas propias afinadas. |
+
+---
+
+## Estado por pantalla (detalle)
+
+| # | Pantalla | Ref. | Estado |
+|---|---|---|---|
+| 1 | Tablero `/tablero` | 11a | ✅ |
+| 2 | Detalle de orden `/tablero/[id]` | 11e+11f | 🔧 ancho ampliado; ficha de color se conserva (D3) |
+| 3 | Gantt del día `/tablero-dias` | 11g+11h+11i | 🔧 riel horizontal hecho; ancho 100%/zoom → D7 |
+| 4 | Mapa por ingeniero | 11j | ⏳ sin empezar (ver tabla de arriba) |
+| 5 | Almacén `/almacen` | 11k+11l | 🔧 riel + detalle + resumen; bandeja "validar" → D6 |
+| 6 | Flujo de pedir pieza | 11m | ⏳ ya cubierto por `SeccionPiezas.tsx`, no se tocó |
+| 7 | Gerencia `/gerencia/[recurso]` | 11p | ✅ |
+| 7b | Fichas por entidad | 11q | ⏳ sin empezar |
+| 8 | Campo — agenda `/campo` | t7b | ⏳ sin empezar (ver tabla de arriba) |
+| 9 | Campo — servicio `/campo/[id]` | t8b/8c | ⏳ sin empezar (ver tabla de arriba) |
+| 10 | Modal nueva orden | t9b | ✅ 2 pasos |
+| 11 | Asignar sin modal | t9e | 🔧 panel hecho; disponibilidad real → D5 |
+| 12 | Configuración `/configuracion` | t10b | 🔧 vista previa hecha; D4 pendiente |
+| 13 | Login `/login` | t10d | ✅ |
+| 14 | Inicio `/inicio` | 11n/11o | ✅ ancho completo; widget "cola priorizada" opcional (D1) |
 
 ## Notas de implementación
 
-- Tokens nuevos del wireframe (`_ds/.../tokens/*.css`) quedan como
-  referencia en `scratchpad/wireframes/` (no se importan literal); se
-  adapta lo necesario a los tokens existentes en `app/globals.css`.
-- El wireframe es un wireframe (cajas, sin marca): se implementa con nuestra
-  identidad visual real (azul Alpha, Montserrat, tonos ya definidos).
+- Tokens nuevos del wireframe quedan de referencia en
+  `scratchpad/wireframes/` (no se importan literal).
+- `components/campo/*` (ficha verde de ingeniero) no se toca — riesgo
+  alto sin poder probar en móvil, y ya tiene reglas propias afinadas.
