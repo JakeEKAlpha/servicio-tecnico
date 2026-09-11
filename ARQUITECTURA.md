@@ -174,14 +174,17 @@ reales.
 1. ~~Cero pruebas automatizadas~~ **Primera suite cerrada 2026-09-11** (`npm run test`, Vitest,
    55 pruebas): parsers Lexmark/Xerox, matching de clientes (`mejorCoincidenciaCliente`,
    incluye el caso real DHL EXPRESS vs DHL METROPOLITAN), prioridad de estatus, fechas/horas,
-   normalización de texto. **Alcance hoy: solo `lib/**` (lógica pura).** Falta: pruebas de
-   componentes (necesitan jsdom) y de los route handlers `app/api/**` (necesitan mockear
-   Supabase) — siguiente ronda.
-2. **BD sin versionar** — DDL aplicado como SQL suelto, no como `supabase/migrations/`.
-3. ~~Sin CI~~ **Cerrado 2026-09-11.** `.github/workflows/ci.yml` corre
-   `tsc`/`eslint`/`vitest`/`next build` en cada PR y push a `main`, verificado que el build pasa
-   sin credenciales reales (ninguna ruta consulta Supabase durante el build). **Sin deploy** sigue
-   pendiente. (Repo remoto: `github.com/JakeEKAlpha/servicio-tecnico`.)
+   normalización de texto. **Segunda ronda cerrada 2026-09-11:** componentes con jsdom
+   (`SelectorIngenieroSucursal` — cubre el bug real de sucursal sin ingenieros) y un route
+   handler con Supabase mockeado (`/api/gerencia/vincular-cliente`). 65 pruebas en total. Falta:
+   más route handlers, e integración contra un branch de Supabase para probar los triggers reales.
+2. ~~BD sin versionar~~ **Cerrado 2026-09-11.** `supabase/migrations/20260911092901_remote_schema.sql`
+   — primer baseline real vía `supabase db pull` (19 tablas, 75 funciones/triggers/políticas).
+   De aquí en adelante, cambios de esquema van como migración nueva, no como SQL suelto.
+3. ~~Sin CI, sin deploy~~ **Cerrado 2026-09-11.** `.github/workflows/ci.yml` corre
+   `tsc`/`eslint`/`vitest`/`next build` en cada PR y push a `main`. Deploy real en Vercel:
+   `https://lexmark-os-web.vercel.app` (conectado a GitHub — cada push a `main` dispara un deploy
+   a producción automático). (Repo remoto: `github.com/JakeEKAlpha/servicio-tecnico`.)
 4. ~~`ordenes.cliente_id`/`equipo_id` sin poblar~~ **Cerrado 2026-09-11.**
    `ModalNuevaOrden` tiene selector de cliente/equipo, `cuentaDeOrden()` prioriza el FK sobre el
    fuzzy-match, y el backfill de `/gerencia/cuentas` ya corrió sobre las órdenes históricas —
@@ -230,17 +233,21 @@ que sí existe hoy. Reescrito contra el estado verificado.
 - [ ] Re-verificar el Gantt (`tablero-dias/GanttDia`) tras el pulido de wireframe reciente —
       confirmar si "el arrastre se siente torpe" sigue siendo cierto.
 
-### LUEGO — Endurecer
-- [x] **CI** — `.github/workflows/ci.yml`, cerrado 2026-09-11 (`tsc` + `eslint` + `vitest` +
-      `next build` en cada PR y push a `main`).
-- [x] **Suite de pruebas, primera ronda** — `npm run test` (Vitest), cerrado 2026-09-11: parsers
-      Lexmark/Xerox, matching de clientes, prioridad de estatus, fechas/hora, normalización de
-      texto. Ver Deuda técnica #1 para lo que falta (componentes, route handlers, triggers).
-- [ ] Volcar todo el DDL a `supabase/migrations/` — necesita `supabase db pull` (o un dump) del
-      proyecto real; el agente no tiene credenciales de Supabase en este entorno.
-- [ ] Segunda ronda de pruebas: componentes (jsdom) y `app/api/**` con Supabase mockeado;
-      integración contra un branch de Supabase para probar los triggers reales.
-- [ ] Deploy a Vercel (staging) + validar generación de docs en ese runtime.
+### LUEGO — Endurecer — ✅ Cerrado 2026-09-11 (los 4 puntos originales)
+- [x] **CI** — `.github/workflows/ci.yml` (`tsc` + `eslint` + `vitest` + `next build` en cada PR
+      y push a `main`).
+- [x] **Suite de pruebas** — 65 pruebas (Vitest): parsers Lexmark/Xerox, matching de clientes,
+      prioridad de estatus, fechas/hora, normalización de texto, un componente (jsdom) y un route
+      handler (Supabase mockeado). Ver Deuda técnica #1 para lo que sigue faltando.
+- [x] **`supabase/migrations/`** — `20260911092901_remote_schema.sql`, primer baseline real vía
+      `supabase db pull` (necesitó instalar Docker Desktop y el CLI de Supabase en esta sesión).
+- [x] **Deploy a Vercel** — `https://lexmark-os-web.vercel.app`, conectado a GitHub. **No quedó
+      como staging** — el primer deploy manual cayó directo en producción (no hay forma de forzar
+      preview en un proyecto recién creado sin pasar por un PR); el usuario decidió aceptarlo como
+      el sitio real. Falta: `GOOGLE_SERVICE_ACCOUNT_KEY_B64` solo se cargó en el entorno
+      Production de Vercel (no Preview/Development).
+- [ ] Pendiente, nuevo: integración de pruebas contra un branch de Supabase para probar los
+      triggers reales (lo único que quedó fuera de esta ronda).
 
 ### DESPUÉS DE ESO — Features
 - [ ] Notificaciones / realtime (Supabase Realtime).
