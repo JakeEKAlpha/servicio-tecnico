@@ -28,15 +28,16 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
 | 11 | Asignar sin modal | t9e | 🔧 pasó a panel lateral; disponibilidad real (carga/distancia) → D5 | — |
 | 12 | Configuración `/configuracion` | t10b | 🔧 vista previa en vivo hecha; "fila por defecto" y "pantalla de inicio" → D4 | — |
 | 13 | Login `/login` | t10d | ✅ hecho (pantalla partida) | — |
-| 14 | Inicio `/inicio` | 11n/11o | ⚠️ ya cubierto por el panel configurable — ver decisión D1 | — |
+| 14 | Inicio `/inicio` | 11n/11o | ✅ panel a todo el ancho (D1); "cola priorizada" widget → pendiente | — |
 
 ## Decisiones a definir al final (no bloquean el avance)
 
-- **D1 — Inicio vs. wireframe 5b/11n.** El wireframe pide "cola priorizada +
-  carga del día + almacén, sin max-w". Ya existe el panel configurable
-  (widgets movibles). Propuesta: NO reemplazar el panel; en su lugar, dejar
-  el panel a `max-w-6xl` → ancho completo (quitar el límite) y evaluar si
-  falta un widget "cola priorizada" al catálogo. Confirmar al final.
+- **D1 — Inicio vs. wireframe 5b/11n. RESUELTO parcialmente.** El wireframe
+  pide "cola priorizada + carga del día + almacén, sin max-w". Se conservó
+  el panel configurable (no se reemplaza) y se le quitó el `max-w-6xl` →
+  ahora usa el ancho completo, como pide 5b. Falta evaluar si conviene
+  agregar un widget "cola priorizada" al catálogo (`lib/panel/catalogo.ts`)
+  — confirmar al final.
 - **D2 — pendiente de llenar conforme aparezcan ambigüedades.**
 - **D3 — Ficha de la orden: SE CONSERVA el bloque de color por marca.**
   11e propone quitar el color y dejar solo una barra de acento de 6px sobre

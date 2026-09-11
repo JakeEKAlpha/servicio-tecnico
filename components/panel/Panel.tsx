@@ -234,7 +234,7 @@ export default function Panel({
   /* ---------- render ---------- */
 
   return (
-    <div className="mx-auto max-w-6xl p-4 sm:p-6">
+    <div className="w-full p-4 sm:p-6">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="mr-auto min-w-0">
           <h1 className="truncate text-xl font-extrabold tracking-tight text-brand">
