@@ -55,10 +55,11 @@ se replican **al pie de la letra**. No se inventa comportamiento.
 
 | Tabla | Para qué | Notas |
 |---|---|---|
-| `zonas` | 3 zonas (Zona 1, Zona 2, Baja Digital) | `coordinador_nombre`, `drive_folder_id` |
-| `marcas` | Lexmark / Xerox / Propio | **las 3 migradas** — Xerox (captura manual) y servicios propios de Alpha Digital (renta/garantía/póliza/TyM) en producción desde `docs/plan-arquitectura-multimarca.md` (Fases A-D) |
+| `empresas` | Alpha Digital / Baja Digital — **nueva 2026-09-11** | `nombre` unique. Formaliza lo que antes era texto libre repetido en `sucursales.empresa`/`ingenieros.empresa` y embebido en `zonas.nombre` |
+| `zonas` | 3 zonas (Alpha Digital Zona 1, Zona 2, Baja Digital) | `coordinador_nombre`, `drive_folder_id`, `empresa_id` (FK, nuevo 2026-09-11 — el nombre de la zona no se tocó, sigue diciendo la empresa en texto) |
+| `marcas` | Lexmark / Xerox / Alpha Digital ("Propio") / HP | **`es_partner` — nuevo 2026-09-11**: `true` solo en Lexmark y Xerox (partners oficiales); "Alpha Digital"/HP en `false` — hacen TyM sobre equipos de cualquier fabricante, pero solo son partner de esas dos. CRUD en `/gerencia/marcas` para agregar más marcas (Brother, Epson…) sin migración nueva |
 | `perfiles` | usuarios de la app (FK `auth.users`) | `rol` enum, `zona_id`, `debe_cambiar_password` |
-| `ingenieros` | catálogo (NO entran a la app) | `sucursal` (texto, no FK), `activo`, `nombre_corto` (carpetas Drive) |
+| `ingenieros` | catálogo (NO entran a la app) | `sucursal` (texto, no FK), `activo`, `nombre_corto` (carpetas Drive), `empresa_id` (FK, nuevo 2026-09-11) |
 | `ordenes` | una fila = una **visita** | `numero_orden` + `numero_visita`; `datos_especificos` jsonb (campos Lexmark); `cliente_id`/`equipo_id`/`contrato_id` (FK nullable, agregadas en Fase B — **aún sin poblar de forma sistemática**, ver Deuda) |
 | `ordenes_historial` | auditoría de cambios de estatus | lo llena el trigger |
 | `piezas_orden` | piezas por orden | `estado`: recomendada → en_espera → recibida → cancelada |
