@@ -186,13 +186,12 @@ reales.
    `tsc`/`eslint`/`vitest`/`next build` en cada PR y push a `main`. Deploy real en Vercel:
    `https://lexmark-os-web.vercel.app` (conectado a GitHub — cada push a `main` dispara un deploy
    a producción automático). (Repo remoto: `github.com/JakeEKAlpha/servicio-tecnico`.)
-4. ~~`ordenes.cliente_id`/`equipo_id` sin poblar~~ **Cerrado 2026-09-11.**
+4. ~~`ordenes.cliente_id`/`equipo_id` sin poblar~~ **Cerrado por completo 2026-09-11.**
    `ModalNuevaOrden` tiene selector de cliente/equipo, `cuentaDeOrden()` prioriza el FK sobre el
-   fuzzy-match, y el backfill de `/gerencia/cuentas` ya corrió sobre las órdenes históricas —
-   `blueprints/cerrar-deuda-datos-blueprint.md`. Quedan 8 órdenes sin vincular porque su cliente
-   (AUTOZONE MEXICO, DHL EXPRESS MEXICO, OPERADORA OMX ×5, AT&T COMUNICACIONES DIGITALES)
-   **no existe todavía en `clientes`** — no es deuda de código, es que falta darlos de alta en
-   Gerencia. Al agregarlos, "Correr backfill" (idempotente) los toma solo.
+   fuzzy-match, y el backfill de `/gerencia/cuentas` corrió sobre todas las órdenes históricas —
+   `blueprints/cerrar-deuda-datos-blueprint.md`. Los 4 clientes que faltaban (AUTOZONE MEXICO,
+   DHL EXPRESS MEXICO, OPERADORA OMX, AT&T COMUNICACIONES DIGITALES) ya están dados de alta y
+   el backfill final corrió limpio: **0 órdenes sin match.**
 5. ~~14 políticas RLS sin optimizar~~ **Cerrado 2026-09-11.** `docs/db-optimizacion-rls.sql`
    aplicado por el usuario en el SQL editor de Supabase.
 6. ~~Sucursal por texto vs por id~~ **Cerrado 2026-09-11.** `ordenes.sucursal_id` ya estaba
@@ -222,8 +221,9 @@ que sí existe hoy. Reescrito contra el estado verificado.
 - [x] `docs/db-optimizacion-rls.sql` aplicado en el SQL editor de Supabase.
 - [x] Backfill corrido desde `/gerencia/cuentas` — vinculó todo lo vinculable; 8 órdenes quedan
       pendientes solo porque su cliente no está dado de alta todavía (ver Deuda técnica #4).
-- [ ] Pendiente, menor: dar de alta AUTOZONE MEXICO, DHL EXPRESS MEXICO, OPERADORA OMX, AT&T
-      COMUNICACIONES DIGITALES en `/gerencia/cuentas` y volver a correr el backfill.
+- [x] **Cerrado 2026-09-11.** Los 4 clientes dados de alta en `/gerencia/cuentas` (AUTOZONE
+      MEXICO, DHL EXPRESS MEXICO, OPERADORA OMX, AT&T COMUNICACIONES DIGITALES — entre el usuario
+      y el agente) y el backfill final corrió limpio: 0 órdenes sin match.
 
 ### DESPUÉS — Deuda de datos, segunda ronda
 - [x] **`ingenieros.sucursal_id` + selector de asignación lee `sucursales`** — cerrado 2026-09-11
