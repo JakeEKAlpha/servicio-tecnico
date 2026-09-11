@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { OrdenListada } from "@/lib/ordenes/listar";
@@ -11,6 +11,12 @@ import type {
 import { claseEstatus, claseTono, chipServicio } from "@/lib/tema";
 import { enlace, chip, tarjetaInteractiva } from "@/lib/ui";
 import { badgeSla } from "@/lib/ordenes/sla";
+import {
+  COLUMNAS_TABLERO,
+  ANCHO_MIN,
+  ANCHO_MAX,
+  type ColumnaTableroId,
+} from "@/lib/ordenes/columnasTablero";
 import AccionesOrden, { type OrdenAcciones } from "@/components/AccionesOrden";
 
 /** "YYYY-MM-DD" -> "DD/MM/YYYY". */
@@ -31,35 +37,6 @@ function fechasReferencia() {
   const manana = fmt.format(new Date(Date.now() + 24 * 60 * 60 * 1000));
   return { hoy, manana };
 }
-
-const COLUMNAS = [
-  "Número",
-  "Vis.",
-  "Cliente",
-  "Localidad",
-  "Estado",
-  "Sucursal",
-  "Ingeniero",
-  "Fecha ETA",
-  "Hora ETA",
-  "Doc",
-  "PDF",
-  "Estatus / acciones",
-] as const;
-
-/** Doc/PDF quedan a un clic (dentro del detalle) — no ocupan columna siempre. */
-const OCULTA_SIEMPRE = new Set<(typeof COLUMNAS)[number]>(["Doc", "PDF"]);
-
-/** Con el panel de detalle abierto la tabla se angosta más: solo lo esencial. */
-const OCULTA_CON_PANEL = new Set<(typeof COLUMNAS)[number]>([
-  "Vis.",
-  "Localidad",
-  "Estado",
-  "Sucursal",
-  "Hora ETA",
-  "Doc",
-  "PDF",
-]);
 
 type SucursalConZona = SucursalOpcion & { zona_id?: string };
 
@@ -86,13 +63,17 @@ export default function TablaOrdenes({
   sucursales,
   esGerencia,
   vistaInicial = "tabla",
+  columnasOcultasIniciales = [],
+  columnasAnchosIniciales = {},
 }: {
   ordenes: OrdenListada[];
   ingenieros: IngenieroOpcion[];
   sucursales?: SucursalConZona[];
   esGerencia: boolean;
-  /** Preferencia leída en el servidor (`preferencias_usuario.tablero_vista`). */
+  /** Preferencias leídas en el servidor (`preferencias_usuario`). */
   vistaInicial?: Vista;
+  columnasOcultasIniciales?: ColumnaTableroId[];
+  columnasAnchosIniciales?: Partial<Record<ColumnaTableroId, number>>;
 }) {
   const pathname = usePathname();
   // La URL se enmascara a /tablero/<id> mientras el panel de detalle está
@@ -102,6 +83,15 @@ export default function TablaOrdenes({
   const compacto = !!idAbierto;
 
   const [vista, setVista] = useState<Vista>(vistaInicial);
+  // Qué columnas ocultar se decide en Configuración (no aquí) — se lee una
+  // sola vez al cargar la página; para verla actualizada hace falta recargar.
+  const ocultas = new Set<ColumnaTableroId>(columnasOcultasIniciales);
+  const [anchos, setAnchos] = useState<Partial<Record<ColumnaTableroId, number>>>(
+    columnasAnchosIniciales,
+  );
+  const arrastre = useRef<{ id: ColumnaTableroId; x0: number; ancho0: number } | null>(
+    null,
+  );
 
   if (ordenes.length === 0) {
     return <p className="p-8 text-sm text-muted">No hay órdenes para mostrar.</p>;
@@ -167,6 +157,46 @@ export default function TablaOrdenes({
     }).catch(() => undefined);
   }
 
+  const columnasVisibles = COLUMNAS_TABLERO.filter(
+    (c) =>
+      (c.fijo || !ocultas.has(c.id)) && !(compacto && c.colapsaConPanel),
+  );
+
+  function anchoDe(id: ColumnaTableroId): number {
+    return anchos[id] ?? COLUMNAS_TABLERO.find((c) => c.id === id)!.anchoDef;
+  }
+
+  /** Arrastrar el borde derecho de un encabezado para redimensionar la
+   *  columna. Se persiste al soltar, no en cada pixel — evita saturar la
+   *  API mientras el usuario todavía está ajustando. */
+  function iniciarArrastre(id: ColumnaTableroId) {
+    return (e: React.PointerEvent<HTMLSpanElement>) => {
+      e.preventDefault();
+      arrastre.current = { id, x0: e.clientX, ancho0: anchoDe(id) };
+      e.currentTarget.setPointerCapture(e.pointerId);
+    };
+  }
+  function moverArrastre(e: React.PointerEvent<HTMLSpanElement>) {
+    const a = arrastre.current;
+    if (!a) return;
+    const nuevo = Math.min(ANCHO_MAX, Math.max(ANCHO_MIN, a.ancho0 + (e.clientX - a.x0)));
+    setAnchos((prev) => ({ ...prev, [a.id]: nuevo }));
+  }
+  function soltarArrastre(e: React.PointerEvent<HTMLSpanElement>) {
+    const a = arrastre.current;
+    if (!a) return;
+    arrastre.current = null;
+    setAnchos((prev) => {
+      fetch("/api/preferencias", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ clave: "tablero_columnas_anchos", valor: prev }),
+      }).catch(() => undefined);
+      return prev;
+    });
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  }
+
   return (
     <>
       {/* --- Móvil: siempre tarjetas (no cabe una tabla densa) --- */}
@@ -178,12 +208,19 @@ export default function TablaOrdenes({
 
       {/* --- Escritorio: Tabla o Tarjetas, a elección --- */}
       <div className="hidden md:block">
-        <div className="flex items-center justify-end gap-2 border-b border-border-default bg-surface-2/50 px-3 py-1.5">
-          <span className="text-[10px] font-extrabold uppercase tracking-wide text-muted">
-            Vista
-          </span>
+        <div className="flex items-center justify-between gap-2 border-b border-border-default bg-surface-2/50 px-3 py-1.5">
+          {vista === "tabla" ? (
+            <Link
+              href="/configuracion"
+              className="text-[11px] font-semibold text-muted hover:text-brand hover:underline"
+            >
+              Elegir columnas y anchos en Configuración
+            </Link>
+          ) : (
+            <span />
+          )}
           <div
-            className="inline-flex rounded-lg border border-border-default bg-surface p-0.5 text-xs font-bold"
+            className="inline-flex shrink-0 rounded-lg border border-border-default bg-surface p-0.5 text-xs font-bold"
             role="group"
             aria-label="Vista del tablero"
           >
@@ -219,101 +256,54 @@ export default function TablaOrdenes({
           </ul>
         ) : (
           <div className="scroll-oculto overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
+            <table className="border-collapse text-sm" style={{ tableLayout: "fixed" }}>
+              <colgroup>
+                {columnasVisibles.map((c) => (
+                  <col key={c.id} style={{ width: anchoDe(c.id) }} />
+                ))}
+              </colgroup>
               <thead>
                 <tr className="border-b border-border-default bg-surface-2 text-left text-[10px] font-extrabold uppercase tracking-wide text-text">
-                  {COLUMNAS.filter(
-                    (col) =>
-                      !OCULTA_SIEMPRE.has(col) &&
-                      (!compacto || !OCULTA_CON_PANEL.has(col)),
-                  ).map((col) => (
-                    <th key={col} className="whitespace-nowrap px-3 py-2.5">
-                      {col}
+                  {columnasVisibles.map((c) => (
+                    <th
+                      key={c.id}
+                      className="relative overflow-hidden text-ellipsis whitespace-nowrap px-3 py-2.5"
+                    >
+                      {c.etiqueta}
+                      <span
+                        onPointerDown={iniciarArrastre(c.id)}
+                        onPointerMove={moverArrastre}
+                        onPointerUp={soltarArrastre}
+                        className="absolute inset-y-0 right-0 w-2 cursor-col-resize touch-none select-none hover:bg-brand/30"
+                        title="Arrastra para cambiar el ancho"
+                      />
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filas.map(
-                  ({
-                    o,
-                    cerrada,
-                    fechaCls,
-                    servicio,
-                    ings,
-                    sucursalesFila,
-                    accionesOrden,
-                    totalVisitas,
-                  }) => (
-                    <tr
-                      key={o.id}
-                      className={
-                        "border-b border-border-default/70 transition-colors " +
-                        (o.id === idAbierto
-                          ? "bg-brand-050"
-                          : cerrada
-                            ? "bg-surface-2/60 text-muted"
-                            : "hover:bg-brand-050 even:bg-surface-2/40")
-                      }
-                    >
-                      <td className="whitespace-nowrap px-3 py-2 font-semibold">
-                        <span className="flex items-center gap-2">
-                          <span className={chip + " " + claseTono(servicio.tono)}>
-                            {servicio.texto}
-                          </span>
-                          <Link href={`/tablero/${o.id}`} className={enlace}>
-                            {o.numero_orden}
-                          </Link>
-                        </span>
+                {filas.map((f) => (
+                  <tr
+                    key={f.o.id}
+                    className={
+                      "border-b border-border-default/70 transition-colors " +
+                      (f.o.id === idAbierto
+                        ? "bg-brand-050"
+                        : f.cerrada
+                          ? "bg-surface-2/60 text-muted"
+                          : "hover:bg-brand-050 even:bg-surface-2/40")
+                    }
+                  >
+                    {columnasVisibles.map((c) => (
+                      <td
+                        key={c.id}
+                        className="overflow-hidden text-ellipsis whitespace-nowrap px-3 py-2"
+                      >
+                        {celdaTablero(c.id, f, esGerencia)}
                       </td>
-                      {!compacto && (
-                        <td className="px-3 py-2 text-muted">{o.numero_visita}</td>
-                      )}
-                      <td className="px-3 py-2" title={o.cliente ?? ""}>
-                        <div className="max-w-[15rem] truncate">{o.cliente}</div>
-                      </td>
-                      {!compacto && (
-                        <td className="whitespace-nowrap px-3 py-2">{o.localidad}</td>
-                      )}
-                      {!compacto && (
-                        <td className="whitespace-nowrap px-3 py-2">{o.estado}</td>
-                      )}
-                      {!compacto && (
-                        <td className="whitespace-nowrap px-3 py-2">{o.sucursal}</td>
-                      )}
-                      <td className="whitespace-nowrap px-3 py-2">
-                        {o.ingeniero_nombre ?? <span className="text-muted">—</span>}
-                      </td>
-                      <td className={"whitespace-nowrap px-3 py-2 " + fechaCls}>
-                        <div className="flex items-center gap-1.5">
-                          {fmtFecha(o.fecha_eta)}
-                          {(() => {
-                            const b = badgeSla(o.horas_sla);
-                            return (
-                              b && (
-                                <span className={chip + " " + claseTono(b.tono)}>
-                                  {b.texto}
-                                </span>
-                              )
-                            );
-                          })()}
-                        </div>
-                      </td>
-                      {!compacto && (
-                        <td className="whitespace-nowrap px-3 py-2">{o.hora_eta}</td>
-                      )}
-                      <td className="px-3 py-2">
-                        <AccionesOrden
-                          orden={accionesOrden}
-                          ingenieros={ings}
-                          sucursales={sucursalesFila}
-                          esGerencia={esGerencia}
-                          totalVisitas={totalVisitas}
-                        />
-                      </td>
-                    </tr>
-                  ),
-                )}
+                    ))}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -324,6 +314,65 @@ export default function TablaOrdenes({
 }
 
 /* ------------------------------------------------------------------ */
+
+/** Contenido de una celda de la tabla de escritorio, por id de columna. */
+function celdaTablero(id: ColumnaTableroId, f: Fila, esGerencia: boolean): React.ReactNode {
+  const { o, fechaCls, servicio } = f;
+  switch (id) {
+    case "servicio":
+      return (
+        <span className={chip + " " + claseTono(servicio.tono)}>{servicio.texto}</span>
+      );
+    case "numero":
+      return (
+        <Link href={`/tablero/${o.id}`} className={enlace}>
+          {o.numero_orden}
+        </Link>
+      );
+    case "visitas":
+      return <span className="text-muted">{o.numero_visita}</span>;
+    case "cliente":
+      return (
+        <span title={o.cliente ?? ""} className="block truncate">
+          {o.cliente}
+        </span>
+      );
+    case "localidad":
+      return o.localidad;
+    case "estado":
+      return o.estado;
+    case "sucursal":
+      return o.sucursal;
+    case "ingeniero":
+      return o.ingeniero_nombre ?? <span className="text-muted">—</span>;
+    case "fecha_eta":
+      return (
+        <span className={"flex items-center gap-1.5 " + fechaCls}>
+          {fmtFecha(o.fecha_eta)}
+          {(() => {
+            const b = badgeSla(o.horas_sla);
+            return (
+              b && <span className={chip + " " + claseTono(b.tono)}>{b.texto}</span>
+            );
+          })()}
+        </span>
+      );
+    case "hora_eta":
+      return o.hora_eta;
+    case "estatus":
+      return (
+        <AccionesOrden
+          orden={f.accionesOrden}
+          ingenieros={f.ings}
+          sucursales={f.sucursalesFila}
+          esGerencia={esGerencia}
+          totalVisitas={f.totalVisitas}
+        />
+      );
+    default:
+      return null;
+  }
+}
 
 /** Una orden como tarjeta — usada siempre en móvil y, si el usuario elige
  *  "Tarjetas", también en escritorio. */

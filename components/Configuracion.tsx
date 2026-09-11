@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useEffect, useState } from "react";
 import Link from "next/link";
 import { tarjeta, encabezadoSeccion, enlace, chip } from "@/lib/ui";
 import { etiquetaRol } from "@/lib/auth/roles";
 import { claseEstatus } from "@/lib/tema";
+import { COLUMNAS_TABLERO, type ColumnaTableroId } from "@/lib/ordenes/columnasTablero";
 
 type Tema = "sistema" | "claro" | "oscuro";
 type Densidad = "comoda" | "compacta";
@@ -107,16 +108,80 @@ function VistaPreviaTabla({ densidad }: { densidad: Densidad }) {
   );
 }
 
+/** Columnas de la tabla del Tablero que el usuario decide mostrar/ocultar.
+ *  Se guarda en el servidor (preferencias_usuario), no en este dispositivo
+ *  — a diferencia de Tema/Densidad de arriba, viaja con la cuenta. */
+function ColumnasTablero({ inicial }: { inicial: ColumnaTableroId[] }) {
+  const [ocultas, setOcultas] = useState<Set<ColumnaTableroId>>(() => new Set(inicial));
+  const [guardando, setGuardando] = useState<ColumnaTableroId | null>(null);
+
+  function alternar(id: ColumnaTableroId) {
+    setOcultas((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      setGuardando(id);
+      fetch("/api/preferencias", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ clave: "tablero_columnas_ocultas", valor: [...next] }),
+      })
+        .catch(() => undefined)
+        .finally(() => setGuardando((g) => (g === id ? null : g)));
+      return next;
+    });
+  }
+
+  const columnas = COLUMNAS_TABLERO.filter((c) => !c.fijo);
+
+  return (
+    <div>
+      <p className="mb-1.5 text-sm font-medium">Columnas de la tabla</p>
+      <p className="mb-2 text-xs text-muted">
+        Número, Cliente y Estatus siempre se muestran. El ancho de cada
+        columna se ajusta arrastrando su borde en el Tablero.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {columnas.map((c) => {
+          const visible = !ocultas.has(c.id);
+          return (
+            <label
+              key={c.id}
+              className={
+                "flex cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors " +
+                (visible
+                  ? "border-brand/30 bg-brand-050 text-brand"
+                  : "border-border-default text-muted hover:text-text")
+              }
+            >
+              <input
+                type="checkbox"
+                checked={visible}
+                onChange={() => alternar(c.id)}
+                disabled={guardando === c.id}
+                className="accent-brand"
+              />
+              {c.etiqueta}
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function Configuracion({
   nombre,
   rol,
   zona,
   empresa,
+  columnasOcultasIniciales,
 }: {
   nombre: string;
   rol: string;
   zona: string | null;
   empresa: string;
+  columnasOcultasIniciales: ColumnaTableroId[];
 }) {
   const [tema, setTema] = useState<Tema>("sistema");
   const [densidad, setDensidad] = useState<Densidad>("comoda");
@@ -192,6 +257,15 @@ export default function Configuracion({
             <VistaPreviaTabla densidad={densidad} />
           </div>
         </div>
+      </div>
+
+      <div className={tarjeta}>
+        <h2 className={encabezadoSeccion}>Tablero</h2>
+        <p className="mb-3 text-sm text-muted">
+          Esta preferencia se guarda en tu cuenta: te acompaña en cualquier
+          sesión o dispositivo donde inicies sesión.
+        </p>
+        <ColumnasTablero inicial={columnasOcultasIniciales} />
       </div>
 
       <div className={tarjeta}>

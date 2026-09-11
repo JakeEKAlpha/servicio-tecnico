@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import {
+  IDS_COLUMNAS_TABLERO,
+  IDS_OCULTABLES,
+  ANCHO_MIN,
+  ANCHO_MAX,
+} from "@/lib/ordenes/columnasTablero";
 
 /**
  * Preferencias de UI por usuario (tabla `preferencias_usuario`, RLS por dueño).
@@ -16,6 +22,8 @@ const CLAVES_VALIDAS = [
   "panel_layout",
   "reportes_filtros",
   "tablero_vista",
+  "tablero_columnas_ocultas",
+  "tablero_columnas_anchos",
 ] as const;
 const MAX_BYTES = 32 * 1024;
 
@@ -50,6 +58,25 @@ export function esFiltrosReportes(v: unknown): boolean {
     (k) =>
       (CAMPOS_FILTROS_REPORTES as readonly string[]).includes(k) &&
       typeof o[k] === "string",
+  );
+}
+
+function esColumnasOcultas(v: unknown): boolean {
+  return (
+    Array.isArray(v) &&
+    v.every((x) => typeof x === "string" && (IDS_OCULTABLES as string[]).includes(x))
+  );
+}
+
+function esColumnasAnchos(v: unknown): boolean {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+  const o = v as Record<string, unknown>;
+  return Object.entries(o).every(
+    ([id, ancho]) =>
+      (IDS_COLUMNAS_TABLERO as string[]).includes(id) &&
+      typeof ancho === "number" &&
+      ancho >= ANCHO_MIN &&
+      ancho <= ANCHO_MAX,
   );
 }
 
@@ -110,6 +137,12 @@ export async function PUT(request: Request) {
   }
   if (clave === "tablero_vista" && valor !== "tabla" && valor !== "tarjetas") {
     return NextResponse.json({ error: "Vista no válida." }, { status: 400 });
+  }
+  if (clave === "tablero_columnas_ocultas" && !esColumnasOcultas(valor)) {
+    return NextResponse.json({ error: "Columnas ocultas con forma inválida." }, { status: 400 });
+  }
+  if (clave === "tablero_columnas_anchos" && !esColumnasAnchos(valor)) {
+    return NextResponse.json({ error: "Anchos de columna con forma inválida." }, { status: 400 });
   }
   if (clave === "panel_layout" && !esLayoutPanel(valor)) {
     return NextResponse.json({ error: "Layout con forma inválida." }, { status: 400 });

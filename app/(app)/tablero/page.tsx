@@ -4,6 +4,7 @@ import { perfilActual } from "@/lib/auth/sesion";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { listarOrdenes } from "@/lib/ordenes/listar";
 import { leerPreferencias } from "@/lib/panel/datos";
+import { IDS_OCULTABLES, IDS_COLUMNAS_TABLERO, type ColumnaTableroId } from "@/lib/ordenes/columnasTablero";
 import { prioridadDe } from "@/lib/ordenes/estatus";
 import { claseEstatus } from "@/lib/tema";
 import { chip, campo } from "@/lib/ui";
@@ -30,9 +31,30 @@ export default async function TableroPage({
   // consultan desde Gerencia/histórico, no aquí.
   const [{ ordenes, error }, prefs] = await Promise.all([
     listarOrdenes(supabase, { soloActivos: true }),
-    leerPreferencias(supabase, ["tablero_vista"]),
+    leerPreferencias(supabase, [
+      "tablero_vista",
+      "tablero_columnas_ocultas",
+      "tablero_columnas_anchos",
+    ]),
   ]);
   const vistaInicial = prefs.tablero_vista === "tarjetas" ? "tarjetas" : "tabla";
+  // Preferencia guardada por el usuario, saneada por si acaso — nunca se
+  // confía en la forma de lo que viene de la base de datos.
+  const columnasOcultasIniciales = (
+    Array.isArray(prefs.tablero_columnas_ocultas) ? prefs.tablero_columnas_ocultas : []
+  ).filter((id): id is ColumnaTableroId =>
+    (IDS_OCULTABLES as string[]).includes(String(id)),
+  );
+  const anchosCrudos =
+    prefs.tablero_columnas_anchos && typeof prefs.tablero_columnas_anchos === "object"
+      ? (prefs.tablero_columnas_anchos as Record<string, unknown>)
+      : {};
+  const columnasAnchosIniciales: Partial<Record<ColumnaTableroId, number>> = {};
+  for (const [id, ancho] of Object.entries(anchosCrudos)) {
+    if ((IDS_COLUMNAS_TABLERO as string[]).includes(id) && typeof ancho === "number") {
+      columnasAnchosIniciales[id as ColumnaTableroId] = ancho;
+    }
+  }
 
   const esGerencia = esRolQueVeTodo(perfil.rol);
 
@@ -177,6 +199,8 @@ export default async function TableroPage({
             sucursales={sucursales ?? []}
             esGerencia={esGerencia}
             vistaInicial={vistaInicial}
+            columnasOcultasIniciales={columnasOcultasIniciales}
+            columnasAnchosIniciales={columnasAnchosIniciales}
           />
         </Revelar>
       )}
