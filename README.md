@@ -38,8 +38,10 @@ Todas se documentan en [`.env.example`](.env.example):
 | `npm run build` | Build de producción |
 | `npm run start` | Sirve el build |
 | `npm run lint` | ESLint |
+| `npm run test` | Pruebas (Vitest) — hoy cubre `lib/**` (parsers, matching, fechas) |
 
-Antes de subir cambios: `npx tsc --noEmit && npm run lint && npm run build`.
+Antes de subir cambios: `npx tsc --noEmit && npm run lint && npm run test && npm run build`.
+CI (`.github/workflows/ci.yml`) corre esto mismo en cada PR y en cada push a `main`.
 
 ## Estructura
 

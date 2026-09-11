@@ -165,15 +165,23 @@ Usuarios: 3 coordinadores + Fredy (gerencia). Ver `.claude` memory del proyecto.
 ## 7. Evaluación de salud
 
 **Verde (verificado 2026-09-11):** `npx tsc --noEmit` limpio · `npm run lint` limpio ·
-`get_advisors` sin hallazgos nuevos (Fase D de `docs/plan-arquitectura-multimarca.md`) · reglas de
-negocio probadas con SQL contra los triggers reales.
+`npm run test` limpio (55 pruebas) · `get_advisors` sin hallazgos nuevos (Fase D de
+`docs/plan-arquitectura-multimarca.md`) · reglas de negocio probadas con SQL contra los triggers
+reales.
 
 **Deuda técnica (por gravedad, actualizada):**
 
-1. **Cero pruebas automatizadas.** Lógica delicada sin red de regresión.
+1. ~~Cero pruebas automatizadas~~ **Primera suite cerrada 2026-09-11** (`npm run test`, Vitest,
+   55 pruebas): parsers Lexmark/Xerox, matching de clientes (`mejorCoincidenciaCliente`,
+   incluye el caso real DHL EXPRESS vs DHL METROPOLITAN), prioridad de estatus, fechas/horas,
+   normalización de texto. **Alcance hoy: solo `lib/**` (lógica pura).** Falta: pruebas de
+   componentes (necesitan jsdom) y de los route handlers `app/api/**` (necesitan mockear
+   Supabase) — siguiente ronda.
 2. **BD sin versionar** — DDL aplicado como SQL suelto, no como `supabase/migrations/`.
-3. **Sin CI, sin deploy.** (Corrección: **sí hay repo remoto** —
-   `github.com/JakeEKAlpha/servicio-tecnico` — el documento anterior decía lo contrario.)
+3. ~~Sin CI~~ **Cerrado 2026-09-11.** `.github/workflows/ci.yml` corre
+   `tsc`/`eslint`/`vitest`/`next build` en cada PR y push a `main`, verificado que el build pasa
+   sin credenciales reales (ninguna ruta consulta Supabase durante el build). **Sin deploy** sigue
+   pendiente. (Repo remoto: `github.com/JakeEKAlpha/servicio-tecnico`.)
 4. ~~`ordenes.cliente_id`/`equipo_id` sin poblar~~ **Cerrado 2026-09-11.**
    `ModalNuevaOrden` tiene selector de cliente/equipo, `cuentaDeOrden()` prioriza el FK sobre el
    fuzzy-match, y el backfill de `/gerencia/cuentas` ya corrió sobre las órdenes históricas —
@@ -223,10 +231,15 @@ que sí existe hoy. Reescrito contra el estado verificado.
       confirmar si "el arrastre se siente torpe" sigue siendo cierto.
 
 ### LUEGO — Endurecer
-- [ ] Volcar todo el DDL a `supabase/migrations/`.
-- [ ] Crear CI (`tsc` + `eslint` + `next build` en cada PR — el repo remoto ya existe).
-- [ ] Suite de pruebas (Vitest): parser Lexmark/Xerox, helpers fecha/hora, máquina de estatus,
-      marcadores; integración contra un branch de Supabase para los triggers.
+- [x] **CI** — `.github/workflows/ci.yml`, cerrado 2026-09-11 (`tsc` + `eslint` + `vitest` +
+      `next build` en cada PR y push a `main`).
+- [x] **Suite de pruebas, primera ronda** — `npm run test` (Vitest), cerrado 2026-09-11: parsers
+      Lexmark/Xerox, matching de clientes, prioridad de estatus, fechas/hora, normalización de
+      texto. Ver Deuda técnica #1 para lo que falta (componentes, route handlers, triggers).
+- [ ] Volcar todo el DDL a `supabase/migrations/` — necesita `supabase db pull` (o un dump) del
+      proyecto real; el agente no tiene credenciales de Supabase en este entorno.
+- [ ] Segunda ronda de pruebas: componentes (jsdom) y `app/api/**` con Supabase mockeado;
+      integración contra un branch de Supabase para probar los triggers reales.
 - [ ] Deploy a Vercel (staging) + validar generación de docs en ese runtime.
 
 ### DESPUÉS DE ESO — Features
