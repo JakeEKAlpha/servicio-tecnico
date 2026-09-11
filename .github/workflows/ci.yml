@@ -1,0 +1,44 @@
+name: CI
+
+# En cada PR y en cada push a main: tsc + eslint + vitest + next build.
+# Correr esto localmente antes de subir cambios (README.md ya lo pide):
+#   npx tsc --noEmit && npm run lint && npm run test && npm run build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      # Next.js necesita estos dos como strings válidos para construir el
+      # cliente de Supabase durante el build (prerender de /login) — no hace
+      # falta que apunten a un proyecto real, el build no llega a consultarlo.
+      # GOOGLE_SERVICE_ACCOUNT_KEY_B64 no se define aquí a propósito: nada se
+      # ejecuta durante el build que la necesite, y así nunca hace falta
+      # cargar una credencial real en Actions.
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
