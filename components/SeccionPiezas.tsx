@@ -7,14 +7,7 @@ import { claseEstadoPieza } from "@/lib/tema";
 import { boton, botonSec, botonMini, botonSecMini, campo, chip } from "@/lib/ui";
 import Colapsable from "@/components/Colapsable";
 import Modal from "@/components/Modal";
-
-function IconoBasura() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-    </svg>
-  );
-}
+import { Basura, Listo } from "@/lib/iconos";
 
 export default function SeccionPiezas({
   ordenId,
@@ -297,14 +290,15 @@ export default function SeccionPiezas({
                             validar(p.id, "disponible_sistema", !p.disponible_sistema)
                           }
                           className={
-                            "rounded-md px-2 py-1 text-xs font-semibold transition-colors " +
+                            "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-colors " +
                             (enSistema
                               ? "bg-tone-ok-bg text-tone-ok-fg"
                               : "border border-border-default text-muted hover:bg-surface-2")
                           }
                           title="Validación 1/2 — existencia en sistema"
                         >
-                          {enSistema ? "✓ En sistema" : "1· En sistema"}
+                          {enSistema && <Listo className="h-3.5 w-3.5" aria-hidden="true" />}
+                          {enSistema ? "En sistema" : "1· En sistema"}
                         </button>
                         <button
                           type="button"
@@ -313,14 +307,15 @@ export default function SeccionPiezas({
                             validar(p.id, "validada_almacen", !p.validada_almacen)
                           }
                           className={
-                            "rounded-md px-2 py-1 text-xs font-semibold transition-colors " +
+                            "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-colors " +
                             (p.validada_almacen
                               ? "bg-tone-ok-bg text-tone-ok-fg"
                               : "border border-border-default text-muted hover:bg-surface-2")
                           }
                           title="Validación 2/2 — almacén confirma físicamente"
                         >
-                          {p.validada_almacen ? "✓ Almacén" : "2· Almacén confirma"}
+                          {p.validada_almacen && <Listo className="h-3.5 w-3.5" aria-hidden="true" />}
+                          {p.validada_almacen ? "Almacén" : "2· Almacén confirma"}
                         </button>
                       </>
                     );
@@ -340,7 +335,7 @@ export default function SeccionPiezas({
                     title="Borrar pieza"
                     aria-label="Borrar"
                   >
-                    <IconoBasura />
+                    <Basura className="h-4 w-4" aria-hidden="true" />
                   </button>
                 </div>
               </li>

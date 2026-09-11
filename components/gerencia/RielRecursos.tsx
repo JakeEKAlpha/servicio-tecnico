@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GRUPOS_RECURSOS, RECURSOS } from "@/lib/gerencia/recursos";
+import { Analitica } from "@/lib/iconos";
 
 /**
  * Riel de recursos agrupado (Personas / Lugares / Cuentas Lexmark) en vez de
@@ -17,13 +18,14 @@ export default function RielRecursos() {
         <Link
           href="/gerencia/reportes"
           className={
-            "block rounded-lg px-2 py-1.5 text-sm font-bold transition-colors " +
+            "flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-bold transition-colors " +
             (pathname === "/gerencia/reportes"
               ? "bg-brand-050 text-brand"
               : "text-text hover:bg-surface-2 hover:text-brand")
           }
         >
-          📊 Reportes
+          <Analitica className="h-4 w-4 shrink-0" aria-hidden="true" />
+          Reportes
         </Link>
       </div>
       {GRUPOS_RECURSOS.map((g) => (

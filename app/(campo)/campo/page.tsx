@@ -50,7 +50,7 @@ export default async function CampoInicioPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-lg font-extrabold text-[#004B25]">
+        <h1 className="text-lg font-extrabold text-success">
           Hola, {primerNombre}
         </h1>
         <p className="text-xs font-semibold text-muted">
@@ -68,7 +68,7 @@ export default async function CampoInicioPage() {
             key={k.t}
             className="rounded-2xl border border-border-default bg-surface p-3 text-center"
           >
-            <div className="text-2xl font-extrabold tabular-nums text-[#004B25]">
+            <div className="text-2xl font-extrabold tabular-nums text-success">
               {k.n}
             </div>
             <div className="text-[10px] font-bold uppercase tracking-wide text-muted">
@@ -88,13 +88,17 @@ export default async function CampoInicioPage() {
         </div>
       ) : (
         <ul className="space-y-3">
-          {ordenes.map((o) => (
-            <li key={o.id}>
-              <Link
-                href={`/campo/${o.id}`}
-                className="block overflow-hidden rounded-2xl border border-border-default bg-surface shadow-sm transition-colors hover:border-[#00A859]"
-              >
-                <div className="border-l-4 border-[#00A859] p-4">
+          {ordenes.map((o) => {
+            const cerrada = o.estatus === "Concluido" || o.estatus === "Cancelado";
+            const esHoy = !cerrada && o.fecha_eta === hoy;
+            const atrasada =
+              !cerrada && !o.hora_inicio_real && !!o.fecha_eta && o.fecha_eta < hoy;
+            return (
+              <li key={o.id}>
+                <Link
+                  href={`/campo/${o.id}`}
+                  className="block overflow-hidden rounded-2xl border border-border-default bg-surface p-4 shadow-sm transition-[transform,box-shadow,border-color] duration-150 ease-out hover:-translate-y-0.5 hover:border-success/50 hover:shadow-md active:scale-[0.99]"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-[11px] font-bold text-muted">
@@ -125,15 +129,25 @@ export default async function CampoInicioPage() {
                     <span className="text-muted">
                       {[o.localidad, o.estado].filter(Boolean).join(", ")}
                     </span>
-                    <span className="text-[#004B25]">
+                    <span
+                      className={
+                        "rounded-md px-1.5 py-0.5 " +
+                        (atrasada
+                          ? "bg-tone-rojo-bg text-tone-rojo-fg"
+                          : esHoy
+                            ? "bg-hl-today text-success"
+                            : "text-success")
+                      }
+                    >
+                      {atrasada ? "Atrasada · " : esHoy ? "Hoy · " : ""}
                       {fmtFecha(o.fecha_eta)}
                       {o.hora_eta ? ` · ${o.hora_eta}` : ""}
                     </span>
                   </div>
-                </div>
-              </Link>
-            </li>
-          ))}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

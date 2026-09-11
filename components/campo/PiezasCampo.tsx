@@ -115,7 +115,7 @@ export default function PiezasCampo({
                 type="button"
                 disabled={ocupada === p.id}
                 onClick={() => patchPieza(p.id, { estado: "usada" })}
-                className="rounded-lg bg-[#00A859] px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-50"
+                className="rounded-lg bg-success px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-50"
               >
                 Confirmar uso
               </button>
@@ -149,7 +149,7 @@ export default function PiezasCampo({
             <button
               type="button"
               onClick={() => setAbrirAlta(true)}
-              className="rounded-lg border border-[#00A859]/50 bg-[#00A859]/5 px-3 py-1.5 text-[11px] font-bold text-[#004B25]"
+              className="rounded-lg border border-success/50 bg-success/5 px-3 py-1.5 text-[11px] font-bold text-success"
             >
               + Anotar pieza usada
             </button>
@@ -177,7 +177,7 @@ export default function PiezasCampo({
                   type="button"
                   disabled={ocupada === "alta"}
                   onClick={anotarUsada}
-                  className="rounded-lg bg-[#004B25] px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
+                  className="rounded-lg bg-success px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
                 >
                   Anotar
                 </button>

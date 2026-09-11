@@ -15,9 +15,7 @@ import PiezasCampo from "@/components/campo/PiezasCampo";
 import DictadoVoz from "@/components/campo/DictadoVoz";
 import CuentaLexmark from "@/components/CuentaLexmark";
 import type { CuentaDirectorio } from "@/lib/cuentas/directorio";
-
-const VERDE = "#00A859";
-const VERDE_OSC = "#004B25";
+import { Bloqueado, Iniciar, Imprimir, Listo } from "@/lib/iconos";
 
 function Tarjeta({
   titulo,
@@ -29,7 +27,7 @@ function Tarjeta({
   return (
     <section className="space-y-3 rounded-3xl border border-border-default bg-surface p-4 shadow-sm">
       {titulo && (
-        <h3 className="text-[11px] font-black uppercase tracking-widest text-[#004B25]">
+        <h3 className="text-[11px] font-black uppercase tracking-widest text-success">
           {titulo}
         </h3>
       )}
@@ -153,14 +151,17 @@ export default function ServicioCampo({
   }
 
   const btnPrim =
-    "w-full rounded-2xl py-4 text-sm font-black text-white shadow-lg transition-transform active:scale-[0.99] disabled:opacity-50";
+    "inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-success py-4 text-sm font-black text-white shadow-lg transition-transform active:scale-[0.99] disabled:opacity-50";
 
   return (
     <div className="space-y-4">
       {/* Ficha inalterable */}
       <div
         className="rounded-3xl p-4 text-white shadow-lg"
-        style={{ background: `linear-gradient(150deg, ${VERDE_OSC}, #002d16)` }}
+        style={{
+          background:
+            "linear-gradient(150deg, var(--success), color-mix(in oklab, var(--success), black 55%))",
+        }}
       >
         <div className="mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-emerald-200">
           <span>Ficha de servicio</span>
@@ -242,7 +243,7 @@ export default function ServicioCampo({
           className={
             "rounded-xl px-3 py-2 text-sm font-semibold " +
             (msg.tipo === "ok"
-              ? "bg-[#00A859]/10 text-[#004B25]"
+              ? "bg-success/10 text-success"
               : "bg-danger/10 text-danger")
           }
         >
@@ -259,10 +260,10 @@ export default function ServicioCampo({
 
       {/* Tiempos */}
       {iniciado && (
-        <div className="flex items-center justify-between rounded-2xl border border-[#00A859]/30 bg-[#00A859]/10 px-4 py-2.5 text-xs font-bold text-[#004B25]">
+        <div className="flex items-center justify-between rounded-2xl border border-success/30 bg-success/10 px-4 py-2.5 text-xs font-bold text-success">
           <span>Inicio: {orden.hora_inicio_real?.slice(0, 5)}</span>
           {orden.hora_fin_real && (
-            <span className="rounded-md bg-[#00A859]/20 px-2 py-1">
+            <span className="rounded-md bg-success/20 px-2 py-1">
               Cierre OS (+7 min): {orden.hora_fin_real.slice(0, 5)}
             </span>
           )}
@@ -273,13 +274,8 @@ export default function ServicioCampo({
       {!iniciado && !cerrada && (
         <Tarjeta>
           <div className="space-y-3 text-center">
-            <div
-              className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-white"
-              style={{ background: VERDE }}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8">
-                <path d="M8 5v14l11-7z" />
-              </svg>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-success text-white">
+              <Iniciar className="h-8 w-8" fill="currentColor" aria-hidden="true" />
             </div>
             <h3 className="text-base font-extrabold">Iniciar servicio en sitio</h3>
             <p className="mx-auto max-w-sm text-xs text-muted">
@@ -291,9 +287,15 @@ export default function ServicioCampo({
               onClick={iniciarServicio}
               disabled={ocupado}
               className={btnPrim}
-              style={{ background: VERDE }}
             >
-              {ocupado ? "Obteniendo ubicación…" : "▶  INICIAR SERVICIO"}
+              {ocupado ? (
+                "Obteniendo ubicación…"
+              ) : (
+                <>
+                  <Iniciar className="h-4 w-4" fill="currentColor" aria-hidden="true" />
+                  Iniciar servicio
+                </>
+              )}
             </button>
           </div>
         </Tarjeta>
@@ -303,9 +305,9 @@ export default function ServicioCampo({
       {iniciado && (
         <>
           {osGenerada && (
-            <div className="rounded-2xl border-2 border-[#00A859] bg-[#00A859]/5 p-4 text-center text-xs font-bold text-[#004B25]">
-              🔒 Orden de servicio generada. Solo falta subir la OS firmada y
-              cerrar.
+            <div className="flex items-center justify-center gap-2 rounded-2xl border-2 border-success bg-success/5 p-4 text-center text-xs font-bold text-success">
+              <Bloqueado className="h-4 w-4 shrink-0" aria-hidden="true" />
+              Orden de servicio generada. Solo falta subir la OS firmada y cerrar.
             </div>
           )}
 
@@ -373,7 +375,7 @@ export default function ServicioCampo({
                 >
                   <input
                     type="checkbox"
-                    className="h-4 w-4 accent-[#00A859]"
+                    className="h-4 w-4 accent-success"
                     checked={!!checklist[item.key]}
                     disabled={osGenerada}
                     onChange={(e) => {
@@ -460,9 +462,15 @@ export default function ServicioCampo({
               onClick={generarOs}
               disabled={ocupado}
               className={btnPrim}
-              style={{ background: VERDE }}
             >
-              {ocupado ? "Generando…" : "🖨  GENERAR ORDEN DE SERVICIO"}
+              {ocupado ? (
+                "Generando…"
+              ) : (
+                <>
+                  <Imprimir className="h-4 w-4" aria-hidden="true" />
+                  Generar orden de servicio
+                </>
+              )}
             </button>
           )}
 
@@ -480,15 +488,22 @@ export default function ServicioCampo({
                 onClick={cerrar}
                 disabled={ocupado}
                 className={btnPrim}
-                style={{ background: VERDE_OSC }}
               >
-                {ocupado ? "Cerrando…" : "ENVIAR REPORTE FINAL Y CERRAR"}
+                {ocupado ? (
+                  "Cerrando…"
+                ) : (
+                  <>
+                    <Listo className="h-4 w-4" aria-hidden="true" />
+                    Enviar reporte final y cerrar
+                  </>
+                )}
               </button>
             </Tarjeta>
           )}
 
           {cerrada && (
-            <div className="rounded-2xl bg-[#00A859]/10 p-4 text-center text-sm font-bold text-[#004B25]">
+            <div className="flex items-center justify-center gap-2 rounded-2xl bg-success/10 p-4 text-center text-sm font-bold text-success">
+              <Listo className="h-4 w-4 shrink-0" aria-hidden="true" />
               Servicio {orden.estatus?.toLowerCase()}. Gracias.
             </div>
           )}

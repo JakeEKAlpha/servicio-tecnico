@@ -26,7 +26,7 @@ export default async function CampoLayout({
 
   return (
     <div className="min-h-dvh bg-bg pb-24">
-      <header className="sticky top-0 z-30 bg-[#004B25] text-white shadow-md">
+      <header className="sticky top-0 z-30 bg-success text-white shadow-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 items-center gap-2.5">
             <IconoAD className="h-7 w-auto shrink-0" />

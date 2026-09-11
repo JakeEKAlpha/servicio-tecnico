@@ -33,6 +33,8 @@ export {
   ChevronRight as ChevronDer,
   ArrowRight as Flecha,
   Bell as Notificar,
+  Lock as Bloqueado,
+  BarChart3 as Analitica,
   // personas
   User as Usuario,
   UserPlus as Asignar,

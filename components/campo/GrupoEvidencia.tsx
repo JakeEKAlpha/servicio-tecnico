@@ -97,7 +97,7 @@ export default function GrupoEvidencia({
   return (
     <div className="rounded-2xl border border-border-default bg-surface-2/50 p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-bold text-[#004B25]">{label}</span>
+        <span className="text-xs font-bold text-success">{label}</span>
         <span className="rounded bg-surface-2 px-2 py-0.5 text-[10px] font-bold text-muted">
           {mias.length}
         </span>
@@ -114,7 +114,7 @@ export default function GrupoEvidencia({
       {!bloqueado && !lleno && (
         <label
           className={
-            "flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#00A859]/60 bg-[#00A859]/5 px-3 py-3 text-xs font-bold text-[#004B25] transition-colors hover:bg-[#00A859]/10 " +
+            "flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-success/60 bg-success/5 px-3 py-3 text-xs font-bold text-success transition-colors hover:bg-success/10 " +
             (subiendo ? "pointer-events-none opacity-60" : "")
           }
         >

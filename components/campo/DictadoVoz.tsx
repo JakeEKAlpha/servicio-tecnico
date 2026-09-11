@@ -57,7 +57,7 @@ export default function DictadoVoz({
         "absolute bottom-2 right-2 flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold " +
         (escuchando
           ? "bg-danger/15 text-danger"
-          : "bg-[#00A859]/15 text-[#004B25]")
+          : "bg-success/15 text-success")
       }
     >
       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">

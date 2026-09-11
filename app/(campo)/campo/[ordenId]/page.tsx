@@ -59,7 +59,7 @@ export default async function OrdenCampoPage({
     <div className="space-y-4">
       <Link
         href="/campo"
-        className="inline-block text-sm font-semibold text-muted hover:text-[#004B25]"
+        className="inline-block text-sm font-semibold text-muted hover:text-success"
       >
         ← Mis órdenes
       </Link>

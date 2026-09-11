@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Notificar } from "@/lib/iconos";
 
 /** VAPID key pública viene en base64url — el navegador necesita un
  *  Uint8Array para `applicationServerKey`. Conversión estándar. */
@@ -101,9 +102,10 @@ export default function ActivarNotificaciones() {
     <button
       type="button"
       onClick={activar}
-      className="mb-3 w-full rounded-lg border border-emerald-700/30 bg-emerald-50 px-3 py-2 text-left text-xs font-semibold text-emerald-900"
+      className="mb-3 flex w-full items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-left text-xs font-semibold text-success"
     >
-      🔔 Activar notificaciones — nuevas asignaciones y piezas disponibles
+      <Notificar className="h-4 w-4 shrink-0" aria-hidden="true" />
+      Activar notificaciones — nuevas asignaciones y piezas disponibles
     </button>
   );
 }

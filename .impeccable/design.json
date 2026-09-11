@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-11T00:00:00.000Z",
+  "title": "Design System: Servicio Técnico · Alpha Digital",
+  "extensions": {
+    "colorMeta": {
+      "azul-alpha": { "role": "primary", "displayName": "Azul Alpha", "canonical": "#203f7e" },
+      "rojo-alpha": { "role": "secondary", "displayName": "Rojo Alpha", "canonical": "#e53325" },
+      "verde-lexmark": { "role": "signal", "displayName": "Verde Lexmark (WO)", "canonical": "#008a44" },
+      "ambar-lexmark-sr": { "role": "signal", "displayName": "Ámbar Lexmark (proactivo/SR)", "canonical": "#e0a93b" },
+      "rojo-xerox": { "role": "signal", "displayName": "Rojo Xerox", "canonical": "#d92231" },
+      "fondo": { "role": "neutral", "displayName": "Fondo", "canonical": "#f4f6f9" },
+      "superficie": { "role": "neutral", "displayName": "Superficie", "canonical": "#ffffff" },
+      "superficie-2": { "role": "neutral", "displayName": "Superficie 2 (tonal)", "canonical": "#f1f5f9" }
+    },
+    "typographyMeta": {
+      "label": { "displayName": "Etiqueta micro-mayúscula", "purpose": "Campos, grupos de riel, encabezados de tabla — única mayúscula-siempre del sistema." },
+      "body": { "displayName": "Cuerpo", "purpose": "Texto de formularios, celdas, tarjetas." },
+      "title": { "displayName": "Título de sección", "purpose": "Encabezados de pantalla y de tarjeta." }
+    },
+    "shadows": [
+      { "name": "tarjeta", "value": "0 1px 2px rgba(0,0,0,0.05)", "purpose": "Único nivel en reposo — shadow-sm." },
+      { "name": "modal", "value": "0 25px 50px -12px rgba(0,0,0,0.25)", "purpose": "Solo el modal, que flota sobre overlay con blur." }
+    ],
+    "motion": [
+      { "name": "ease-entrada", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Modales y paneles al aparecer — desacelera al llegar." },
+      { "name": "duracion-micro", "value": "150ms", "purpose": "Backdrop, colapsables." },
+      { "name": "duracion-estandar", "value": "260ms", "purpose": "Modal, paneles laterales, reveals." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal — una palabra, formato normal.",
+      "html": "<button class=\"ds-btn-primary\">Guardar</button>",
+      "css": ".ds-btn-primary { background: #203f7e; color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; border: none; box-shadow: 0 1px 2px rgba(0,0,0,.05); transition: background-color .15s, transform .15s; } .ds-btn-primary:hover { background: #1b356a; } .ds-btn-primary:active { transform: scale(.98); } .ds-btn-primary:focus-visible { outline: 2px solid #203f7e; outline-offset: 2px; }"
+    },
+    {
+      "name": "Botón secundario",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acción secundaria — borde, sin relleno de marca.",
+      "html": "<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css": ".ds-btn-secondary { background: #fff; color: #1e293b; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; border: 1px solid #e5e7eb; transition: background-color .15s; } .ds-btn-secondary:hover { background: #f1f5f9; }"
+    },
+    {
+      "name": "Chip de estatus",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Insignia tonal de estado — nunca color sólido saturado.",
+      "html": "<span class=\"ds-chip\">Asignado</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; border-radius: 9999px; padding: 3px 7px; font-size: 10px; font-weight: 800; background: #dcfce7; color: #166534; }"
+    },
+    {
+      "name": "Tarjeta",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Contenedor plano por defecto, sombra sutil.",
+      "html": "<div class=\"ds-card\">Contenido</div>",
+      "css": ".ds-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.05); transition: transform .15s, box-shadow .15s, border-color .15s; }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Input estándar con etiqueta micro-mayúscula y foco visible.",
+      "html": "<label class=\"ds-label\">Cliente</label><input class=\"ds-input\" placeholder=\"Nombre del cliente\">",
+      "css": ".ds-label { display: block; margin-bottom: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: #64748b; } .ds-input { width: 100%; min-height: 34px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fff; padding: 0 9px; font-size: 13px; font-weight: 500; color: #1e293b; } .ds-input:focus-visible { outline: none; border-color: #203f7e; box-shadow: 0 0 0 2px rgba(32,63,126,.25); }"
+    },
+    {
+      "name": "Ítem de navegación",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Riel de recursos — activo con fondo tonal de marca.",
+      "html": "<a class=\"ds-nav-item ds-nav-item--active\">Reportes</a>",
+      "css": ".ds-nav-item { display: block; border-radius: 8px; padding: 6px 8px; font-size: 13px; font-weight: 600; color: #64748b; } .ds-nav-item:hover { background: #f1f5f9; color: #1e293b; } .ds-nav-item--active { background: #eef2fb; color: #203f7e; font-weight: 700; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La Consola Alpha",
+    "overview": "El sistema ya en código es maduro: tokens de tema claro/oscuro completos, motion afinado y una densidad de información alta pero disciplinada. La Consola Alpha es la metáfora que ya vive implícita en el producto — un centro de control de despacho técnico donde el color de cada orden es una señal de instrumento, no decoración.",
+    "keyCharacteristics": [
+      "Azul Alpha domina la marca; los colores de servicio son semáforo de tipo, nunca acento suelto.",
+      "Una sola familia tipográfica (Montserrat) en toda la app.",
+      "Superficies planas con shadow-sm como techo — profundidad tonal, no de elevación.",
+      "Motion contenido: 150–260ms, ease-out, transform+opacity, prefers-reduced-motion respetado.",
+      "Tema claro/oscuro completo desde el día uno."
+    ],
+    "rules": [
+      { "name": "The Signal, Not Decoration Rule", "body": "Los 4 colores de marca de servicio identifican qué tipo de orden es y nunca se usan como acento decorativo en otro contexto.", "section": "colors" },
+      { "name": "The Token-Only Rule", "body": "Ningún componente usa hex crudo — siempre una utilidad semántica.", "section": "colors" },
+      { "name": "The Micro-Caps Rule", "body": "Mayúsculas + tracking ancho solo en etiquetas de campo y encabezados de grupo — nunca en botones, pestañas o chips.", "section": "typography" },
+      { "name": "The Flat-by-Default Rule", "body": "Las superficies están planas en reposo; la sombra aparece solo como respuesta a interactividad o para una superficie que flota.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do usar siempre una utilidad semántica de color, nunca un hex suelto.",
+      "Do limitar el motion a transform+opacity, 150–260ms, ease-out, heredando prefers-reduced-motion.",
+      "Do reservar los 4 colores de marca de servicio para identificar tipo de orden.",
+      "Do mantener una sola familia tipográfica y el vocabulario de peso ya establecido.",
+      "Do dar estado disabled visualmente distinto en todo control nuevo."
+    ],
+    "donts": [
+      "Don't introducir una segunda familia tipográfica o una fuente display.",
+      "Don't subir la escala de sombra por encima de shadow-sm en reposo.",
+      "Don't usar el color de marca de servicio como decoración fuera de su rol.",
+      "Don't tocar la lógica de generación de documento/PDF ni el formato de captura de WO/SR al hacer trabajo visual.",
+      "Don't usar mayúsculas fuera de etiquetas de campo/grupo."
+    ]
+  }
+}

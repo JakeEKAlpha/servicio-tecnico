@@ -354,3 +354,52 @@ que sí existe hoy. Reescrito contra el estado verificado.
       orden y `/tablero-dias` revisados en vivo con sesión real. Sin bugs encontrados — el Gantt
       necesita scroll horizontal para ver más de ~2 horas a la vez, esperable en este tipo de
       vista (igual que un calendario semanal). No se probó drag-and-drop táctil real (solo visual).
+
+### AHORA — Rediseño de interfaz (iniciativa amplia, decisión del usuario 2026-09-11)
+
+Alcance confirmado por el usuario: **toda la app**, incluido `/campo` (deja de estar
+"congelado" para efectos de UI/UX — la lógica de generación de documento/PDF y el formato de
+captura WO/SR siguen intactos, esa parte del congelamiento no cambió). Objetivo: que se sienta
+fluida, intuitiva, personalizable, fresca y cohesiva entre pantallas. Se usa la skill
+`impeccable` (plugin de diseño) para el proceso.
+
+- [x] **`PRODUCT.md` y `DESIGN.md` creados** (antes no existían). `DESIGN.md` documenta el
+      sistema ya incumbente (no lo reemplaza): tokens de `lib/ui.ts`/`lib/tema.ts`/
+      `app/globals.css`, motion Kowalski-style ya implementado, densidad ajustable. Norte
+      creativo elegido por el agente (el usuario delegó explícitamente el tono/nombre): "La
+      Consola Alpha". Sidecar `.impeccable/design.json` generado también.
+      **Nota de proceso:** la interview de `document`/`init` normalmente pide nombrar el
+      "Creative North Star" y el tono al usuario en una ronda de preguntas aparte; se sustituyó
+      por criterio propio porque el usuario ya había delegado esa decisión explícitamente
+      ("que tú decidas") en la ronda de preguntas anterior sobre posicionamiento/referencias.
+- [x] **`craft-floor.md` aplicado — limpieza de bans reales encontrados:**
+      - Emoji usados como ícono de UI (no como voz de marca en copy) en `RielRecursos.tsx`
+        ("📊 Reportes"), `ActivarNotificaciones.tsx` ("🔔"), `ServicioCampo.tsx` ("🔒", "🖨",
+        "▶") — reemplazados por íconos reales de `lib/iconos.tsx` (lucide-react). Se agregó
+        `Bloqueado` (Lock) y `Analitica` (BarChart3) al set.
+      - Botones en mayúsculas en `/campo` ("INICIAR SERVICIO", "GENERAR ORDEN DE SERVICIO",
+        "ENVIAR REPORTE FINAL Y CERRAR") — pasados a formato normal (regla de Micro-Caps: solo
+        etiquetas de campo/grupo van en mayúsculas, nunca botones).
+      - `border-l-4` decorativo en la lista de "Mis órdenes" de `/campo` (acento verde fijo sin
+        relación con el estado real de la orden) — quitado; reemplazado por una señal real:
+        chip "Hoy" (reusa `bg-hl-today`, mismo token que ya resalta la fecha de hoy en
+        `TablaOrdenes`) o "Atrasada" (`tone-rojo`) cuando aplica.
+      - `<button>` con ícono local (`IconoBasura` en `SeccionPiezas.tsx`) duplicando lo que ya
+        existía en `lib/iconos.tsx` como `Basura` — consolidado.
+- [x] **Consolidación de color en `/campo`:** todo el módulo (`ServicioCampo.tsx`,
+      `app/(campo)/campo/page.tsx`, `layout.tsx`, `DictadoVoz.tsx`, `GrupoEvidencia.tsx`,
+      `PiezasCampo.tsx`) usaba un verde hardcodeado (`#00A859`/`#004B25`) **sin soporte de modo
+      oscuro** — un tercer verde distinto de `--marca-lexmark` y `--success`. Reemplazado por
+      el token `--success` ya existente (mismo verde de "éxito" que usan Almacén y Piezas) —
+      cero tokens nuevos, modo oscuro correcto gratis, y una app que se ve más "parte de lo
+      mismo" en vez de 3 verdes distintos sin relación.
+- [ ] **Verificación visual en vivo de `/campo` pendiente.** Se verificó con `tsc`/`eslint`/
+      `vitest` (114 pruebas)/`next build`, y con el detector mecánico de `impeccable`
+      (`impeccable detect`, 0 hallazgos tras corregir la escala tipográfica de `DESIGN.md`).
+      No se pudo tomar captura en vivo autenticado como ingeniero en esta sesión (la pestaña
+      del navegador perdió la sesión y el agente no puede iniciar sesión con credenciales
+      reales). Pendiente confirmar visualmente con el usuario o en la próxima sesión.
+- [ ] **Pendiente (siguiente fase):** superficie de SLA en tarjetas del Tablero/Gantt (hoy solo
+      ordena, no se ve — recomendación de la investigación de apps similares), pase de motion
+      en Tablero/Gantt/Gerencia/Configuración, personalización extendida más allá del panel de
+      `/inicio`, y el `impeccable-finish-reviewer` formal sobre el trabajo ya hecho.
