@@ -82,7 +82,7 @@ export default async function RecursoPage({
 
   return (
     <>
-      {recurso === "clientes" && <BackfillClientes />}
+      {recurso === "cuentas" && <BackfillClientes />}
       <GestionRecurso
         recurso={recurso}
         cfg={cfg}
