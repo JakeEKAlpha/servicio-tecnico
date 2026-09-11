@@ -250,6 +250,18 @@ body {
     transform: none;
   }
 }
+/* Hermano de ad-panel-in para paneles anclados a la izquierda (ej. el
+   drawer móvil) — mismo timing, dirección invertida. */
+@keyframes ad-panel-in-izq {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 @keyframes ad-collapse-in {
   from {
     opacity: 0;
@@ -275,6 +287,9 @@ body {
 }
 .anim-panel {
   animation: ad-panel-in 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-panel-izq {
+  animation: ad-panel-in-izq 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

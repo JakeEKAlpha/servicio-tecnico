@@ -438,9 +438,16 @@ fluida, intuitiva, personalizable, fresca y cohesiva entre pantallas. Se usa la 
       forma (hoy solo `localStorage`) queda fuera de esta pasada a propósito: es un cambio de
       alcance/arquitectura (decide si las preferencias siguen al usuario entre dispositivos),
       no una tarea visual.
+- [x] **Drawer móvil sin animación** (`AppShell.tsx`) — el único punto de motion faltante
+      encontrado al revisar los demás paneles deslizantes de la app (`PanelDeslizante.tsx`,
+      modales) ya usan las clases `anim-*` de `globals.css`; el drawer del menú hamburguesa
+      aparecía de golpe, sin transición. Se agregó `ad-panel-in-izq` (hermano de `ad-panel-in`
+      con la dirección invertida, mismo timing) porque el drawer entra por la izquierda y el
+      existente entra por la derecha. Es el gesto más repetido de toda la experiencia móvil
+      (abrir el menú), así que era el hueco de mayor impacto real que quedaba.
 - [ ] **Pendiente:** verificación visual en vivo de Tablero/Gantt/Reportes/`error.tsx`/
-      `not-found.tsx`/filtros recordados con sesión real (el navegador de esta sesión no tiene
-      login y el agente no puede introducir credenciales — nota: una ruta inexistente sin sesión
-      redirige a `/login` antes de llegar a `not-found.tsx`, así que ese límite en particular
-      solo se puede probar autenticado); y el `impeccable-finish-reviewer` formal (necesita
-      capturas de pantalla que no se pudieron tomar por la misma razón).
+      `not-found.tsx`/filtros recordados/drawer móvil con sesión real (el navegador de esta
+      sesión no tiene login y el agente no puede introducir credenciales — nota: una ruta
+      inexistente sin sesión redirige a `/login` antes de llegar a `not-found.tsx`, así que ese
+      límite en particular solo se puede probar autenticado); y el `impeccable-finish-reviewer`
+      formal (necesita capturas de pantalla que no se pudieron tomar por la misma razón).

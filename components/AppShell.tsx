@@ -193,10 +193,10 @@ export default function AppShell({
       {drawerAbierto && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="anim-modal-backdrop absolute inset-0 bg-black/50"
             onClick={() => setDrawerAbierto(false)}
           />
-          <aside className="banda-marca absolute left-0 top-0 flex h-full w-64 flex-col">
+          <aside className="banda-marca anim-panel-izq absolute left-0 top-0 flex h-full w-64 flex-col">
             <div className="flex items-center gap-2.5 border-b border-white/15 px-4 py-4">
               <Logo variante="blanco" className="h-7 w-auto" />
               <span className="text-sm font-bold tracking-wide text-white/90">
