@@ -18,8 +18,8 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
 | 2 | Detalle de orden `/tablero/[id]` | 11e+11f | 🔧 ancho ampliado; ficha de color se conserva (ver D3) | — |
 | 3 | Gantt del día `/tablero-dias` | 11g+11h+11i | ⏳ pendiente | — |
 | 4 | Mapa por ingeniero | 11j | ⏳ pendiente (placeholder de imagen, sin geografía real) | — |
-| 5 | Almacén `/almacen` | 11k+11l | ⏳ pendiente | — |
-| 6 | Flujo de pedir pieza | 11m | ⏳ pendiente (puede ya estar cubierto por `lib/piezas.ts`) | — |
+| 5 | Almacén `/almacen` | 11k+11l | 🔧 riel + detalle + resumen hechos; bandeja "validar/apartados" → D6 | — |
+| 6 | Flujo de pedir pieza | 11m | ⏳ pendiente (ya cubierto por `lib/piezas.ts` + `SeccionPiezas.tsx`; no se tocó, ver D6) | — |
 | 7 | Gerencia `/gerencia/[recurso]` | 11p | ✅ hecho (riel agrupado + panel lateral) | — |
 | 7b | Fichas por entidad (cuentas/sucursales) | 11q | ⏳ pendiente — requiere agregar encargados+ingenieros por sucursal | — |
 | 8 | Campo — agenda `/campo` | t7b | ⏳ pendiente | — |
@@ -61,6 +61,16 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
   ingeniero/fecha y, sobre todo, distancia (necesita lat/lng, que sigue
   pendiente por otra tarea — mapa de gerencia). Evaluar si se agrega un
   conteo simple ("3 visitas ese día") sin la parte de distancia.
+- **D6 — Almacén: NO se tocó el flujo de doble validación de piezas.**
+  11k pide una "bandeja de pendientes" con validar/arribos/apartados. Se
+  hizo riel de sucursales + detalle + resumen (11k/11l), pero "validar"
+  toca `disponible_sistema`/`validada_almacen`, el mecanismo de doble
+  validación ya afinado en `components/SeccionPiezas.tsx` (reglas de
+  negocio confirmadas por el usuario en otra sesión). Duplicarlo en
+  Almacén sin poder probarlo en vivo era demasiado riesgo — queda la
+  sección "Pedidas para órdenes" (arribos) como estaba, ahora dentro del
+  panel de la sucursal activa. Evaluar si de plano quieren la bandeja de
+  validar aquí también.
 
 ## Notas de implementación
 

@@ -58,6 +58,10 @@ function coincide(a: AlmacenSucursal, q: string): boolean {
   );
 }
 
+function bajoMinimo(a: AlmacenSucursal): number {
+  return a.stock.filter((p) => p.minimo > 0 && p.disponible <= p.minimo).length;
+}
+
 export default function AlmacenPiezas({
   almacenes,
   catalogo,
@@ -78,6 +82,9 @@ export default function AlmacenPiezas({
   const [altaCant, setAltaCant] = useState("1");
   const [movsEn, setMovsEn] = useState<string | null>(null);
   const [movs, setMovs] = useState<Mov[]>([]);
+  const [activaId, setActivaId] = useState<string | null>(
+    almacenes[0]?.id ?? null,
+  );
 
   async function movimiento(
     sucursalId: string,
@@ -172,18 +179,30 @@ export default function AlmacenPiezas({
     setAltaCant("1");
   }
 
-  const visibles = useMemo(
-    () =>
-      almacenes
-        .filter((a) => verVacios || a.stock.some((p) => p.disponible > 0))
-        .filter((a) => coincide(a, q)),
-    [almacenes, q, verVacios],
+  // Resumen de todos los almacenes — "no perder el panorama" (wireframe 11l).
+  const resumen = useMemo(
+    () => ({
+      piezas: almacenes.reduce(
+        (n, a) => n + a.stock.reduce((m, p) => m + p.disponible, 0),
+        0,
+      ),
+      bajoMinimo: almacenes.reduce((n, a) => n + bajoMinimo(a), 0),
+      pedidas: almacenes.reduce((n, a) => n + a.enEspera.length, 0),
+    }),
+    [almacenes],
   );
 
-  const totStock = almacenes.reduce(
-    (n, a) => n + a.stock.reduce((m, p) => m + p.disponible, 0),
-    0,
-  );
+  // El riel siempre lista todo; la búsqueda solo resalta/reordena para
+  // encontrar rápido — nunca desaparece una sucursal a medio tecleo.
+  const rielOrdenado = useMemo(() => {
+    if (!q) return almacenes;
+    const match = almacenes.filter((a) => coincide(a, q));
+    const resto = almacenes.filter((a) => !coincide(a, q));
+    return [...match, ...resto];
+  }, [almacenes, q]);
+
+  const activa =
+    almacenes.find((a) => a.id === activaId) ?? almacenes[0] ?? null;
 
   if (almacenes.length === 0) {
     return (
@@ -193,68 +212,135 @@ export default function AlmacenPiezas({
     );
   }
 
+  const stockActiva = activa
+    ? editar
+      ? verVacios
+        ? activa.stock
+        : activa.stock.filter((p) => p.disponible > 0)
+      : activa.stock.filter((p) => p.disponible > 0)
+    : [];
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Resumen de todos los almacenes */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-xl border border-border-default bg-surface-2/60 px-4 py-2.5 text-sm">
+        <span>
+          <b className="tabular-nums">{resumen.piezas}</b>{" "}
+          <span className="text-muted">piezas en stock</span>
+        </span>
+        <span className={resumen.bajoMinimo > 0 ? "text-tone-warn-fg" : "text-muted"}>
+          <b className="tabular-nums">{resumen.bajoMinimo}</b> bajo mínimo
+        </span>
+        <span className="text-muted">
+          <b className="tabular-nums text-text">{resumen.pedidas}</b> pedidas para
+          órdenes
+        </span>
         <input
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar sucursal o número de parte…"
-          className={campo + " max-w-xs"}
+          className={campo + " ml-auto max-w-xs"}
         />
-        <label className="flex items-center gap-1.5 text-sm text-muted">
-          <input
-            type="checkbox"
-            checked={verVacios}
-            onChange={(e) => setVerVacios(e.target.checked)}
-          />
-          Ver sin existencias
-        </label>
-        <span className="ml-auto text-xs text-muted">
-          {totStock} piezas en stock
-        </span>
       </div>
 
       {err && <p className="text-sm text-danger">{err}</p>}
 
-      {visibles.map((a) => {
-        const stock = editar
-          ? a.stock
-          : a.stock.filter((p) => p.disponible > 0);
-        return (
-          <section key={a.id} className={tarjeta}>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start">
+        {/* Riel de sucursales */}
+        <nav className="w-full shrink-0 space-y-1 md:w-56">
+          {rielOrdenado.map((a) => {
+            const bajo = bajoMinimo(a);
+            const activo = a.id === activa?.id;
+            return (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setActivaId(a.id)}
+                className={
+                  "flex w-full items-start justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors " +
+                  (activo
+                    ? "bg-brand-050 font-semibold text-brand"
+                    : "text-text hover:bg-surface-2")
+                }
+              >
+                <span className="min-w-0">
+                  <span className="block truncate">{a.sucursal}</span>
+                  {a.ciudad && (
+                    <span className="block truncate text-xs font-normal text-muted">
+                      {a.ciudad}
+                    </span>
+                  )}
+                </span>
+                <span className="flex shrink-0 gap-1">
+                  {bajo > 0 && (
+                    <span
+                      className="rounded-full bg-tone-warn-bg px-1.5 text-[10px] font-bold text-tone-warn-fg"
+                      title={`${bajo} pieza(s) bajo mínimo`}
+                    >
+                      {bajo}
+                    </span>
+                  )}
+                  {a.enEspera.length > 0 && (
+                    <span
+                      className="rounded-full bg-tone-info-bg px-1.5 text-[10px] font-bold text-tone-info-fg"
+                      title={`${a.enEspera.length} pedida(s)`}
+                    >
+                      {a.enEspera.length}
+                    </span>
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Detalle de la sucursal elegida */}
+        {activa && (
+          <section className={tarjeta + " min-w-0 flex-1"}>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="flex flex-wrap items-baseline gap-2 border-l-4 border-brand pl-2 text-base font-bold">
-                {a.sucursal}
-                {a.ciudad && (
+                {activa.sucursal}
+                {activa.ciudad && (
                   <span className="text-xs font-normal text-muted">
-                    {a.ciudad}
-                    {a.estado ? `, ${a.estado}` : ""}
+                    {activa.ciudad}
+                    {activa.estado ? `, ${activa.estado}` : ""}
                   </span>
                 )}
               </h2>
-              {editar && a.id !== "__otras__" && (
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className={botonSec + " px-2 py-1 text-xs"}
-                    onClick={() => verMovimientos(a.id)}
-                  >
-                    {movsEn === a.id ? "Ocultar movimientos" : "Movimientos"}
-                  </button>
-                  <button
-                    type="button"
-                    className={botonSec + " px-2 py-1 text-xs"}
-                    onClick={() => setAltaEn(altaEn === a.id ? null : a.id)}
-                  >
-                    {altaEn === a.id ? "Cerrar" : "+ Entrada"}
-                  </button>
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                {editar && (
+                  <label className="flex items-center gap-1.5 text-xs text-muted">
+                    <input
+                      type="checkbox"
+                      checked={verVacios}
+                      onChange={(e) => setVerVacios(e.target.checked)}
+                    />
+                    Ver sin existencias
+                  </label>
+                )}
+                {editar && activa.id !== "__otras__" && (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className={botonSec + " px-2 py-1 text-xs"}
+                      onClick={() => verMovimientos(activa.id)}
+                    >
+                      {movsEn === activa.id ? "Ocultar movimientos" : "Movimientos"}
+                    </button>
+                    <button
+                      type="button"
+                      className={botonSec + " px-2 py-1 text-xs"}
+                      onClick={() => setAltaEn(altaEn === activa.id ? null : activa.id)}
+                    >
+                      {altaEn === activa.id ? "Cerrar" : "+ Entrada"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {editar && altaEn === a.id && (
+            {editar && altaEn === activa.id && (
               <div className="mb-3 flex flex-wrap items-end gap-2 rounded-lg bg-surface-2 p-2">
                 <label className="text-xs text-muted">
                   N.º de parte
@@ -278,14 +364,14 @@ export default function AlmacenPiezas({
                 <button
                   type="button"
                   className={boton}
-                  onClick={() => agregarStock(a.id)}
+                  onClick={() => agregarStock(activa.id)}
                 >
                   Registrar entrada
                 </button>
               </div>
             )}
 
-            {editar && movsEn === a.id && (
+            {editar && movsEn === activa.id && (
               <div className="mb-3 max-h-52 overflow-y-auto rounded-lg border border-border-default bg-surface-2 p-2 text-xs">
                 {movs.length === 0 ? (
                   <p className="text-muted">Sin movimientos.</p>
@@ -318,159 +404,25 @@ export default function AlmacenPiezas({
               </div>
             )}
 
-            {stock.length === 0 ? (
-              <p className="text-sm text-muted">Sin piezas con existencia.</p>
-            ) : (
-              <div className="scroll-oculto overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="border-b border-border-default text-left text-xs font-semibold uppercase text-muted">
-                      <th className="py-1 pr-3">Parte</th>
-                      <th className="py-1 pr-3">Descripción</th>
-                      <th className="py-1 pr-3">Disponible</th>
-                      {editar && <th className="py-1 pr-3">Apartada</th>}
-                      {editar && <th className="py-1 pr-3">Mín.</th>}
-                      {editar && <th className="py-1 pr-3">Ubicación</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stock.map((p) => {
-                      const bajo =
-                        p.disponible <= p.minimo && p.minimo > 0;
-                      return (
-                        <tr
-                          key={p.id}
-                          className={
-                            "border-b border-border-default/70 " +
-                            (bajo ? "bg-tone-warn-bg/40" : "")
-                          }
-                        >
-                          <td className="py-1.5 pr-3 font-mono">
-                            {p.numero_parte}
-                          </td>
-                          <td className="py-1.5 pr-3">
-                            {p.descripcion ?? "—"}
-                          </td>
-                          <td className="py-1.5 pr-3">
-                            {editar ? (
-                              <span className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  aria-label="salida"
-                                  className="h-6 w-6 rounded border border-border-default text-sm leading-none hover:bg-surface-2"
-                                  onClick={() =>
-                                    movimiento(
-                                      a.id,
-                                      p.numero_parte,
-                                      "salida",
-                                      1,
-                                    )
-                                  }
-                                >
-                                  −
-                                </button>
-                                <span className="w-7 text-center font-semibold">
-                                  {p.disponible}
-                                </span>
-                                <button
-                                  type="button"
-                                  aria-label="entrada"
-                                  className="h-6 w-6 rounded border border-border-default text-sm leading-none hover:bg-surface-2"
-                                  onClick={() =>
-                                    movimiento(
-                                      a.id,
-                                      p.numero_parte,
-                                      "entrada",
-                                      1,
-                                    )
-                                  }
-                                >
-                                  +
-                                </button>
-                              </span>
-                            ) : (
-                              <span className="font-semibold">
-                                {p.disponible}
-                              </span>
-                            )}
-                          </td>
-                          {editar && (
-                            <td className="py-1.5 pr-3 text-muted">
-                              {p.apartada || "—"}
-                            </td>
-                          )}
-                          {editar && (
-                            <td className="py-1.5 pr-3">
-                              <input
-                                type="number"
-                                defaultValue={p.minimo}
-                                min={0}
-                                className="w-14 rounded border border-border-default bg-surface px-1 py-0.5 text-sm"
-                                onBlur={(e) => {
-                                  const v = Math.max(
-                                    0,
-                                    Number(e.target.value) || 0,
-                                  );
-                                  if (v !== p.minimo)
-                                    ajusteInventario(p.id, { stock_minimo: v });
-                                }}
-                              />
-                            </td>
-                          )}
-                          {editar && (
-                            <td className="py-1.5 pr-3">
-                              <input
-                                defaultValue={p.ubicacion ?? ""}
-                                placeholder="—"
-                                className="w-24 rounded border border-border-default bg-surface px-1 py-0.5 text-sm"
-                                onBlur={(e) => {
-                                  if (
-                                    (e.target.value || null) !== p.ubicacion
-                                  )
-                                    ajusteInventario(p.id, {
-                                      ubicacion: e.target.value,
-                                    });
-                                }}
-                              />
-                            </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Piezas pedidas para órdenes */}
-            {(a.enEspera.length > 0 || editar) && (
-              <div className="mt-4">
+            {/* Pedidas para órdenes — lo primero que hay que atender */}
+            {(activa.enEspera.length > 0 || editar) && (
+              <div className="mb-4">
                 <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold text-tone-warn-fg">
                   <span className="h-2 w-2 rounded-full bg-tone-warn-fg" />
-                  Pedidas para órdenes ({a.enEspera.length})
+                  Pedidas para órdenes ({activa.enEspera.length})
                 </h3>
-                {a.enEspera.length === 0 ? (
+                {activa.enEspera.length === 0 ? (
                   <p className="text-sm text-muted">Nada en camino.</p>
                 ) : (
                   <table className="w-full border-collapse text-sm">
                     <tbody>
-                      {a.enEspera.map((p) => (
-                        <tr
-                          key={p.id}
-                          className="border-b border-border-default/70"
-                        >
-                          <td className="py-1.5 pr-3 font-mono">
-                            {p.numero_parte}
-                          </td>
-                          <td className="py-1.5 pr-3">
-                            {p.descripcion ?? "—"}
-                          </td>
+                      {activa.enEspera.map((p) => (
+                        <tr key={p.id} className="border-b border-border-default/70">
+                          <td className="py-1.5 pr-3 font-mono">{p.numero_parte}</td>
+                          <td className="py-1.5 pr-3">{p.descripcion ?? "—"}</td>
                           <td className="py-1.5 pr-3">
                             {p.orden ? (
-                              <Link
-                                href={`/tablero/${p.orden.id}`}
-                                className={enlace}
-                              >
+                              <Link href={`/tablero/${p.orden.id}`} className={enlace}>
                                 {p.orden.numero_orden}
                               </Link>
                             ) : (
@@ -478,8 +430,7 @@ export default function AlmacenPiezas({
                             )}
                           </td>
                           <td className="py-1.5 pr-3 text-muted">
-                            pedida{" "}
-                            {new Date(p.creada_en).toLocaleDateString("es-MX")}
+                            pedida {new Date(p.creada_en).toLocaleDateString("es-MX")}
                           </td>
                           {editar && (
                             <td className="py-1.5">
@@ -500,12 +451,110 @@ export default function AlmacenPiezas({
                 )}
               </div>
             )}
+
+            {/* Stock */}
+            {stockActiva.length === 0 ? (
+              <p className="text-sm text-muted">Sin piezas con existencia.</p>
+            ) : (
+              <div className="scroll-oculto overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-border-default text-left text-xs font-semibold uppercase text-muted">
+                      <th className="py-1 pr-3">Parte</th>
+                      <th className="py-1 pr-3">Descripción</th>
+                      <th className="py-1 pr-3">Disponible</th>
+                      {editar && <th className="py-1 pr-3">Apartada</th>}
+                      {editar && <th className="py-1 pr-3">Mín.</th>}
+                      {editar && <th className="py-1 pr-3">Ubicación</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stockActiva.map((p) => {
+                      const bajo = p.disponible <= p.minimo && p.minimo > 0;
+                      return (
+                        <tr
+                          key={p.id}
+                          className={
+                            "border-b border-border-default/70 " +
+                            (bajo ? "bg-tone-warn-bg/40" : "")
+                          }
+                        >
+                          <td className="py-1.5 pr-3 font-mono">{p.numero_parte}</td>
+                          <td className="py-1.5 pr-3">{p.descripcion ?? "—"}</td>
+                          <td className="py-1.5 pr-3">
+                            {editar ? (
+                              <span className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  aria-label="salida"
+                                  className="h-6 w-6 rounded border border-border-default text-sm leading-none hover:bg-surface-2"
+                                  onClick={() =>
+                                    movimiento(activa.id, p.numero_parte, "salida", 1)
+                                  }
+                                >
+                                  −
+                                </button>
+                                <span className="w-7 text-center font-semibold">
+                                  {p.disponible}
+                                </span>
+                                <button
+                                  type="button"
+                                  aria-label="entrada"
+                                  className="h-6 w-6 rounded border border-border-default text-sm leading-none hover:bg-surface-2"
+                                  onClick={() =>
+                                    movimiento(activa.id, p.numero_parte, "entrada", 1)
+                                  }
+                                >
+                                  +
+                                </button>
+                              </span>
+                            ) : (
+                              <span className="font-semibold">{p.disponible}</span>
+                            )}
+                          </td>
+                          {editar && (
+                            <td className="py-1.5 pr-3 text-muted">
+                              {p.apartada || "—"}
+                            </td>
+                          )}
+                          {editar && (
+                            <td className="py-1.5 pr-3">
+                              <input
+                                type="number"
+                                defaultValue={p.minimo}
+                                min={0}
+                                className="w-14 rounded border border-border-default bg-surface px-1 py-0.5 text-sm"
+                                onBlur={(e) => {
+                                  const v = Math.max(0, Number(e.target.value) || 0);
+                                  if (v !== p.minimo)
+                                    ajusteInventario(p.id, { stock_minimo: v });
+                                }}
+                              />
+                            </td>
+                          )}
+                          {editar && (
+                            <td className="py-1.5 pr-3">
+                              <input
+                                defaultValue={p.ubicacion ?? ""}
+                                placeholder="—"
+                                className="w-24 rounded border border-border-default bg-surface px-1 py-0.5 text-sm"
+                                onBlur={(e) => {
+                                  if ((e.target.value || null) !== p.ubicacion)
+                                    ajusteInventario(p.id, { ubicacion: e.target.value });
+                                }}
+                              />
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
-        );
-      })}
-      {visibles.length === 0 && (
-        <p className="text-sm text-muted">Nada coincide con la búsqueda.</p>
-      )}
+        )}
+      </div>
 
       {editar && (
         <datalist id="catalogo-piezas">
