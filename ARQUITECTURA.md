@@ -399,7 +399,27 @@ fluida, intuitiva, personalizable, fresca y cohesiva entre pantallas. Se usa la 
       No se pudo tomar captura en vivo autenticado como ingeniero en esta sesión (la pestaña
       del navegador perdió la sesión y el agente no puede iniciar sesión con credenciales
       reales). Pendiente confirmar visualmente con el usuario o en la próxima sesión.
-- [ ] **Pendiente (siguiente fase):** superficie de SLA en tarjetas del Tablero/Gantt (hoy solo
-      ordena, no se ve — recomendación de la investigación de apps similares), pase de motion
-      en Tablero/Gantt/Gerencia/Configuración, personalización extendida más allá del panel de
-      `/inicio`, y el `impeccable-finish-reviewer` formal sobre el trabajo ya hecho.
+- [x] **Insignia de SLA visible en Tablero y Gantt** (antes solo ordenaba, no se veía —
+      recomendación de la investigación de apps similares). `lib/ordenes/listar.ts` expone
+      `horas_sla` (ya se calculaba para ordenar, antes se descartaba); `badgeSla()` nuevo en
+      `lib/ordenes/sla.ts` decide cuándo mostrarla — **solo si es accionable** (vencida, o vence
+      en ≤24 h) para no llenar la tabla de insignias en cada orden Lexmark. Se ve en
+      `TablaOrdenes` (tarjeta móvil + tabla escritorio) y en la cola "Sin agendar" del Gantt.
+      7 pruebas nuevas.
+- [x] **Auditoría con el detector mecánico de `impeccable` sobre TODA la app** (69 archivos):
+      solo 5 hallazgos, la mayoría documentación de `DESIGN.md` incompleta, no defectos reales.
+      - `GanttDia.tsx`: el acento `border-l-4` por marca en la cola "Sin agendar" se reemplazó
+        por un punto de color (mismo patrón que ya usa `TablaOrdenes` para lo mismo) — resuelve
+        el aviso y unifica el tratamiento de "qué marca es esta orden" en un solo patrón.
+      - `AlmacenPiezas.tsx`: mismo `border-l-4 border-brand` que usa `encabezadoSeccion` en TODA
+        la app — **excepción deliberada, documentada en `DESIGN.md`** (es el encabezado de
+        sección establecido en decenas de pantallas, no una decoración de una sola fila;
+        rediseñarlo es un cambio de sistema aparte, no una limpieza incidental de esta pasada).
+      - 2 avisos de tipografía (documentación de `DESIGN.md` incompleta, no código) y 1 de color
+        (`#0b1220` en `app/layout.tsx` es el mismo `--bg` oscuro, usado en `<meta
+        theme-color>` porque el navegador no puede leer variables CSS ahí) — documentados.
+- [ ] **Pendiente (siguiente fase):** pase de motion en Gerencia/Configuración/Almacén,
+      personalización extendida más allá del panel de `/inicio`, verificación visual en vivo de
+      Tablero/Gantt/Reportes con sesión real (misma limitación que `/campo`: el navegador perdió
+      la sesión en esta pasada y el agente no puede iniciar sesión con credenciales), y el
+      `impeccable-finish-reviewer` formal sobre todo el trabajo ya hecho.

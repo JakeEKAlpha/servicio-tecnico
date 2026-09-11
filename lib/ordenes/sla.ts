@@ -108,3 +108,32 @@ export function horasParaVencerSla(
   if (!limite) return null;
   return (limite.getTime() - ahora.getTime()) / MS_POR_HORA;
 }
+
+export type BadgeSla = { texto: string; tono: "rojo" | "warn" };
+
+/**
+ * Insignia de SLA para el Tablero/Gantt — hace visible lo que
+ * `horasParaVencerSla` ya usa para ordenar. Solo se muestra cuando es
+ * accionable (vencida o vence en menos de 24 h): mostrarla siempre en cada
+ * orden Lexmark sería ruido, no señal (`DESIGN.md`, "Signal, not
+ * Decoration"). `null` = sin insignia (no aplica, falta el dato, o todavía
+ * falta más de un día — no urge).
+ */
+export function badgeSla(horas: number | null): BadgeSla | null {
+  if (horas === null) return null;
+
+  if (horas < 0) {
+    const vencidoHoras = Math.abs(horas);
+    const texto =
+      vencidoHoras >= 24
+        ? `Vencida hace ${Math.floor(vencidoHoras / 24)} d`
+        : `Vencida hace ${Math.ceil(vencidoHoras)} h`;
+    return { texto, tono: "rojo" };
+  }
+
+  if (horas <= 24) {
+    return { texto: `Vence en ${Math.ceil(horas)} h`, tono: "warn" };
+  }
+
+  return null;
+}

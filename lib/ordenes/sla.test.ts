@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calcularFechaLimiteSla, horasParaVencerSla, parsearFechaLexmark } from "./sla";
+import {
+  badgeSla,
+  calcularFechaLimiteSla,
+  horasParaVencerSla,
+  parsearFechaLexmark,
+} from "./sla";
 
 describe("parsearFechaLexmark", () => {
   it("parsea el formato de WO (M/D/YYYY h:mm AM/PM)", () => {
@@ -131,5 +136,31 @@ describe("calcularFechaLimiteSla", () => {
     const limite = calcularFechaLimiteSla("WO", datos, null)!;
     const horas = horasParaVencerSla("WO", datos, null, ahora)!;
     expect((limite.getTime() - ahora.getTime()) / (1000 * 60 * 60)).toBeCloseTo(horas, 6);
+  });
+});
+
+describe("badgeSla", () => {
+  it("null cuando no aplica o falta el dato — no muestra nada", () => {
+    expect(badgeSla(null)).toBeNull();
+  });
+
+  it("sin insignia cuando falta más de 24 h — no urge todavía (evita ruido)", () => {
+    expect(badgeSla(25)).toBeNull();
+    expect(badgeSla(200)).toBeNull();
+  });
+
+  it("tono warn y horas redondeadas hacia arriba cuando falta ≤24 h", () => {
+    expect(badgeSla(24)).toEqual({ texto: "Vence en 24 h", tono: "warn" });
+    expect(badgeSla(3.2)).toEqual({ texto: "Vence en 4 h", tono: "warn" });
+    expect(badgeSla(0)).toEqual({ texto: "Vence en 0 h", tono: "warn" });
+  });
+
+  it("tono rojo en horas cuando vence hace menos de 24 h", () => {
+    expect(badgeSla(-5)).toEqual({ texto: "Vencida hace 5 h", tono: "rojo" });
+  });
+
+  it("tono rojo en días cuando vence hace 24 h o más", () => {
+    expect(badgeSla(-30)).toEqual({ texto: "Vencida hace 1 d", tono: "rojo" });
+    expect(badgeSla(-73)).toEqual({ texto: "Vencida hace 3 d", tono: "rojo" });
   });
 });

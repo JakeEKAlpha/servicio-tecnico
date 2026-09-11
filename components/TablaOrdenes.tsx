@@ -7,8 +7,9 @@ import type {
   IngenieroOpcion,
   SucursalOpcion,
 } from "@/components/SelectorIngenieroSucursal";
-import { colorOrden, claseEstatus } from "@/lib/tema";
+import { colorOrden, claseEstatus, claseTono } from "@/lib/tema";
 import { enlace, chip, tarjetaInteractiva } from "@/lib/ui";
+import { badgeSla } from "@/lib/ordenes/sla";
 import AccionesOrden, { type OrdenAcciones } from "@/components/AccionesOrden";
 
 /** "YYYY-MM-DD" -> "DD/MM/YYYY". */
@@ -169,11 +170,19 @@ export default function TablaOrdenes({
                   {[o.localidad, o.estado].filter(Boolean).join(", ")}
                 </p>
               </div>
-              <span
-                className={chip + " shrink-0 " + claseEstatus(o.estatus)}
-              >
-                {o.estatus}
-              </span>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <span className={chip + " " + claseEstatus(o.estatus)}>
+                  {o.estatus}
+                </span>
+                {(() => {
+                  const b = badgeSla(o.horas_sla);
+                  return (
+                    b && (
+                      <span className={chip + " " + claseTono(b.tono)}>{b.texto}</span>
+                    )
+                  );
+                })()}
+              </div>
             </div>
 
             <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
@@ -276,7 +285,19 @@ export default function TablaOrdenes({
                     {o.ingeniero_nombre ?? <span className="text-muted">—</span>}
                   </td>
                   <td className={"whitespace-nowrap px-3 py-2 " + fechaCls}>
-                    {fmtFecha(o.fecha_eta)}
+                    <div className="flex items-center gap-1.5">
+                      {fmtFecha(o.fecha_eta)}
+                      {(() => {
+                        const b = badgeSla(o.horas_sla);
+                        return (
+                          b && (
+                            <span className={chip + " " + claseTono(b.tono)}>
+                              {b.texto}
+                            </span>
+                          )
+                        );
+                      })()}
+                    </div>
                   </td>
                   {!compacto && (
                     <td className="whitespace-nowrap px-3 py-2">{o.hora_eta}</td>

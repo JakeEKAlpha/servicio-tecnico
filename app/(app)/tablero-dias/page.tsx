@@ -56,6 +56,7 @@ export default async function TableroDiasPage({
       marca_nombre: o.marca_nombre,
       hora_eta: o.hora_eta,
       ingeniero_id: o.ingeniero_id,
+      horas_sla: o.horas_sla,
     };
     if (o.fecha_eta === fecha && o.ingeniero_id) {
       agendadas.push(item);

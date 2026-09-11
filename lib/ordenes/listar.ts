@@ -42,6 +42,10 @@ export type OrdenListada = {
   link_pdf: string | null;
   ingeniero_nombre: string | null;
   marca_nombre: string | null;
+  /** Horas para vencer el SLA Lexmark — mismo cálculo que ordena la cola
+   *  (`horasParaVencerSla`), expuesto para pintar la insignia en la UI
+   *  (`badgeSla`). `null` = no aplica (no es Lexmark) o falta el dato. */
+  horas_sla: number | null;
 };
 
 export async function listarOrdenes(
@@ -84,6 +88,10 @@ export async function listarOrdenes(
       ingeniero_nombre: uno(ingenieros),
       marca_nombre: uno(marcas),
       _tipoContrato: tipoDe(contratos),
+      // Calculado una sola vez por fila — lo usa el sort de abajo Y se
+      // expone en `OrdenListada` para pintar la insignia de SLA en la UI
+      // (`badgeSla`), en vez de descartarlo como antes.
+      horas_sla: horasParaVencerSla(orden.origen, orden.datos_especificos, orden.creado_en, ahora),
     }))
     .sort((a, b) => {
       const pa = prioridadDe(a.estatus);
@@ -97,8 +105,8 @@ export async function listarOrdenes(
       // Desempate por urgencia de SLA: null (no aplica o falta el dato) no
       // debe moverse — se queda donde ya lo puso `prioridadServicio`, así
       // que ordena después de cualquier orden con urgencia real.
-      const ua = horasParaVencerSla(a.origen, a.datos_especificos, a.creado_en, ahora);
-      const ub = horasParaVencerSla(b.origen, b.datos_especificos, b.creado_en, ahora);
+      const ua = a.horas_sla;
+      const ub = b.horas_sla;
       if (ua !== ub) {
         if (ua === null) return 1;
         if (ub === null) return -1;

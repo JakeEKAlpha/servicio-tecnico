@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseHoraEta, fmtHora } from "@/lib/horas";
 import { construirRangoHora } from "@/components/SelectorHora";
-import { colorOrden } from "@/lib/tema";
+import { colorOrden, claseTono } from "@/lib/tema";
 import { hoyMx } from "@/lib/fechas";
+import { badgeSla } from "@/lib/ordenes/sla";
 
 const HORA_INI = 7;
 const HORA_FIN = 20;
@@ -28,6 +29,7 @@ export type OrdenGantt = {
   marca_nombre: string | null;
   hora_eta: string | null;
   ingeniero_id: string | null;
+  horas_sla: number | null;
 };
 
 type DragState = {
@@ -312,33 +314,40 @@ export default function GanttDia({
             <ul className="scroll-oculto flex gap-2 overflow-x-auto pb-1">
               {sinAgendar.map((o) => {
                 const c = colorOrden(o.origen, o.marca_nombre);
+                const sla = badgeSla(o.horas_sla);
                 return (
                   <li
                     key={o.id}
                     onPointerDown={(e) => onDown(e, o.id, "chip", o.hora_eta)}
-                    className="w-40 shrink-0 cursor-grab touch-none rounded-lg border border-border-default border-l-4 bg-surface p-2 text-xs shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing"
-                    style={{
-                      borderLeftColor: `var(--marca-${
-                        String(o.marca_nombre ?? "").toLowerCase().includes("xerox")
-                          ? "xerox"
-                          : o.origen === "SR"
-                            ? "lexmark-sr"
-                            : "lexmark"
-                      })`,
-                    }}
+                    className="w-40 shrink-0 cursor-grab touch-none rounded-lg border border-border-default bg-surface p-2 text-xs shadow-sm transition-[box-shadow,transform] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-md active:cursor-grabbing active:scale-[0.98]"
                   >
-                    <div className="truncate font-semibold">{o.numero_orden}</div>
+                    <div className="flex items-center gap-1.5 truncate font-semibold">
+                      <span className={"h-2 w-2 shrink-0 rounded-full " + c.punto} />
+                      {o.numero_orden}
+                    </div>
                     <div className="truncate text-muted">{o.cliente}</div>
-                    <span
-                      className={
-                        "mt-1 inline-block rounded px-1.5 py-0.5 font-medium " +
-                        c.barra +
-                        " " +
-                        c.texto
-                      }
-                    >
-                      {o.origen === "SR" ? "SR" : "WO"} · {o.estatus}
-                    </span>
+                    <div className="mt-1 flex flex-wrap items-center gap-1">
+                      <span
+                        className={
+                          "inline-block rounded px-1.5 py-0.5 font-medium " +
+                          c.barra +
+                          " " +
+                          c.texto
+                        }
+                      >
+                        {o.origen === "SR" ? "SR" : "WO"} · {o.estatus}
+                      </span>
+                      {sla && (
+                        <span
+                          className={
+                            "inline-block rounded px-1.5 py-0.5 font-bold " +
+                            claseTono(sla.tono)
+                          }
+                        >
+                          {sla.texto}
+                        </span>
+                      )}
+                    </div>
                   </li>
                 );
               })}
@@ -420,7 +429,7 @@ export default function GanttDia({
                   height: Math.max(1, ingenieros.length) * ROW_H + 4,
                 }}
               >
-                <span className="absolute -top-4 -left-3 rounded bg-red px-1 text-[9px] font-bold text-white">
+                <span className="absolute -top-4 -left-3 rounded bg-red px-1 text-[10px] font-bold text-white">
                   {fmtHora(ahora)}
                 </span>
               </div>

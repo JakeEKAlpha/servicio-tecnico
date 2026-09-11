@@ -149,6 +149,12 @@ porque combina.
 (`bg-surface`, `text-muted`, `bg-tone-*`, `text-brand`). Ya es la regla escrita en
 `app/globals.css`; este redisño la hereda sin excepción, campo incluido.
 
+Nota: los valores de modo oscuro (ej. `--bg: #0b1220`) viven en el bloque
+`@media (prefers-color-scheme: dark)` / `:root[data-theme="dark"]` de `app/globals.css`, no
+repetidos aquí — evita duplicar dos veces la misma paleta. `app/layout.tsx` referencia
+`#0b1220` directamente solo para `<meta name="theme-color">` (el navegador no puede leer
+variables CSS ahí); es el mismo valor de `--bg` oscuro, no un color nuevo.
+
 ## Typography
 
 **Body/Display/Label Font:** Montserrat (con `system-ui, sans-serif` de respaldo).
@@ -207,6 +213,15 @@ botones/inputs/tarjetas, `rounded-xl` (10–12px) para superficies mayores (moda
 panel), `rounded-full` reservado a chips/insignias — nunca un botón de acción es pastilla
 completa salvo que sea un chip de estado.
 
+**Excepción deliberada — `encabezadoSeccion` (`border-l-4 border-brand`).** El detector
+mecánico de diseño marca cualquier `border-l-4` como "tell" genérico de IA. Este caso es
+distinto: es el encabezado de sección de TODA la app (decenas de pantallas ya lo usan),
+siempre del mismo azul de marca — no decorativo ni variable por fila. Se mantiene a propósito
+en este redisño en vez de rediseñarlo de cero, para no tocar decenas de pantallas de un jalón;
+si se retira algún día, es un cambio deliberado del sistema, no una limpieza incidental. La
+misma señal en contexto de LISTA (marca de servicio por fila, ej. la cola de "Sin agendar" del
+Gantt) sí se resolvió con un punto de color en vez de un borde — ver `colorOrden().punto`.
+
 ## Components
 
 ### Buttons (`lib/ui.ts`)
@@ -241,6 +256,11 @@ completa salvo que sea un chip de estado.
 - Sidebar colapsable + drawer en móvil, header translúcido (`backdrop-blur` + `bg-surface/80`).
 - Riel de recursos agrupado por categoría (no 8 pestañas en fila) — patrón a repetir cuando
   una sección crezca en vez de amontonar tabs.
+
+### Signature component: marca de agua de marca (`FichaOrden`)
+El nombre de la marca aparece como marca de agua tipográfica (`text-[4rem]`, `opacity-.06`) en
+la esquina de la ficha de orden — decorativo de fondo, no contenido, por eso está fuera de la
+escala tipográfica de la sección anterior a propósito.
 
 ### Signature component: Gantt/Tablero por marca (`colorOrden`, `GanttDia`)
 Barra de orden coloreada por `colorOrden(origen, marca)` — el único lugar donde el color de
