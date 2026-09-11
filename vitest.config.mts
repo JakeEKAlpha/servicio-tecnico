@@ -8,9 +8,12 @@ export default defineConfig({
     },
   },
   test: {
-    // Solo lib/ por ahora — lógica pura sin dependencias de Next/React/Supabase.
-    // Componentes y route handlers necesitan su propio setup (jsdom, mocks de
-    // Supabase) y quedan para una siguiente ronda, no bloquean esta base.
-    include: ["lib/**/*.test.ts"],
+    // Por defecto "node" — lib/** y los route handlers son lógica pura /
+    // Request-Response estándar, corren más rápido sin DOM. Los archivos de
+    // componentes piden jsdom ellos mismos con un comentario
+    // `// @vitest-environment jsdom` en la primera línea.
+    environment: "node",
+    setupFiles: ["./vitest.setup.ts"],
+    include: ["lib/**/*.test.ts", "components/**/*.test.tsx", "app/**/*.test.ts"],
   },
 });
