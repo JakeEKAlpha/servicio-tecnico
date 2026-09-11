@@ -184,10 +184,27 @@ reales.
 2. ~~BD sin versionar~~ **Cerrado 2026-09-11.** `supabase/migrations/20260911092901_remote_schema.sql`
    — primer baseline real vía `supabase db pull` (19 tablas, 75 funciones/triggers/políticas).
    De aquí en adelante, cambios de esquema van como migración nueva, no como SQL suelto.
-3. ~~Sin CI, sin deploy~~ **Cerrado 2026-09-11.** `.github/workflows/ci.yml` corre
-   `tsc`/`eslint`/`vitest`/`next build` en cada PR y push a `main`. Deploy real en Vercel:
-   `https://lexmark-os-web.vercel.app` (conectado a GitHub — cada push a `main` dispara un deploy
-   a producción automático). (Repo remoto: `github.com/JakeEKAlpha/servicio-tecnico`.)
+3. ~~Sin CI, sin deploy~~ **Cerrado 2026-09-11, pero con un bug real que estuvo fallando
+   los 23 runs desde que se creó — corregido el mismo día al enterarse por los correos de
+   GitHub.** `.github/workflows/ci.yml` corre `tsc`/`eslint`/`vitest`/`next build` en cada PR y
+   push a `main`. Deploy real en Vercel: `https://lexmark-os-web.vercel.app` (conectado a
+   GitHub — cada push a `main` dispara un deploy a producción automático). (Repo remoto:
+   `github.com/JakeEKAlpha/servicio-tecnico`.)
+   **El bug:** el paso "Type check" (`tsc --noEmit`) fallaba en un checkout limpio de CI con
+   `Cannot find name 'LayoutProps'` (en `app/layout.tsx`) — Next.js 16 genera ese tipo dentro de
+   `.next/types/` la primera vez que corre `next dev`/`next build`, y CI nunca había corrido
+   ninguno de los dos antes del `tsc`. En mi máquina local nunca lo noté porque ya tenía
+   `.next/` de sesiones anteriores de `next dev`, así que `tsc` local siempre pasaba — el
+   checkout limpio de CI es justo el caso que lo expone. **Nunca revisé la pestaña de Actions
+   de GitHub después de crear el workflow**, solo corrí los comandos en local — así que estuvo
+   fallando en silencio los 23 pushes del día (una notificación por correo en cada uno) hasta
+   que el usuario lo reportó. Arreglado agregando `npx next typegen` como paso antes del type
+   check (genera esos tipos sin correr un build completo); verificado reproduciendo el checkout
+   limpio localmente (borrando `.next/`, `next-env.d.ts` y `tsconfig.tsbuildinfo`) antes y
+   después del fix.
+   **Lección para el resto de la sesión:** verificar "en local" no es lo mismo que verificar
+   que CI realmente pasa — hay que revisar la ejecución real en GitHub Actions, no asumirlo por
+   el workflow existir y los comandos pasar localmente.
 4. ~~`ordenes.cliente_id`/`equipo_id` sin poblar~~ **Cerrado por completo 2026-09-11.**
    `ModalNuevaOrden` tiene selector de cliente/equipo, `cuentaDeOrden()` prioriza el FK sobre el
    fuzzy-match, y el backfill de `/gerencia/cuentas` corrió sobre todas las órdenes históricas —

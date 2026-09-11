@@ -31,6 +31,16 @@ jobs:
 
       - run: npm ci
 
+      # Next.js 16 genera tipos globales (ej. `LayoutProps<"/">` en
+      # app/layout.tsx) dentro de .next/types/ — normalmente los crea
+      # `next dev`/`next build` la primera vez que corren. En un checkout
+      # limpio de CI ese paso nunca pasó, así que `tsc` fallaba SIEMPRE
+      # (los 23 runs desde que se creó este workflow) con
+      # "Cannot find name 'LayoutProps'", sin llegar nunca a lint/test/build.
+      # `next typegen` genera esos tipos sin correr un build completo.
+      - name: Generar tipos de Next.js
+        run: npx next typegen
+
       - name: Type check
         run: npx tsc --noEmit
 
