@@ -72,7 +72,7 @@ export async function POST(
     );
   }
 
-  const fila = filtrarColumnas(body, cfg.columnas);
+  const fila = filtrarColumnas(body, cfg.columnas, cfg.campos);
   if (Object.keys(fila).length === 0) {
     return NextResponse.json(
       { ok: false, error: "No mandaste datos." },

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
+import { primerasMayusculas } from "@/lib/texto";
+import type { Campo } from "./recursos";
 
 /**
  * Verifica que quien llama sea gerencia/admin. Devuelve el cliente de
@@ -41,15 +43,25 @@ export async function contextoGerencia(): Promise<
   return { ok: true, supabase };
 }
 
-/** Deja pasar solo las claves permitidas por la config del recurso. */
+/**
+ * Deja pasar solo las claves permitidas por la config del recurso.
+ * Si se pasa `campos`, los de `tipo: "text"` se normalizan a "primeras
+ * mayúsculas" (decisión del usuario 2026-09-11) — nunca los de tipo `area`
+ * (notas/indicaciones, son prosa, no nombres) ni los demás tipos.
+ */
 export function filtrarColumnas(
   body: Record<string, unknown>,
   columnas: string[],
+  campos?: Campo[],
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const k of columnas) {
     if (k in body) {
-      const v = body[k];
+      let v = body[k];
+      if (typeof v === "string") {
+        const esTexto = campos?.find((c) => c.k === k)?.tipo === "text";
+        v = esTexto ? primerasMayusculas(v) : v.trim();
+      }
       // "" en un campo opcional -> null (uuid, números, etc. no aceptan "")
       out[k] = v === "" ? null : v;
     }

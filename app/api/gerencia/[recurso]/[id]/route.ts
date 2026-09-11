@@ -41,7 +41,7 @@ export async function PATCH(
     );
   }
 
-  const cambios = filtrarColumnas(body, cfg.columnas);
+  const cambios = filtrarColumnas(body, cfg.columnas, cfg.campos);
   if (Object.keys(cambios).length === 0) {
     return NextResponse.json(
       { ok: false, error: "No mandaste cambios." },
