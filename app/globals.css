@@ -240,6 +240,16 @@ body {
     transform: none; /* 'none' final → el div deja de ser bloque contenedor de position:fixed */
   }
 }
+@keyframes ad-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 @keyframes ad-collapse-in {
   from {
     opacity: 0;
@@ -262,6 +272,9 @@ body {
 }
 .anim-collapse {
   animation: ad-collapse-in 0.2s ease-out both;
+}
+.anim-panel {
+  animation: ad-panel-in 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

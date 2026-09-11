@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { OrdenListada } from "@/lib/ordenes/listar";
 import type { IngenieroOpcion } from "@/components/SelectorIngenieroSucursal";
 import { colorOrden, claseEstatus } from "@/lib/tema";
@@ -39,6 +42,17 @@ const COLUMNAS = [
   "Estatus / acciones",
 ] as const;
 
+/** Con el panel de detalle abierto la tabla se angosta: solo lo esencial. */
+const OCULTA_CON_PANEL = new Set<(typeof COLUMNAS)[number]>([
+  "Vis.",
+  "Localidad",
+  "Estado",
+  "Sucursal",
+  "Hora ETA",
+  "Doc",
+  "PDF",
+]);
+
 type Fila = {
   o: OrdenListada;
   cerrada: boolean;
@@ -58,6 +72,13 @@ export default function TablaOrdenes({
   ingenieros: IngenieroOpcion[];
   esGerencia: boolean;
 }) {
+  const pathname = usePathname();
+  // La URL se enmascara a /tablero/<id> mientras el panel de detalle está
+  // abierto (ruta interceptada) — de ahí sacamos qué fila resaltar y cuándo
+  // angostar la tabla.
+  const idAbierto = pathname.match(/^\/tablero\/([^/]+)/)?.[1] ?? null;
+  const compacto = !!idAbierto;
+
   if (ordenes.length === 0) {
     return <p className="p-8 text-sm text-muted">No hay órdenes para mostrar.</p>;
   }
@@ -182,11 +203,13 @@ export default function TablaOrdenes({
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-border-default bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
-              {COLUMNAS.map((col) => (
-                <th key={col} className="whitespace-nowrap px-3 py-2.5">
-                  {col}
-                </th>
-              ))}
+              {COLUMNAS.filter((col) => !compacto || !OCULTA_CON_PANEL.has(col)).map(
+                (col) => (
+                  <th key={col} className="whitespace-nowrap px-3 py-2.5">
+                    {col}
+                  </th>
+                ),
+              )}
             </tr>
           </thead>
           <tbody>
@@ -196,9 +219,11 @@ export default function TablaOrdenes({
                   key={o.id}
                   className={
                     "border-b border-border-default/70 transition-colors " +
-                    (cerrada
-                      ? "bg-surface-2/60 text-muted"
-                      : "hover:bg-brand-050 even:bg-surface-2/40")
+                    (o.id === idAbierto
+                      ? "bg-brand-050"
+                      : cerrada
+                        ? "bg-surface-2/60 text-muted"
+                        : "hover:bg-brand-050 even:bg-surface-2/40")
                   }
                 >
                   <td className="whitespace-nowrap px-3 py-2 font-semibold">
@@ -212,48 +237,62 @@ export default function TablaOrdenes({
                       </Link>
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-muted">{o.numero_visita}</td>
+                  {!compacto && (
+                    <td className="px-3 py-2 text-muted">{o.numero_visita}</td>
+                  )}
                   <td className="px-3 py-2" title={o.cliente ?? ""}>
                     <div className="max-w-[15rem] truncate">{o.cliente}</div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-2">{o.localidad}</td>
-                  <td className="whitespace-nowrap px-3 py-2">{o.estado}</td>
-                  <td className="whitespace-nowrap px-3 py-2">{o.sucursal}</td>
+                  {!compacto && (
+                    <td className="whitespace-nowrap px-3 py-2">{o.localidad}</td>
+                  )}
+                  {!compacto && (
+                    <td className="whitespace-nowrap px-3 py-2">{o.estado}</td>
+                  )}
+                  {!compacto && (
+                    <td className="whitespace-nowrap px-3 py-2">{o.sucursal}</td>
+                  )}
                   <td className="whitespace-nowrap px-3 py-2">
                     {o.ingeniero_nombre ?? <span className="text-muted">—</span>}
                   </td>
                   <td className={"whitespace-nowrap px-3 py-2 " + fechaCls}>
                     {fmtFecha(o.fecha_eta)}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-2">{o.hora_eta}</td>
-                  <td className="px-3 py-2">
-                    {o.link_doc ? (
-                      <a
-                        href={o.link_doc}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={enlace}
-                      >
-                        Abrir
-                      </a>
-                    ) : (
-                      <span className="text-muted">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    {o.link_pdf ? (
-                      <a
-                        href={o.link_pdf}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={enlace}
-                      >
-                        PDF
-                      </a>
-                    ) : (
-                      <span className="text-muted">—</span>
-                    )}
-                  </td>
+                  {!compacto && (
+                    <td className="whitespace-nowrap px-3 py-2">{o.hora_eta}</td>
+                  )}
+                  {!compacto && (
+                    <td className="px-3 py-2">
+                      {o.link_doc ? (
+                        <a
+                          href={o.link_doc}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={enlace}
+                        >
+                          Abrir
+                        </a>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
+                    </td>
+                  )}
+                  {!compacto && (
+                    <td className="px-3 py-2">
+                      {o.link_pdf ? (
+                        <a
+                          href={o.link_pdf}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={enlace}
+                        >
+                          PDF
+                        </a>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
+                    </td>
+                  )}
                   <td className="px-3 py-2">
                     <AccionesOrden
                       orden={accionesOrden}
