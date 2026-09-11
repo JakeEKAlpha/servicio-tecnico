@@ -168,7 +168,7 @@ export default async function AlmacenPage() {
 
   return (
     <div className="p-6">
-      <h1 className="mb-1 text-2xl font-extrabold tracking-tight text-brand">
+      <h1 className="mb-1 text-[18px] font-extrabold tracking-tight text-brand">
         {modo === "editar" ? "Almacenes" : "Consulta de stock"}
       </h1>
       <p className="mb-4 text-sm text-muted">

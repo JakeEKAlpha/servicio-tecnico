@@ -15,7 +15,7 @@ export default async function GerenciaLayout({
 
   return (
     <div className="p-6">
-      <h1 className="mb-1 text-2xl font-extrabold tracking-tight text-brand">
+      <h1 className="mb-1 text-[18px] font-extrabold tracking-tight text-brand">
         Panel de Gerencia
       </h1>
       <p className="mb-6 text-sm text-muted">

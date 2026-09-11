@@ -66,7 +66,7 @@ export default async function TableroDiasPage({
 
   return (
     <div className="p-6">
-      <h1 className="mb-1 text-2xl font-extrabold tracking-tight text-brand">
+      <h1 className="mb-1 text-[18px] font-extrabold tracking-tight text-brand">
         Tablero por día
       </h1>
       <p className="mb-4 text-sm text-muted">

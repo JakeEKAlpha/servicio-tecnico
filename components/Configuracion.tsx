@@ -56,7 +56,7 @@ function Segmento<T extends string>({
           type="button"
           onClick={() => onCambio(o.v)}
           className={
-            "rounded-md px-3 py-1.5 text-sm font-medium transition-colors " +
+            "rounded-md px-3 py-1.5 text-[12px] font-extrabold transition-colors " +
             (valor === o.v
               ? "bg-surface text-text shadow-sm"
               : "text-muted hover:text-text")
@@ -146,7 +146,7 @@ export default function Configuracion({
   return (
     <div className="mx-auto max-w-2xl space-y-4 p-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-brand">
+        <h1 className="text-[18px] font-extrabold tracking-tight text-brand">
           Configuración
         </h1>
         <p className="text-sm text-muted">
