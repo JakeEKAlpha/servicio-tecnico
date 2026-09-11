@@ -26,8 +26,8 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
 | 9 | Campo — servicio `/campo/[id]` | t8b/8c | ⏳ pendiente | — |
 | 10 | Modal nueva orden | t9b | ⏳ pendiente | — |
 | 11 | Asignar sin modal | t9e | ⏳ pendiente | — |
-| 12 | Configuración `/configuracion` | t10b | ⏳ pendiente | — |
-| 13 | Login `/login` | t10d | ⏳ pendiente | — |
+| 12 | Configuración `/configuracion` | t10b | 🔧 vista previa en vivo hecha; "fila por defecto" y "pantalla de inicio" → D4 | — |
+| 13 | Login `/login` | t10d | ✅ hecho (pantalla partida) | — |
 | 14 | Inicio `/inicio` | 11n/11o | ⚠️ ya cubierto por el panel configurable — ver decisión D1 | — |
 
 ## Decisiones a definir al final (no bloquean el avance)
@@ -47,6 +47,14 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
   sobre el wireframe. Se implementó solo la parte de 11e/11f que no choca:
   ancho ampliado (`max-w-6xl` → `max-w-[1400px]`). Confirmar que esto es
   correcto al final.
+- **D4 — Configuración: "fila por defecto del tablero" y "pantalla de
+  inicio" (10b) no se implementaron.** La primera choca con el toggle
+  "Solo activas / Ver todas" que ya existe (ambos usan la ausencia del
+  query param `activos` con distinto significado — se resuelve con un
+  flag "ya se aplicó" en `sessionStorage`, no es difícil, se priorizaron
+  otras pantallas). La segunda requeriría tocar el redirect de login en
+  `lib/supabase/proxy.ts` (código de autenticación, alto impacto). Ninguna
+  se implementó a la espera de decidir si vale la pena.
 
 ## Notas de implementación
 

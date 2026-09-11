@@ -2,8 +2,9 @@
 
 import { useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
-import { tarjeta, encabezadoSeccion, enlace } from "@/lib/ui";
+import { tarjeta, encabezadoSeccion, enlace, chip } from "@/lib/ui";
 import { etiquetaRol } from "@/lib/auth/roles";
+import { claseEstatus } from "@/lib/tema";
 
 type Tema = "sistema" | "claro" | "oscuro";
 type Densidad = "comoda" | "compacta";
@@ -64,6 +65,44 @@ function Segmento<T extends string>({
           {o.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+const FILAS_PREVIA = [
+  { orden: "40X7743", cliente: "AUTOZONE MÉXICO", estatus: "Asignado" },
+  { orden: "12191300", cliente: "BBVA Bancomer", estatus: "Pendiente por partes" },
+  { orden: "12218288", cliente: "Ganaderos Leche Pura", estatus: "Lista para realizar" },
+] as const;
+
+/** Miniatura de una tabla real: el efecto de tema/densidad se ve antes de
+ * entrar al tablero (wireframe 10b). */
+function VistaPreviaTabla({ densidad }: { densidad: Densidad }) {
+  const py = densidad === "compacta" ? "py-1" : "py-2.5";
+  return (
+    <div className="overflow-hidden rounded-lg border border-border-default bg-surface">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-border-default bg-surface-2 text-left font-semibold uppercase tracking-wide text-muted">
+            <th className={"px-3 " + py}>Orden</th>
+            <th className={"px-3 " + py}>Cliente</th>
+            <th className={"px-3 " + py}>Estatus</th>
+          </tr>
+        </thead>
+        <tbody>
+          {FILAS_PREVIA.map((f) => (
+            <tr key={f.orden} className="border-b border-border-default/70 last:border-0">
+              <td className={"px-3 font-mono text-[11px] font-semibold text-text " + py}>
+                {f.orden}
+              </td>
+              <td className={"px-3 text-text " + py}>{f.cliente}</td>
+              <td className={"px-3 " + py}>
+                <span className={chip + " " + claseEstatus(f.estatus)}>{f.estatus}</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -146,6 +185,11 @@ export default function Configuracion({
                 aplicarDensidad(v);
               }}
             />
+          </div>
+
+          <div>
+            <p className="mb-1.5 text-sm font-medium">Vista previa</p>
+            <VistaPreviaTabla densidad={densidad} />
           </div>
         </div>
       </div>
