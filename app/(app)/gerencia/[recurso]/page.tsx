@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { RECURSOS, ROLES_PERFIL, TIPOS_CONTRATO, SUBTIPOS_TYM } from "@/lib/gerencia/recursos";
 import { etiquetaRol } from "@/lib/auth/roles";
 import GestionRecurso, { type Opcion } from "@/components/gerencia/GestionRecurso";
+import BackfillClientes from "@/components/gerencia/BackfillClientes";
 
 export default async function RecursoPage({
   params,
@@ -80,11 +81,14 @@ export default async function RecursoPage({
   };
 
   return (
-    <GestionRecurso
-      recurso={recurso}
-      cfg={cfg}
-      filas={(filas ?? []) as (Record<string, unknown> & { id: string })[]}
-      opciones={opciones}
-    />
+    <>
+      {recurso === "clientes" && <BackfillClientes />}
+      <GestionRecurso
+        recurso={recurso}
+        cfg={cfg}
+        filas={(filas ?? []) as (Record<string, unknown> & { id: string })[]}
+        opciones={opciones}
+      />
+    </>
   );
 }
