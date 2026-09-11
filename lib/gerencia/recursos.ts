@@ -104,8 +104,8 @@ export const RECURSOS: Record<string, RecursoConfig> = {
   },
 
   cuentas: {
-    tabla: "cuentas_lexmark",
-    titulo: "Cuentas / clientes Lexmark",
+    tabla: "clientes",
+    titulo: "Clientes / cuentas",
     orden: "nombre",
     columnas: [
       "nombre",

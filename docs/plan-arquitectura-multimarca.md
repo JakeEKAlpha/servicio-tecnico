@@ -1,10 +1,24 @@
 # Plan de arquitectura: contratos (garantía/póliza/TyM) + Xerox + limpieza
 
-**Fecha:** 2026-09-11. Este documento es el plan aprobado en principio por el
-usuario (respondió las 4 preguntas clave abajo); falta su visto bueno final
-antes de ejecutar. Sigue la filosofía ya establecida en
-`docs/analisis-arquitectura-datos.md`: **evolucionar con tablas nuevas
-aditivas (FK nullable), nunca borrar ni reescribir de golpe.**
+**Fecha:** 2026-09-11. El usuario dio luz verde total ("toma las decisiones a
+partir de aquí") y delegó la ejecución completa. **Fase A y Fase B ya están
+hechas** (ver estado abajo y el detalle en la memoria
+`cambios-bd-fuera-de-migraciones` → "Fase 20"). Sigue la filosofía ya
+establecida en `docs/analisis-arquitectura-datos.md`: **evolucionar con
+tablas nuevas aditivas (FK nullable), nunca borrar ni reescribir de golpe.**
+
+## Estado
+
+- ✅ **Fase A** — bug de marca corregido; `ordenes.sucursal`/`sucursal_id`
+  revisado y descartado como deuda real (solo 4 órdenes existen, sin
+  conflicto); RLS de rendimiento (`docs/db-optimizacion-rls.sql`) y "leaked
+  password protection" siguen **manual-only** (bloqueados/fuera de alcance
+  de las herramientas automatizadas — ver nota abajo).
+- ✅ **Fase B** — `clientes`/`equipos`/`contratos` creados y en producción,
+  cero pérdida de datos, cero hallazgos nuevos de seguridad.
+- ⬜ **Fase C** — interfaz (Equipos/Contratos en Gerencia, contrato en
+  detalle de orden) — siguiente paso.
+- ⬜ **Fase D** — auditoría final de cierre.
 
 ## Decisiones de negocio confirmadas por el usuario
 

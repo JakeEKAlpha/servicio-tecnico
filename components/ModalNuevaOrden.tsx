@@ -9,10 +9,13 @@ import { boton, botonSec, campo as campoCls, etiqueta } from "@/lib/ui";
 import SelectorHora from "@/components/SelectorHora";
 import Modal from "@/components/Modal";
 
+export type MarcaOpcion = { id: string; nombre: string };
+
 type Datos = {
   cliente: string;
   falla: string;
   origen: "MANUAL" | "WO" | "SR";
+  marca_id: string;
   numero_orden: string;
   contacto: string;
   tel_fijo: string;
@@ -28,24 +31,27 @@ type Datos = {
   ingeniero_id: string;
 };
 
-const VACIO: Datos = {
-  cliente: "",
-  falla: "",
-  origen: "MANUAL",
-  numero_orden: "",
-  contacto: "",
-  tel_fijo: "",
-  tel_movil: "",
-  direccion: "",
-  localidad: "",
-  estado: "",
-  modelo: "",
-  serie: "",
-  fecha_eta: "",
-  hora_eta: "",
-  sucursal: "",
-  ingeniero_id: "",
-};
+function vacio(marcaPorDefecto: string): Datos {
+  return {
+    cliente: "",
+    falla: "",
+    origen: "MANUAL",
+    marca_id: marcaPorDefecto,
+    numero_orden: "",
+    contacto: "",
+    tel_fijo: "",
+    tel_movil: "",
+    direccion: "",
+    localidad: "",
+    estado: "",
+    modelo: "",
+    serie: "",
+    fecha_eta: "",
+    hora_eta: "",
+    sucursal: "",
+    ingeniero_id: "",
+  };
+}
 
 /** Punto de progreso 1/2, wireframe 9b ("nueva orden en dos pasos"). */
 function Progreso({ paso }: { paso: 1 | 2 }) {
@@ -73,14 +79,23 @@ function Progreso({ paso }: { paso: 1 | 2 }) {
 
 export default function ModalNuevaOrden({
   ingenieros,
+  marcas,
 }: {
   ingenieros: IngenieroOpcion[];
+  marcas: MarcaOpcion[];
 }) {
   const router = useRouter();
+  // Lexmark sigue siendo el default (es lo más común hoy), pero ahora es una
+  // elección visible, no un valor oculto del servidor — antes toda orden
+  // manual quedaba marcada Lexmark sin que hubiera forma de cambiarlo.
+  const marcaDefecto =
+    marcas.find((m) => m.nombre.toLowerCase() === "lexmark")?.id ??
+    marcas[0]?.id ??
+    "";
   const [abierto, setAbierto] = useState(false);
   const [paso, setPaso] = useState<1 | 2>(1);
   const [agendar, setAgendar] = useState(false);
-  const [d, setD] = useState<Datos>(VACIO);
+  const [d, setD] = useState<Datos>(() => vacio(marcaDefecto));
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exito, setExito] = useState<string | null>(null);
@@ -97,7 +112,7 @@ export default function ModalNuevaOrden({
 
   function cerrar() {
     setAbierto(false);
-    setD(VACIO);
+    setD(vacio(marcaDefecto));
     setError(null);
     setExito(null);
     setEnviando(false);
@@ -181,6 +196,20 @@ export default function ModalNuevaOrden({
                   />
                 </label>
 
+                <label className="text-sm">
+                  <span className={etiqueta}>Marca</span>
+                  <select
+                    className={campoCls}
+                    value={d.marca_id}
+                    onChange={(e) => set("marca_id", e.target.value)}
+                  >
+                    {marcas.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <label className="text-sm">
                   <span className={etiqueta}>Origen</span>
                   <select

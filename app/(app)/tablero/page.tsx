@@ -37,7 +37,10 @@ export default async function TableroPage({
   if (!esGerencia && perfil.zona_id) {
     consultaIng = consultaIng.eq("zona_id", perfil.zona_id);
   }
-  const { data: ingenieros } = await consultaIng;
+  const [{ data: ingenieros }, { data: marcas }] = await Promise.all([
+    consultaIng,
+    supabase.from("marcas").select("id, nombre").order("nombre"),
+  ]);
 
   // Conteo por estatus (del conjunto cargado, antes de la búsqueda).
   const conteos = new Map<string, number>();
@@ -80,6 +83,7 @@ export default async function TableroPage({
               ingenieros={(ingenieros ?? []).filter(
                 (i) => i.zona_id === perfil.zona_id,
               )}
+              marcas={marcas ?? []}
             />
           )}
         </div>

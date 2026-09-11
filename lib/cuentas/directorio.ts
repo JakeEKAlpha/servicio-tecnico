@@ -61,7 +61,7 @@ export async function cuentaDeOrden(
   if (objetivo.length < 3) return null;
 
   const { data: cuentas } = await supabase
-    .from("cuentas_lexmark")
+    .from("clientes")
     .select("id, nombre, tipo, indicaciones");
   if (!cuentas || cuentas.length === 0) return null;
 

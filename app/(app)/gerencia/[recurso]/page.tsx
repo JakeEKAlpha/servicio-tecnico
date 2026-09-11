@@ -32,7 +32,7 @@ export default async function RecursoPage({
     supabase.from("gestores_cuenta").select("id, nombre").order("nombre"),
     supabase.from("perfiles").select("id, nombre, rol").order("nombre"),
     supabase.from("ingenieros").select("id, nombre").order("nombre"),
-    supabase.from("cuentas_lexmark").select("id, nombre").order("nombre"),
+    supabase.from("clientes").select("id, nombre").order("nombre"),
   ]);
 
   const opciones: Record<string, Opcion[]> = {
