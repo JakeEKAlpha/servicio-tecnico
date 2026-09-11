@@ -15,6 +15,8 @@ export type Campo = {
   opciones?: string;
   requerido?: boolean;
   ayuda?: string;
+  /** false = se edita en el panel pero no ocupa columna en la tabla (default true). */
+  enTabla?: boolean;
 };
 
 export type RecursoConfig = {
@@ -48,7 +50,13 @@ export const RECURSOS: Record<string, RecursoConfig> = {
     ],
     campos: [
       { k: "nombre", label: "Nombre", tipo: "text", requerido: true },
-      { k: "zona_id", label: "Zona", tipo: "select", opciones: "zonas" },
+      {
+        k: "zona_id",
+        label: "Zona",
+        tipo: "select",
+        opciones: "zonas",
+        enTabla: false,
+      },
       { k: "sucursal", label: "Sucursal", tipo: "select", opciones: "sucursales" },
       { k: "correo", label: "Correo", tipo: "text" },
       { k: "telefono", label: "Teléfono", tipo: "text" },
@@ -208,7 +216,7 @@ export const RECURSOS: Record<string, RecursoConfig> = {
 
   contactos: {
     tabla: "contactos_cuenta",
-    titulo: "Mesas de servicio y contactos por cuenta",
+    titulo: "Directorio de cuentas",
     orden: "cuenta_id",
     columnas: ["cuenta_id", "nombre", "rol_contacto", "correo", "telefono", "notas", "activo"],
     campos: [

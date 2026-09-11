@@ -82,6 +82,7 @@ export default function AlmacenPiezas({
   const [altaCant, setAltaCant] = useState("1");
   const [movsEn, setMovsEn] = useState<string | null>(null);
   const [movs, setMovs] = useState<Mov[]>([]);
+  const [verTodoStock, setVerTodoStock] = useState(false);
   const [activaId, setActivaId] = useState<string | null>(
     almacenes[0]?.id ?? null,
   );
@@ -219,6 +220,8 @@ export default function AlmacenPiezas({
         : activa.stock.filter((p) => p.disponible > 0)
       : activa.stock.filter((p) => p.disponible > 0)
     : [];
+  const LIMITE_STOCK = 20;
+  const stockMostrado = verTodoStock ? stockActiva : stockActiva.slice(0, LIMITE_STOCK);
 
   return (
     <div className="space-y-4">
@@ -256,7 +259,10 @@ export default function AlmacenPiezas({
               <button
                 key={a.id}
                 type="button"
-                onClick={() => setActivaId(a.id)}
+                onClick={() => {
+                  setActivaId(a.id);
+                  setVerTodoStock(false);
+                }}
                 className={
                   "flex w-full items-start justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors " +
                   (activo
@@ -469,7 +475,7 @@ export default function AlmacenPiezas({
                     </tr>
                   </thead>
                   <tbody>
-                    {stockActiva.map((p) => {
+                    {stockMostrado.map((p) => {
                       const bajo = p.disponible <= p.minimo && p.minimo > 0;
                       return (
                         <tr
@@ -550,6 +556,17 @@ export default function AlmacenPiezas({
                     })}
                   </tbody>
                 </table>
+                {stockActiva.length > LIMITE_STOCK && (
+                  <button
+                    type="button"
+                    onClick={() => setVerTodoStock((v) => !v)}
+                    className="mt-2 text-xs font-semibold text-brand hover:underline"
+                  >
+                    {verTodoStock
+                      ? "Mostrar menos"
+                      : `Mostrar todas (${stockActiva.length})`}
+                  </button>
+                )}
               </div>
             )}
           </section>

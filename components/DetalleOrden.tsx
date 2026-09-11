@@ -420,7 +420,7 @@ export default function DetalleOrden({
           Object.keys(orden.datos_especificos).length > 0 && (
             <details className="mt-3 text-xs">
               <summary className="cursor-pointer font-medium text-muted">
-                Datos específicos de Lexmark
+                Datos específicos
               </summary>
               <dl className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
                 {Object.entries(orden.datos_especificos).map(([k, v]) => (

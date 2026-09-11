@@ -17,6 +17,7 @@ import {
 } from "@/lib/panel/layout";
 import { widgetDef, widgetsDeRol, rolPuedeVer } from "@/lib/panel/catalogo";
 import WidgetShell from "@/components/panel/WidgetShell";
+import { Config } from "@/lib/iconos";
 import ToggleVista from "@/components/panel/ToggleVista";
 import {
   KpiNumero,
@@ -275,8 +276,9 @@ export default function Panel({
             <button
               type="button"
               onClick={abrirEdicion}
-              className="rounded-lg border border-border-default px-3 py-1.5 text-xs font-bold text-text hover:bg-surface-2"
+              className="flex items-center gap-1.5 rounded-lg border border-border-default px-3 py-1.5 text-xs font-bold text-text hover:bg-surface-2"
             >
+              <Config className="h-3.5 w-3.5" />
               Personalizar
             </button>
           ))}

@@ -36,11 +36,11 @@ export default function WidgetShell({
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border-default bg-surface shadow-sm">
       <div
         className={
-          "flex items-center justify-between gap-2 border-b border-border-default px-3 py-2 " +
+          "flex items-center justify-between gap-2 border-b border-border-default bg-surface-2/60 px-3 py-2 " +
           (editando ? "arrastrar cursor-move select-none" : "")
         }
       >
-        <span className="truncate text-xs font-bold text-text">{titulo}</span>
+        <span className="truncate text-[13px] font-extrabold text-text">{titulo}</span>
 
         {editando && (
           <div className="relative" ref={ref}>

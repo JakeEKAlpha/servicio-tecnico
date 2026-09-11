@@ -71,6 +71,16 @@ export function claseEstatus(estatus: string | null | undefined): string {
   return CLASE_TONO[TONO_ESTATUS[String(estatus ?? "").trim()] ?? "neutral"];
 }
 
+/**
+ * Nombre de la variable CSS (`--tone-*-fg`, la misma que pinta el texto del
+ * chip) para el estatus dado — para pintar de este mismo color algo que no
+ * puede usar clases de Tailwind (p. ej. un `<canvas>` de Chart.js).
+ */
+export function varTonoEstatus(estatus: string | null | undefined): string {
+  const tono = TONO_ESTATUS[String(estatus ?? "").trim()] ?? "neutral";
+  return `--tone-${tono}-fg`;
+}
+
 /** Clases de fondo+texto para un chip de estado de pieza. */
 export function claseEstadoPieza(estado: string | null | undefined): string {
   return CLASE_TONO[TONO_PIEZA[String(estado ?? "").trim()] ?? "neutral"];

@@ -6,49 +6,33 @@ import { usePathname } from "next/navigation";
 import LogoAlpha from "@/components/LogoAlpha";
 import LogoBaja from "@/components/LogoBaja";
 import MenuUsuario from "@/components/MenuUsuario";
+import {
+  Inicio,
+  Tablero as IconoTablero,
+  Agenda,
+  Almacen,
+  Gerencia as IconoGerencia,
+  Config,
+} from "@/lib/iconos";
+import type { LucideIcon } from "lucide-react";
 
+// Iconos semánticos de lib/iconos.tsx — un solo punto de cambio, en vez de
+// mantener rutas SVG propias que terminan sin distinguirse entre sí (p. ej.
+// Inicio y Almacén compartían el mismo dibujo de "casa").
 const NAV = [
-  {
-    href: "/inicio",
-    label: "Inicio",
-    icon: "M4 21V10l8-6 8 6v11H4zM10 21v-6h4v6",
-  },
-  { href: "/tablero", label: "Tablero", icon: "M4 5h16M4 12h16M4 19h10" },
-  {
-    href: "/tablero-dias",
-    label: "Agenda del día",
-    icon: "M5 4h14v16H5zM5 9h14M9 4v16",
-  },
-  {
-    href: "/almacen",
-    label: "Almacén",
-    icon: "M3 9l9-6 9 6v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
-  },
+  { href: "/inicio", label: "Inicio", Icono: Inicio },
+  { href: "/tablero", label: "Tablero", Icono: IconoTablero },
+  { href: "/tablero-dias", label: "Agenda del día", Icono: Agenda },
+  { href: "/almacen", label: "Almacén", Icono: Almacen },
 ] as const;
 
 const CONFIG_ITEM = {
   href: "/configuracion",
   label: "Configuración",
-  icon: "M10.3 3.2a1 1 0 0 1 3.4 0l.2 1.3a7 7 0 0 1 1.7 1l1.2-.5a1 1 0 0 1 1.3.4l1 1.7a1 1 0 0 1-.3 1.3l-1 .8a7 7 0 0 1 0 2l1 .8a1 1 0 0 1 .3 1.3l-1 1.7a1 1 0 0 1-1.3.4l-1.2-.5a7 7 0 0 1-1.7 1l-.2 1.3a1 1 0 0 1-3.4 0l-.2-1.3a7 7 0 0 1-1.7-1l-1.2.5a1 1 0 0 1-1.3-.4l-1-1.7a1 1 0 0 1 .3-1.3l1-.8a7 7 0 0 1 0-2l-1-.8a1 1 0 0 1-.3-1.3l1-1.7a1 1 0 0 1 1.3-.4l1.2.5a7 7 0 0 1 1.7-1zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  Icono: Config,
 } as const;
 
-function Icono({ d }: { d: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4 shrink-0"
-    >
-      <path d={d} />
-    </svg>
-  );
-}
-
-type NavItem = { href: string; label: string; icon: string };
+type NavItem = { href: string; label: string; Icono: LucideIcon };
 
 function ListaNav({
   items,
@@ -80,7 +64,7 @@ function ListaNav({
                 : "text-white/80 hover:bg-white/10 hover:text-white")
             }
           >
-            <Icono d={item.icon} />
+            <item.Icono className="h-4 w-4 shrink-0" strokeWidth={1.8} />
             {!compacto && item.label}
           </Link>
         );
@@ -145,7 +129,7 @@ export default function AppShell({
           {
             href: "/gerencia",
             label: "Gerencia",
-            icon: "M12 3l8 4v6c0 5-3.5 7.5-8 8-4.5-.5-8-3-8-8V7z",
+            Icono: IconoGerencia,
           },
         ]
       : []),

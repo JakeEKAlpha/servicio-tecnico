@@ -23,6 +23,7 @@ export {
   // acciones
   Search as Buscar,
   Copy as Copiar,
+  ClipboardPaste as Pegar,
   Check as Listo,
   Plus as Agregar,
   Trash2 as Basura,

@@ -5,25 +5,28 @@ import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { listarOrdenes } from "@/lib/ordenes/listar";
 import { prioridadDe } from "@/lib/ordenes/estatus";
 import { claseEstatus } from "@/lib/tema";
-import { chip, campo, botonSec } from "@/lib/ui";
+import { chip, campo } from "@/lib/ui";
 import { Buscar } from "@/lib/iconos";
 import Revelar from "@/components/Revelar";
 import TablaOrdenes from "@/components/TablaOrdenes";
 import ModalPegarWOSR from "@/components/ModalPegarWOSR";
+import ModalPegarXerox from "@/components/ModalPegarXerox";
 import ModalNuevaOrden from "@/components/ModalNuevaOrden";
 
 export default async function TableroPage({
   searchParams,
 }: {
-  searchParams: Promise<{ activos?: string; q?: string }>;
+  searchParams: Promise<{ q?: string; estatus?: string }>;
 }) {
-  const { activos, q } = await searchParams;
-  const soloActivos = activos === "1";
+  const { q, estatus } = await searchParams;
   const busqueda = (q ?? "").trim().toLowerCase();
+  const estatusActivo = (estatus ?? "").trim();
 
   const supabase = await createClient();
   const { perfil } = await perfilActual();
-  const { ordenes, error } = await listarOrdenes(supabase, { soloActivos });
+  // El Tablero del día a día siempre es "activas" — Concluido/Cancelado se
+  // consultan desde Gerencia/histórico, no aquí.
+  const { ordenes, error } = await listarOrdenes(supabase, { soloActivos: true });
 
   const esGerencia = esRolQueVeTodo(perfil.rol);
 
@@ -37,10 +40,16 @@ export default async function TableroPage({
   if (!esGerencia && perfil.zona_id) {
     consultaIng = consultaIng.eq("zona_id", perfil.zona_id);
   }
-  const [{ data: ingenieros }, { data: marcas }] = await Promise.all([
-    consultaIng,
-    supabase.from("marcas").select("id, nombre").order("nombre"),
-  ]);
+  const [{ data: ingenieros }, { data: marcas }, { data: sucursales }] =
+    await Promise.all([
+      consultaIng,
+      supabase.from("marcas").select("id, nombre").order("nombre"),
+      supabase
+        .from("sucursales")
+        .select("id, nombre, zona_id")
+        .eq("activa", true)
+        .order("nombre"),
+    ]);
 
   // Conteo por estatus (del conjunto cargado, antes de la búsqueda).
   const conteos = new Map<string, number>();
@@ -52,14 +61,24 @@ export default async function TableroPage({
     (a, b) => prioridadDe(a[0]) - prioridadDe(b[0]),
   );
 
-  const filtradas = busqueda
-    ? ordenes.filter(
-        (o) =>
-          o.numero_orden.toLowerCase().includes(busqueda) ||
-          (o.cliente ?? "").toLowerCase().includes(busqueda) ||
-          (o.ingeniero_nombre ?? "").toLowerCase().includes(busqueda),
-      )
-    : ordenes;
+  const filtradas = ordenes
+    .filter((o) => !estatusActivo || String(o.estatus ?? "") === estatusActivo)
+    .filter(
+      (o) =>
+        !busqueda ||
+        o.numero_orden.toLowerCase().includes(busqueda) ||
+        (o.cliente ?? "").toLowerCase().includes(busqueda) ||
+        (o.ingeniero_nombre ?? "").toLowerCase().includes(busqueda),
+    );
+
+  /** Preserva `q` al armar el href de un chip de estatus. */
+  function hrefEstatus(e: string): string {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (e !== estatusActivo) params.set("estatus", e);
+    const qs = params.toString();
+    return qs ? `/tablero?${qs}` : "/tablero";
+  }
 
   return (
     <div className="p-6">
@@ -71,13 +90,19 @@ export default async function TableroPage({
           </h1>
           <p className="text-[12px] text-muted">
             {filtradas.length}
-            {busqueda ? ` de ${ordenes.length}` : ""} órden
-            {filtradas.length === 1 ? "" : "es"}
-            {soloActivos ? " activas" : ""}
+            {busqueda || estatusActivo ? ` de ${ordenes.length}` : ""} órden
+            {filtradas.length === 1 ? "" : "es"} activas
           </p>
         </div>
         <div className="flex items-center gap-2">
           <ModalPegarWOSR />
+          <ModalPegarXerox
+            sucursales={(sucursales ?? []).filter(
+              (s): s is { id: string; nombre: string; zona_id: string } =>
+                !!s.zona_id,
+            )}
+            veTodo={esGerencia}
+          />
           {perfil.zona_id && (
             <ModalNuevaOrden
               ingenieros={(ingenieros ?? []).filter(
@@ -92,7 +117,7 @@ export default async function TableroPage({
       {/* Fila 2: buscar + filtros, juntos */}
       <Revelar delay={40} className="mb-4 flex flex-wrap items-center gap-2">
         <form method="GET" className="relative flex items-center">
-          {soloActivos && <input type="hidden" name="activos" value="1" />}
+          {estatusActivo && <input type="hidden" name="estatus" value={estatusActivo} />}
           <label htmlFor="buscar-orden" className="sr-only">
             Buscar por número de orden, cliente o ingeniero
           </label>
@@ -106,19 +131,21 @@ export default async function TableroPage({
             className={campo + " w-64 pl-9"}
           />
         </form>
-        <Link
-          href={soloActivos ? "/tablero" : "/tablero?activos=1"}
-          className={botonSec}
-        >
-          {soloActivos ? "Ver todas" : "Solo activas"}
-        </Link>
-        {chips.map(([estatus, n]) => (
-          <span key={estatus} className={chip + " " + claseEstatus(estatus)}>
+        {chips.map(([estatus]) => (
+          <Link
+            key={estatus}
+            href={hrefEstatus(estatus)}
+            className={
+              chip +
+              " " +
+              claseEstatus(estatus) +
+              (estatusActivo === estatus
+                ? " ring-2 ring-offset-1 ring-offset-surface ring-current"
+                : "")
+            }
+          >
             {estatus}
-            <span className="ml-1.5 rounded-full bg-black/10 px-1.5 text-[10px]">
-              {n}
-            </span>
-          </span>
+          </Link>
         ))}
       </Revelar>
 

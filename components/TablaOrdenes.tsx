@@ -42,7 +42,10 @@ const COLUMNAS = [
   "Estatus / acciones",
 ] as const;
 
-/** Con el panel de detalle abierto la tabla se angosta: solo lo esencial. */
+/** Doc/PDF quedan a un clic (dentro del detalle) — no ocupan columna siempre. */
+const OCULTA_SIEMPRE = new Set<(typeof COLUMNAS)[number]>(["Doc", "PDF"]);
+
+/** Con el panel de detalle abierto la tabla se angosta más: solo lo esencial. */
 const OCULTA_CON_PANEL = new Set<(typeof COLUMNAS)[number]>([
   "Vis.",
   "Localidad",
@@ -202,8 +205,11 @@ export default function TablaOrdenes({
       <div className="scroll-oculto hidden overflow-x-auto md:block">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b border-border-default bg-surface-2 text-left text-[10px] font-extrabold uppercase tracking-wide text-muted">
-              {COLUMNAS.filter((col) => !compacto || !OCULTA_CON_PANEL.has(col)).map(
+            <tr className="border-b border-border-default bg-surface-2 text-left text-[10px] font-extrabold uppercase tracking-wide text-text">
+              {COLUMNAS.filter(
+                (col) =>
+                  !OCULTA_SIEMPRE.has(col) && (!compacto || !OCULTA_CON_PANEL.has(col)),
+              ).map(
                 (col) => (
                   <th key={col} className="whitespace-nowrap px-3 py-2.5">
                     {col}
@@ -260,38 +266,6 @@ export default function TablaOrdenes({
                   </td>
                   {!compacto && (
                     <td className="whitespace-nowrap px-3 py-2">{o.hora_eta}</td>
-                  )}
-                  {!compacto && (
-                    <td className="px-3 py-2">
-                      {o.link_doc ? (
-                        <a
-                          href={o.link_doc}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={enlace}
-                        >
-                          Abrir
-                        </a>
-                      ) : (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
-                  )}
-                  {!compacto && (
-                    <td className="px-3 py-2">
-                      {o.link_pdf ? (
-                        <a
-                          href={o.link_pdf}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={enlace}
-                        >
-                          PDF
-                        </a>
-                      ) : (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
                   )}
                   <td className="px-3 py-2">
                     <AccionesOrden

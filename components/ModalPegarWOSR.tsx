@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { parsearReporteLexmark } from "@/lib/importar/lexmark";
 import { boton, botonSec } from "@/lib/ui";
+import { Pegar } from "@/lib/iconos";
 import Modal from "@/components/Modal";
 
 type Resultado = {
@@ -64,7 +65,12 @@ export default function ModalPegarWOSR() {
 
   return (
     <>
-      <button type="button" onClick={() => setAbierto(true)} className={botonSec}>
+      <button
+        type="button"
+        onClick={() => setAbierto(true)}
+        className={botonSec + " inline-flex items-center gap-1.5"}
+      >
+        <Pegar className="h-3.5 w-3.5" />
         Pegar WO/SR
       </button>
 

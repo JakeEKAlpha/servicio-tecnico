@@ -9,7 +9,7 @@ export function KpiNumero({ kpi }: { kpi?: Kpi }) {
   if (!kpi) return <Vacio>Sin dato</Vacio>;
   // El título del widget ya dice la etiqueta; aquí solo el número.
   const cuerpo = (
-    <div className="flex h-full flex-col justify-center gap-2">
+    <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
       <span
         className={
           "text-4xl font-extrabold leading-none tabular-nums " +
@@ -108,15 +108,12 @@ export function ListaPendientes({
         <li key={i}>
           <Link
             href={p.href}
-            className="flex items-center justify-between gap-3 py-2.5 transition-colors hover:text-brand"
+            className="block py-2.5 transition-colors hover:text-brand"
           >
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-text">
-                {p.titulo}
-              </span>
-              <span className="block truncate text-xs text-muted">{p.detalle}</span>
+            <span className="block truncate text-sm font-semibold text-text">
+              {p.titulo}
             </span>
-            <span className="shrink-0 text-muted">→</span>
+            <span className="block truncate text-xs text-muted">{p.detalle}</span>
           </Link>
         </li>
       ))}
@@ -126,22 +123,33 @@ export function ListaPendientes({
 
 /* ------------------------------------------------------------------ */
 
+const FECHA_HOY = new Intl.DateTimeFormat("es-MX", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+}).format(new Date());
+
 export function AgendaHoy({ filas }: { filas: AgendaFila[] }) {
   if (filas.length === 0) return <Vacio>Nadie con visitas hoy.</Vacio>;
   return (
-    <ul className="divide-y divide-border-default">
-      {filas.map((a) => (
-        <li
-          key={a.ingeniero}
-          className="flex items-center justify-between py-2 text-sm"
-        >
-          <span className="truncate">{a.ingeniero}</span>
-          <span className="ml-2 shrink-0 rounded-full bg-brand-050 px-2 py-0.5 text-xs font-bold tabular-nums text-brand">
-            {a.visitas}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <div className="flex h-full flex-col">
+      <p className="mb-1.5 text-[11px] font-semibold capitalize text-muted">
+        {FECHA_HOY}
+      </p>
+      <ul className="scroll-oculto min-h-0 flex-1 divide-y divide-border-default overflow-auto">
+        {filas.map((a) => (
+          <li
+            key={a.ingeniero}
+            className="flex items-center justify-between py-2 text-sm"
+          >
+            <span className="truncate">{a.ingeniero}</span>
+            <span className="ml-2 shrink-0 rounded-full bg-brand-050 px-2 py-0.5 text-xs font-bold tabular-nums text-brand">
+              {a.visitas}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

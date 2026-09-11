@@ -59,6 +59,23 @@ function textoONull(v: unknown): string | null {
   return s === "" ? null : s;
 }
 
+/**
+ * `datos_especificos` es jsonb libre (igual que en la importación de
+ * Lexmark) para guardar datos propios de una marca sin agregar columnas —
+ * p. ej. el SR de Xerox u horario laboral. Solo se aceptan pares
+ * texto→texto, y vacío se descarta.
+ */
+function datosEspecificos(v: unknown): Record<string, string> {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return {};
+  const out: Record<string, string> = {};
+  for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+    const clave = limpiar(k);
+    const valor = limpiar(val);
+    if (clave && valor) out[clave] = valor;
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // GET — listar órdenes para el Tablero (punto 3)
 // ---------------------------------------------------------------------------
@@ -275,6 +292,9 @@ export async function POST(request: Request) {
     ingeniero_id: ingenieroId,
     sucursal: textoONull(datos.sucursal),
     estatus,
+    ...(Object.keys(datosEspecificos(datos.datos_especificos)).length > 0
+      ? { datos_especificos: datosEspecificos(datos.datos_especificos) }
+      : {}),
   };
 
   const { data: orden, error: insertError } = await supabase

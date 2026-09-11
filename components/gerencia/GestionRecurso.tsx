@@ -104,6 +104,7 @@ export default function GestionRecurso({
   opciones: Record<string, Opcion[]>;
 }) {
   const router = useRouter();
+  const columnasTabla = cfg.campos.filter((c) => c.enTabla !== false);
   const [panel, setPanel] = useState<EstadoPanel>(null);
   const [borrador, setBorrador] = useState<Record<string, unknown>>({});
   const [msg, setMsg] = useState<string | null>(null);
@@ -214,7 +215,7 @@ export default function GestionRecurso({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border-default bg-surface-2 text-left text-[10px] font-extrabold uppercase tracking-wide text-muted">
-              {cfg.campos.map((c) => (
+              {columnasTabla.map((c) => (
                 <th key={c.k} className="px-3 py-2.5">
                   {c.label}
                 </th>
@@ -229,7 +230,7 @@ export default function GestionRecurso({
                 className="cursor-pointer border-b border-border-default/70 align-top transition-colors hover:bg-brand-050"
                 onClick={() => abrirEditar(f)}
               >
-                {cfg.campos.map((c) => (
+                {columnasTabla.map((c) => (
                   <td key={c.k} className="px-3 py-2">
                     <span
                       className={
@@ -259,7 +260,7 @@ export default function GestionRecurso({
             {filas.length === 0 && (
               <tr>
                 <td
-                  colSpan={cfg.campos.length + 1}
+                  colSpan={columnasTabla.length + 1}
                   className="px-3 py-6 text-center text-sm text-muted"
                 >
                   Sin registros.
