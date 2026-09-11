@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-11T00:00:00.000Z",
+  "generatedAt": "2026-09-11T12:00:00.000Z",
   "title": "Design System: Servicio Técnico · Alpha Digital",
   "extensions": {
     "colorMeta": {
@@ -14,9 +14,13 @@
       "superficie-2": { "role": "neutral", "displayName": "Superficie 2 (tonal)", "canonical": "#f1f5f9" }
     },
     "typographyMeta": {
-      "label": { "displayName": "Etiqueta micro-mayúscula", "purpose": "Campos, grupos de riel, encabezados de tabla — única mayúscula-siempre del sistema." },
+      "micro": { "displayName": "Etiqueta micro-mayúscula", "purpose": "Campos y grupos de riel — única mayúscula-siempre del sistema." },
+      "meta": { "displayName": "Meta / dato secundario", "purpose": "Número de orden, fecha, ubicación — apoyo junto al valor principal." },
+      "label": { "displayName": "Etiqueta de botón/chip", "purpose": "La acción o el estado, formato normal." },
       "body": { "displayName": "Cuerpo", "purpose": "Texto de formularios, celdas, tarjetas." },
-      "title": { "displayName": "Título de sección", "purpose": "Encabezados de pantalla y de tarjeta." }
+      "subtitulo": { "displayName": "Subtítulo", "purpose": "Nombre de cliente/cuenta en tarjeta." },
+      "titulo": { "displayName": "Título", "purpose": "Fichas grandes, cabeceras de card." },
+      "title": { "displayName": "Título de sección", "purpose": "Encabezados de pantalla (encabezadoSeccion)." }
     },
     "shadows": [
       { "name": "tarjeta", "value": "0 1px 2px rgba(0,0,0,0.05)", "purpose": "Único nivel en reposo — shadow-sm." },
@@ -74,6 +78,14 @@
       "css": ".ds-label { display: block; margin-bottom: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: #64748b; } .ds-input { width: 100%; min-height: 34px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fff; padding: 0 9px; font-size: 13px; font-weight: 500; color: #1e293b; } .ds-input:focus-visible { outline: none; border-color: #203f7e; box-shadow: 0 0 0 2px rgba(32,63,126,.25); }"
     },
     {
+      "name": "Insignia de SLA",
+      "kind": "chip",
+      "refersTo": "badge-sla",
+      "description": "Urgencia de SLA Lexmark — solo aparece si es accionable (vencida o vence en ≤24h); nunca en cada orden.",
+      "html": "<span class=\"ds-badge-sla-rojo\">Vencida hace 5 h</span>",
+      "css": ".ds-badge-sla-rojo { display: inline-flex; align-items: center; border-radius: 9999px; padding: 3px 7px; font-size: 10px; font-weight: 800; background: #fee2e2; color: #991b1b; } .ds-badge-sla-warn { background: #fef9c3; color: #854d0e; }"
+    },
+    {
       "name": "Ítem de navegación",
       "kind": "nav",
       "refersTo": "nav-item",
@@ -96,7 +108,8 @@
       { "name": "The Signal, Not Decoration Rule", "body": "Los 4 colores de marca de servicio identifican qué tipo de orden es y nunca se usan como acento decorativo en otro contexto.", "section": "colors" },
       { "name": "The Token-Only Rule", "body": "Ningún componente usa hex crudo — siempre una utilidad semántica.", "section": "colors" },
       { "name": "The Micro-Caps Rule", "body": "Mayúsculas + tracking ancho solo en etiquetas de campo y encabezados de grupo — nunca en botones, pestañas o chips.", "section": "typography" },
-      { "name": "The Flat-by-Default Rule", "body": "Las superficies están planas en reposo; la sombra aparece solo como respuesta a interactividad o para una superficie que flota.", "section": "elevation" }
+      { "name": "The Flat-by-Default Rule", "body": "Las superficies están planas en reposo; la sombra aparece solo como respuesta a interactividad o para una superficie que flota.", "section": "elevation" },
+      { "name": "The Actionable-Badge Rule", "body": "Una insignia de estado (ej. SLA) solo se muestra cuando el usuario puede actuar sobre ella ahora — mostrarla siempre en cada fila es ruido, no señal.", "section": "components" }
     ],
     "dos": [
       "Do usar siempre una utilidad semántica de color, nunca un hex suelto.",

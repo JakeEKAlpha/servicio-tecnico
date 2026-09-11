@@ -418,8 +418,21 @@ fluida, intuitiva, personalizable, fresca y cohesiva entre pantallas. Se usa la 
       - 2 avisos de tipografía (documentación de `DESIGN.md` incompleta, no código) y 1 de color
         (`#0b1220` en `app/layout.tsx` es el mismo `--bg` oscuro, usado en `<meta
         theme-color>` porque el navegador no puede leer variables CSS ahí) — documentados.
-- [ ] **Pendiente (siguiente fase):** pase de motion en Gerencia/Configuración/Almacén,
-      personalización extendida más allá del panel de `/inicio`, verificación visual en vivo de
-      Tablero/Gantt/Reportes con sesión real (misma limitación que `/campo`: el navegador perdió
-      la sesión en esta pasada y el agente no puede iniciar sesión con credenciales), y el
-      `impeccable-finish-reviewer` formal sobre todo el trabajo ya hecho.
+- [x] **Límites de error/404 con marca propia** (`app/error.tsx`, `app/not-found.tsx`,
+      `app/global-error.tsx`) — no existían; cualquier excepción sin capturar o ruta/orden
+      inexistente caía en la pantalla genérica de Next.js, sin marca y sin salida clara. Ahora
+      siguen la identidad de `loading.tsx` (azul Alpha, monograma) con botón de reintentar/volver
+      al Tablero. `global-error.tsx` usa estilos inline a propósito (única excepción a la regla
+      de tokens, documentada en `DESIGN.md`): solo se dispara si el propio `layout.tsx` truena,
+      sin garantía de que la hoja de estilos global esté cargada. Revisé que `GestionRecurso` y
+      `AlmacenPiezas` ya tenían hover/transition consistentes — no hacía falta un pase de motion
+      adicional ahí, el hallazgo real estaba concentrado en `/campo` (ya cerrado arriba).
+- [ ] **Pendiente (siguiente fase):** personalización extendida más allá del panel de `/inicio`
+      (ej. sincronizar tema/densidad de Configuración a `preferencias_usuario` en vez de solo
+      `localStorage` — es un cambio de alcance/arquitectura, no solo visual, por eso no se hizo
+      en esta pasada); verificación visual en vivo de Tablero/Gantt/Reportes/`error.tsx`/
+      `not-found.tsx` con sesión real (el navegador de esta sesión no tiene login y el agente no
+      puede introducir credenciales — nota: una ruta inexistente sin sesión redirige a `/login`
+      antes de llegar a `not-found.tsx`, así que ese límite en particular solo se puede probar
+      autenticado); y el `impeccable-finish-reviewer` formal (necesita capturas de pantalla que
+      no se pudieron tomar por la misma razón).

@@ -281,6 +281,12 @@ decoración": en cualquier otra parte esos mismos colores solo aparecen como ace
 - **Do** dar estado `disabled` visualmente distinto (pierde color, no solo opacidad) en todo
   control nuevo.
 
+**Excepción deliberada — `app/global-error.tsx`.** Usa estilos inline con hex crudo en vez de
+tokens/Tailwind a propósito: solo se dispara si el propio `app/layout.tsx` truena, así que no
+hay garantía de que la hoja de estilos global esté cargada. Es el único archivo de la app con
+esta excepción — `error.tsx` y `not-found.tsx` normales sí usan tokens porque cuelgan del
+layout que sí cargó.
+
 ### Don't:
 - **Don't** introducir una segunda familia tipográfica o una fuente "display" para títulos —
   el producto es Operate, no Persuade.
