@@ -1,13 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { perfilActual } from "@/lib/auth/sesion";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
-import { RECURSOS } from "@/lib/gerencia/recursos";
-
-const TABS = Object.entries(RECURSOS).map(([k, v]) => ({
-  href: `/gerencia/${k}`,
-  label: v.titulo,
-}));
+import RielRecursos from "@/components/gerencia/RielRecursos";
 
 export default async function GerenciaLayout({
   children,
@@ -24,21 +18,13 @@ export default async function GerenciaLayout({
       <h1 className="mb-1 text-2xl font-extrabold tracking-tight text-brand">
         Panel de Gerencia
       </h1>
-      <p className="mb-4 text-sm text-muted">
+      <p className="mb-6 text-sm text-muted">
         Configuración de ingenieros, zonas, sucursales y contactos.
       </p>
-      <nav className="mb-6 flex flex-wrap gap-1 border-b border-border-default">
-        {TABS.map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            className="rounded-t-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-text"
-          >
-            {t.label}
-          </Link>
-        ))}
-      </nav>
-      {children}
+      <div className="flex flex-col gap-6 md:flex-row md:items-start">
+        <RielRecursos />
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
     </div>
   );
 }

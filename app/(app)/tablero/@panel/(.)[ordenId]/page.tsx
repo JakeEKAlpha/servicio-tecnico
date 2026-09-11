@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import DetalleOrdenCargado from "@/components/tablero/DetalleOrdenCargado";
-import PanelDeslizante from "@/components/tablero/PanelDeslizante";
+import PanelDeslizanteRuta from "@/components/tablero/PanelDeslizanteRuta";
 
 /**
  * Intercepta `/tablero/[ordenId]` cuando se navega ahí DESDE `/tablero`
@@ -16,10 +16,10 @@ export default async function PanelOrdenInterceptado({
   const { ordenId } = await params;
 
   return (
-    <PanelDeslizante titulo="Detalle de la orden">
+    <PanelDeslizanteRuta titulo="Detalle de la orden">
       <Suspense fallback={<p className="text-sm text-muted">Cargando…</p>}>
         <DetalleOrdenCargado ordenId={ordenId} />
       </Suspense>
-    </PanelDeslizante>
+    </PanelDeslizanteRuta>
   );
 }

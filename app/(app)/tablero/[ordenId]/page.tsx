@@ -14,7 +14,7 @@ export default async function DetalleOrdenPage({
   const { ordenId } = await params;
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <div className="mx-auto max-w-[1400px] p-6">
       <Link
         href="/tablero"
         className="text-sm font-medium text-muted hover:text-brand"

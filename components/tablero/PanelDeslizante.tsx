@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import Portal from "@/components/Portal";
 import { Cerrar } from "@/lib/iconos";
 
@@ -9,25 +8,23 @@ const FOCUSABLES =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 /**
- * Panel lateral de detalle del tablero — pantalla 1 del wireframe (11a):
- * "el panel de detalle incluye piezas... sin salir del tablero". Se abre al
- * interceptar `/tablero/[ordenId]` (ver `@panel/(.)[ordenId]`); `router.back()`
- * lo cierra y regresa la URL a `/tablero`, con lo cual el link es compartible
- * (recarga = página completa, no panel).
+ * Panel lateral genérico (portal, foco atrapado, Escape, clic fuera).
+ * Patrón "editar/ver en panel, no en la fila" — usado por:
+ *  - el detalle del tablero (`onCerrar` = `router.back()`, ver
+ *    `app/(app)/tablero/@panel/(.)[ordenId]`, wireframe 11a)
+ *  - Gerencia (`onCerrar` = cerrar el estado local, wireframe 11p)
  */
 export default function PanelDeslizante({
   titulo,
+  onCerrar,
   children,
 }: {
   titulo: string;
+  onCerrar: () => void;
   children: ReactNode;
 }) {
-  const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
-
-  function cerrar() {
-    router.back();
-  }
+  const cerrar = onCerrar;
 
   useEffect(() => {
     const previo = document.activeElement as HTMLElement | null;

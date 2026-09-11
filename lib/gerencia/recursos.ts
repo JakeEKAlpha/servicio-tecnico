@@ -231,6 +231,16 @@ export const RECURSOS: Record<string, RecursoConfig> = {
   },
 };
 
+/**
+ * Agrupa los recursos para el riel de Gerencia (wireframe 11p: "riel de
+ * recursos agrupado — personas / lugares / cuentas Lexmark").
+ */
+export const GRUPOS_RECURSOS: { titulo: string; recursos: string[] }[] = [
+  { titulo: "Personas", recursos: ["ingenieros", "coordinadores", "encargados"] },
+  { titulo: "Lugares", recursos: ["sucursales", "zonas"] },
+  { titulo: "Cuentas Lexmark", recursos: ["gestores", "cuentas", "contactos"] },
+];
+
 export const ROLES_PERFIL = [
   "coordinador",
   "ingeniero",

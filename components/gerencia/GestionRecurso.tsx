@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Campo, RecursoConfig } from "@/lib/gerencia/recursos";
-import { boton, botonSec, botonTexto, campo, tarjeta } from "@/lib/ui";
+import { boton, botonSec, campo, tarjeta } from "@/lib/ui";
+import { Editar } from "@/lib/iconos";
+import PanelDeslizante from "@/components/tablero/PanelDeslizante";
 
 export type Opcion = { value: string; label: string };
 type Fila = Record<string, unknown> & { id: string };
+type EstadoPanel = { modo: "crear" } | { modo: "editar"; fila: Fila } | null;
 
 function valorTexto(v: unknown): string {
   if (v == null) return "";
@@ -54,7 +57,7 @@ function CeldaEdit({
   if (campoDef.tipo === "area") {
     return (
       <textarea
-        rows={2}
+        rows={3}
         value={valorTexto(valor)}
         onChange={(e) => onChange(e.target.value)}
         className={campo}
@@ -91,10 +94,8 @@ export default function GestionRecurso({
   opciones: Record<string, Opcion[]>;
 }) {
   const router = useRouter();
-  const [editando, setEditando] = useState<string | null>(null);
+  const [panel, setPanel] = useState<EstadoPanel>(null);
   const [borrador, setBorrador] = useState<Record<string, unknown>>({});
-  const [creando, setCreando] = useState(false);
-  const [nuevo, setNuevo] = useState<Record<string, unknown>>({});
   const [msg, setMsg] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
 
@@ -107,11 +108,24 @@ export default function GestionRecurso({
     return valorTexto(valor) || "—";
   }
 
-  async function guardar(id: string) {
+  function abrirCrear() {
+    setBorrador({});
+    setMsg(null);
+    setPanel({ modo: "crear" });
+  }
+
+  function abrirEditar(f: Fila) {
+    setBorrador(Object.fromEntries(cfg.campos.map((c) => [c.k, f[c.k] ?? null])));
+    setMsg(null);
+    setPanel({ modo: "editar", fila: f });
+  }
+
+  async function guardar() {
+    if (!panel || panel.modo !== "editar") return;
     setOcupado(true);
     setMsg(null);
     try {
-      const r = await fetch(`/api/gerencia/${recurso}/${id}`, {
+      const r = await fetch(`/api/gerencia/${recurso}/${panel.fila.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(borrador),
@@ -119,7 +133,7 @@ export default function GestionRecurso({
       const data = await r.json();
       if (!r.ok || !data.ok) setMsg(data.error ?? "No se pudo guardar.");
       else {
-        setEditando(null);
+        setPanel(null);
         router.refresh();
       }
     } catch {
@@ -136,13 +150,12 @@ export default function GestionRecurso({
       const r = await fetch(`/api/gerencia/${recurso}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevo),
+        body: JSON.stringify(borrador),
       });
       const data = await r.json();
       if (!r.ok || !data.ok) setMsg(data.error ?? "No se pudo crear.");
       else {
-        setCreando(false);
-        setNuevo({});
+        setPanel(null);
         router.refresh();
       }
     } catch {
@@ -152,17 +165,21 @@ export default function GestionRecurso({
     }
   }
 
-  async function borrar(id: string) {
+  async function borrar() {
+    if (!panel || panel.modo !== "editar") return;
     if (!confirm("¿Borrar este registro?")) return;
     setOcupado(true);
     setMsg(null);
     try {
-      const r = await fetch(`/api/gerencia/${recurso}/${id}`, {
+      const r = await fetch(`/api/gerencia/${recurso}/${panel.fila.id}`, {
         method: "DELETE",
       });
       const data = await r.json();
       if (!r.ok || !data.ok) setMsg(data.error ?? "No se pudo borrar.");
-      else router.refresh();
+      else {
+        setPanel(null);
+        router.refresh();
+      }
     } catch {
       setMsg("Error de red.");
     } finally {
@@ -175,57 +192,14 @@ export default function GestionRecurso({
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-extrabold text-brand">{cfg.titulo}</h2>
         {!cfg.soloEditar && (
-          <button
-            type="button"
-            className={boton}
-            onClick={() => {
-              setCreando((v) => !v);
-              setNuevo({});
-            }}
-          >
-            {creando ? "Cerrar" : "Agregar"}
+          <button type="button" className={boton} onClick={abrirCrear}>
+            Agregar
           </button>
         )}
       </div>
 
-      {msg && (
-        <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
-          {msg}
-        </p>
-      )}
-
-      {creando && (
-        <div className={tarjeta + " space-y-3"}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {cfg.campos.map((c) => (
-              <label key={c.k} className="text-sm">
-                {c.label}
-                {c.requerido && " *"}
-                <CeldaEdit
-                  campoDef={c}
-                  valor={nuevo[c.k]}
-                  opciones={opciones}
-                  onChange={(v) => setNuevo((p) => ({ ...p, [c.k]: v }))}
-                />
-                {c.ayuda && (
-                  <span className="mt-0.5 block text-xs text-muted">
-                    {c.ayuda}
-                  </span>
-                )}
-              </label>
-            ))}
-          </div>
-          <button
-            type="button"
-            className={boton}
-            disabled={ocupado}
-            onClick={crear}
-          >
-            Crear
-          </button>
-        </div>
-      )}
-
+      {/* La tabla es siempre de solo lectura — nunca cambia de forma;
+          editar/crear vive en el panel lateral (wireframe 11p). */}
       <div className="scroll-oculto overflow-x-auto rounded-xl border border-border-default bg-surface shadow-sm">
         <table className="w-full text-sm">
           <thead>
@@ -239,87 +213,39 @@ export default function GestionRecurso({
             </tr>
           </thead>
           <tbody>
-            {filas.map((f) => {
-              const enEdicion = editando === f.id;
-              return (
-                <tr
-                  key={f.id}
-                  className="border-b border-border-default/70 align-top"
-                >
-                  {cfg.campos.map((c) => (
-                    <td key={c.k} className="px-3 py-2">
-                      {enEdicion ? (
-                        <CeldaEdit
-                          campoDef={c}
-                          valor={borrador[c.k]}
-                          opciones={opciones}
-                          onChange={(v) =>
-                            setBorrador((p) => ({ ...p, [c.k]: v }))
-                          }
-                        />
-                      ) : (
-                        <span
-                          className={
-                            c.tipo === "area"
-                              ? "line-clamp-2 max-w-xs text-muted"
-                              : ""
-                          }
-                        >
-                          {etiquetaOpcion(c, f[c.k])}
-                        </span>
-                      )}
-                    </td>
-                  ))}
-                  <td className="whitespace-nowrap px-3 py-2 text-right">
-                    {enEdicion ? (
-                      <span className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          className={botonSec}
-                          onClick={() => setEditando(null)}
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="button"
-                          className={boton}
-                          disabled={ocupado}
-                          onClick={() => guardar(f.id)}
-                        >
-                          Guardar
-                        </button>
-                      </span>
-                    ) : (
-                      <span className="flex justify-end gap-3">
-                        <button
-                          type="button"
-                          className={botonTexto}
-                          onClick={() => {
-                            setEditando(f.id);
-                            setBorrador(
-                              Object.fromEntries(
-                                cfg.campos.map((c) => [c.k, f[c.k] ?? null]),
-                              ),
-                            );
-                          }}
-                        >
-                          Editar
-                        </button>
-                        {!cfg.soloEditar && (
-                          <button
-                            type="button"
-                            className="text-xs font-semibold text-danger hover:underline"
-                            onClick={() => borrar(f.id)}
-                          >
-                            Borrar
-                          </button>
-                        )}
-                      </span>
-                    )}
+            {filas.map((f) => (
+              <tr
+                key={f.id}
+                className="cursor-pointer border-b border-border-default/70 align-top transition-colors hover:bg-brand-050"
+                onClick={() => abrirEditar(f)}
+              >
+                {cfg.campos.map((c) => (
+                  <td key={c.k} className="px-3 py-2">
+                    <span
+                      className={
+                        c.tipo === "area" ? "line-clamp-2 max-w-xs text-muted" : ""
+                      }
+                    >
+                      {etiquetaOpcion(c, f[c.k])}
+                    </span>
                   </td>
-                </tr>
-              );
-            })}
+                ))}
+                <td className="whitespace-nowrap px-3 py-2 text-right">
+                  <button
+                    type="button"
+                    className="rounded-lg p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-brand"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      abrirEditar(f);
+                    }}
+                    aria-label={`Editar ${cfg.titulo.toLowerCase()}`}
+                    title="Editar"
+                  >
+                    <Editar className="h-4 w-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
             {filas.length === 0 && (
               <tr>
                 <td
@@ -333,6 +259,74 @@ export default function GestionRecurso({
           </tbody>
         </table>
       </div>
+
+      {panel && (
+        <PanelDeslizante
+          titulo={panel.modo === "crear" ? `Agregar · ${cfg.titulo}` : `Editar · ${cfg.titulo}`}
+          onCerrar={() => setPanel(null)}
+        >
+          <div className="space-y-4">
+            {msg && (
+              <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
+                {msg}
+              </p>
+            )}
+            <div className={tarjeta + " space-y-3"}>
+              {cfg.campos.map((c) => (
+                <label key={c.k} className="block text-sm font-semibold">
+                  {c.label}
+                  {c.requerido && " *"}
+                  <div className="mt-1 font-normal">
+                    <CeldaEdit
+                      campoDef={c}
+                      valor={borrador[c.k]}
+                      opciones={opciones}
+                      onChange={(v) => setBorrador((p) => ({ ...p, [c.k]: v }))}
+                    />
+                  </div>
+                  {c.ayuda && (
+                    <span className="mt-1 block text-xs font-normal text-muted">
+                      {c.ayuda}
+                    </span>
+                  )}
+                </label>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+              {panel.modo === "editar" && !cfg.soloEditar ? (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-danger hover:underline"
+                  onClick={borrar}
+                  disabled={ocupado}
+                >
+                  Borrar
+                </button>
+              ) : (
+                <span />
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className={botonSec}
+                  onClick={() => setPanel(null)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className={boton}
+                  disabled={ocupado}
+                  onClick={panel.modo === "crear" ? crear : guardar}
+                >
+                  {panel.modo === "crear" ? "Crear" : "Guardar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </PanelDeslizante>
+      )}
     </div>
   );
 }
