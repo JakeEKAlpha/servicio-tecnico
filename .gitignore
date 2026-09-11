@@ -59,3 +59,7 @@ skills-lock.json
 
 .vercel
 .env*
+
+# Cache local del CLI de Supabase (supabase db pull / migration list) - no
+# es parte del esquema versionado, solo credenciales/estado de la sesion.
+supabase/.temp/
