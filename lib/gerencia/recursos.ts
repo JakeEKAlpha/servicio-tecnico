@@ -5,7 +5,7 @@
  * componentes de cliente.
  */
 
-export type TipoCampo = "text" | "num" | "bool" | "area" | "select";
+export type TipoCampo = "text" | "num" | "bool" | "area" | "select" | "fecha";
 
 export type Campo = {
   k: string;
@@ -140,6 +140,72 @@ export const RECURSOS: Record<string, RecursoConfig> = {
     ],
   },
 
+  equipos: {
+    tabla: "equipos",
+    titulo: "Equipos",
+    orden: "modelo",
+    columnas: ["cliente_id", "marca_id", "modelo", "serie", "notas", "activo"],
+    campos: [
+      {
+        k: "cliente_id",
+        label: "Cliente",
+        tipo: "select",
+        opciones: "cuentas_id",
+        ayuda: "Opcional: a quién pertenece el equipo.",
+      },
+      { k: "marca_id", label: "Marca", tipo: "select", opciones: "marcas", requerido: true },
+      { k: "modelo", label: "Modelo", tipo: "text", requerido: true },
+      { k: "serie", label: "Número de serie", tipo: "text" },
+      { k: "notas", label: "Notas", tipo: "area" },
+      { k: "activo", label: "Activo", tipo: "bool" },
+    ],
+  },
+
+  contratos: {
+    tabla: "contratos",
+    titulo: "Contratos (garantía / póliza / TyM)",
+    orden: "cliente_id",
+    columnas: [
+      "cliente_id",
+      "equipo_id",
+      "marca_id",
+      "tipo_contrato",
+      "fecha_inicio",
+      "fecha_fin",
+      "visitas_incluidas",
+      "notas",
+      "activo",
+    ],
+    campos: [
+      { k: "cliente_id", label: "Cliente", tipo: "select", opciones: "cuentas_id", requerido: true },
+      {
+        k: "equipo_id",
+        label: "Equipo",
+        tipo: "select",
+        opciones: "equipos_id",
+        ayuda: "Vacío = cubre todos los equipos del cliente.",
+      },
+      { k: "marca_id", label: "Marca", tipo: "select", opciones: "marcas", requerido: true },
+      {
+        k: "tipo_contrato",
+        label: "Tipo",
+        tipo: "select",
+        opciones: "tipos_contrato",
+        requerido: true,
+      },
+      { k: "fecha_inicio", label: "Inicio", tipo: "fecha", requerido: true },
+      { k: "fecha_fin", label: "Fin", tipo: "fecha", ayuda: "Vacío = indefinido." },
+      {
+        k: "visitas_incluidas",
+        label: "Visitas incluidas",
+        tipo: "num",
+        ayuda: "Vacío = ilimitadas.",
+      },
+      { k: "notas", label: "Notas", tipo: "area" },
+      { k: "activo", label: "Activo", tipo: "bool" },
+    ],
+  },
+
   contactos: {
     tabla: "contactos_cuenta",
     titulo: "Mesas de servicio y contactos por cuenta",
@@ -233,12 +299,15 @@ export const RECURSOS: Record<string, RecursoConfig> = {
 
 /**
  * Agrupa los recursos para el riel de Gerencia (wireframe 11p: "riel de
- * recursos agrupado — personas / lugares / cuentas Lexmark").
+ * recursos agrupado — personas / lugares / clientes").
  */
 export const GRUPOS_RECURSOS: { titulo: string; recursos: string[] }[] = [
   { titulo: "Personas", recursos: ["ingenieros", "coordinadores", "encargados"] },
   { titulo: "Lugares", recursos: ["sucursales", "zonas"] },
-  { titulo: "Cuentas Lexmark", recursos: ["gestores", "cuentas", "contactos"] },
+  {
+    titulo: "Clientes",
+    recursos: ["gestores", "cuentas", "contactos", "equipos", "contratos"],
+  },
 ];
 
 export const ROLES_PERFIL = [
@@ -248,3 +317,10 @@ export const ROLES_PERFIL = [
   "gerencia",
   "admin",
 ] as const;
+
+/** Los 3 valores de `contratos.tipo_contrato` (texto + CHECK, no enum). */
+export const TIPOS_CONTRATO: { value: string; label: string }[] = [
+  { value: "garantia", label: "Garantía" },
+  { value: "poliza", label: "Póliza" },
+  { value: "tym", label: "TyM" },
+];

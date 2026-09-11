@@ -443,13 +443,15 @@ export default function DetalleOrden({
         <Revelar delay={75}>
         <Colapsable
           id={"cuenta-" + orden.id}
-          titulo="Cuenta Lexmark / mesa de servicio"
+          titulo="Cuenta / mesa de servicio"
           resumen={
-            cuenta.indicaciones
-              ? "Con requisitos de acceso"
-              : `${cuenta.contactos.length} contacto(s)`
+            cuenta.contratos.length > 0
+              ? `${cuenta.contratos.length} contrato(s) vigente(s)`
+              : cuenta.indicaciones
+                ? "Con requisitos de acceso"
+                : `${cuenta.contactos.length} contacto(s)`
           }
-          defaultAbierto={!!cuenta.indicaciones}
+          defaultAbierto={!!cuenta.indicaciones || cuenta.contratos.length > 0}
           icono={<IconoDoc d="M12 3l8 4v6c0 5-3.5 7.5-8 8-4.5-.5-8-3-8-8V7z" />}
         >
           <p className="mb-2 text-xs text-muted">

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { RECURSOS, ROLES_PERFIL } from "@/lib/gerencia/recursos";
+import { RECURSOS, ROLES_PERFIL, TIPOS_CONTRATO } from "@/lib/gerencia/recursos";
 import { etiquetaRol } from "@/lib/auth/roles";
 import GestionRecurso, { type Opcion } from "@/components/gerencia/GestionRecurso";
 
@@ -24,6 +24,7 @@ export default async function RecursoPage({
     { data: perfiles },
     { data: ingenieros },
     { data: cuentas },
+    { data: equipos },
   ] = await Promise.all([
     supabase.from(cfg.tabla).select("*").order(cfg.orden),
     supabase.from("zonas").select("id, nombre").order("nombre"),
@@ -33,6 +34,7 @@ export default async function RecursoPage({
     supabase.from("perfiles").select("id, nombre, rol").order("nombre"),
     supabase.from("ingenieros").select("id, nombre").order("nombre"),
     supabase.from("clientes").select("id, nombre").order("nombre"),
+    supabase.from("equipos").select("id, modelo, serie").order("modelo"),
   ]);
 
   const opciones: Record<string, Opcion[]> = {
@@ -60,6 +62,11 @@ export default async function RecursoPage({
       value: c.id as string,
       label: c.nombre as string,
     })),
+    equipos_id: (equipos ?? []).map((e) => ({
+      value: e.id as string,
+      label: [e.modelo, e.serie].filter(Boolean).join(" · ") || "(sin datos)",
+    })),
+    tipos_contrato: TIPOS_CONTRATO,
     roles_contacto: [
       { value: "mesa", label: "Mesa de servicio" },
       { value: "lider", label: "Líder" },

@@ -64,6 +64,16 @@ function CeldaEdit({
       />
     );
   }
+  if (campoDef.tipo === "fecha") {
+    return (
+      <input
+        type="date"
+        value={valorTexto(valor)}
+        onChange={(e) => onChange(e.target.value || null)}
+        className={campo}
+      />
+    );
+  }
   return (
     <input
       type={campoDef.tipo === "num" ? "number" : "text"}

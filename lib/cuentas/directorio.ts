@@ -41,12 +41,29 @@ export type ContactoCuenta = {
   notas: string | null;
 };
 
+export type ContratoResumen = {
+  id: string;
+  tipo_contrato: string;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+  visitas_incluidas: number | null;
+  equipo_id: string | null;
+};
+
+export const ETIQUETA_TIPO_CONTRATO: Record<string, string> = {
+  garantia: "Garantía",
+  poliza: "Póliza",
+  tym: "TyM",
+};
+
 export type CuentaDirectorio = {
   id: string;
   nombre: string;
   tipo: string | null;
   indicaciones: string | null;
   contactos: ContactoCuenta[];
+  /** Contratos activos y vigentes (garantía/póliza/TyM) de este cliente. */
+  contratos: ContratoResumen[];
 };
 
 /**
@@ -86,11 +103,20 @@ export async function cuentaDeOrden(
   }
   if (!mejor || mejorPuntaje < 55) return null;
 
-  const { data: contactos } = await supabase
-    .from("contactos_cuenta")
-    .select("id, nombre, rol_contacto, correo, telefono, notas")
-    .eq("cuenta_id", mejor.id)
-    .eq("activo", true);
+  const hoy = new Date().toISOString().slice(0, 10);
+  const [{ data: contactos }, { data: contratos }] = await Promise.all([
+    supabase
+      .from("contactos_cuenta")
+      .select("id, nombre, rol_contacto, correo, telefono, notas")
+      .eq("cuenta_id", mejor.id)
+      .eq("activo", true),
+    supabase
+      .from("contratos")
+      .select("id, tipo_contrato, fecha_inicio, fecha_fin, visitas_incluidas, equipo_id")
+      .eq("cliente_id", mejor.id)
+      .eq("activo", true)
+      .or(`fecha_fin.is.null,fecha_fin.gte.${hoy}`),
+  ]);
 
   const orden = (contactos ?? []).slice().sort(
     (a, b) =>
@@ -104,5 +130,6 @@ export async function cuentaDeOrden(
     tipo: (mejor.tipo as string | null) ?? null,
     indicaciones: (mejor.indicaciones as string | null) ?? null,
     contactos: orden as ContactoCuenta[],
+    contratos: (contratos ?? []) as ContratoResumen[],
   };
 }

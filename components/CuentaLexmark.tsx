@@ -1,7 +1,14 @@
 import {
   ETIQUETA_ROL_CONTACTO,
+  ETIQUETA_TIPO_CONTRATO,
   type CuentaDirectorio,
 } from "@/lib/cuentas/directorio";
+
+function fechaCorta(iso: string | null): string {
+  if (!iso) return "";
+  const [a, m, d] = iso.split("-");
+  return `${d}/${m}/${a}`;
+}
 
 /** Primer correo / teléfono cuando el campo trae varios separados por / ; // , */
 function primero(v: string | null): string | null {
@@ -23,6 +30,25 @@ export default function CuentaLexmark({
 }) {
   return (
     <div className="space-y-3">
+      {cuenta.contratos.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {cuenta.contratos.map((c) => (
+            <span
+              key={c.id}
+              className="rounded-full bg-tone-ok-bg px-2.5 py-1 text-[11px] font-extrabold text-tone-ok-fg"
+              title={
+                c.visitas_incluidas != null
+                  ? `${c.visitas_incluidas} visita(s) incluida(s)`
+                  : "Visitas ilimitadas"
+              }
+            >
+              {ETIQUETA_TIPO_CONTRATO[c.tipo_contrato] ?? c.tipo_contrato}
+              {c.fecha_fin ? ` · hasta ${fechaCorta(c.fecha_fin)}` : " · indefinida"}
+            </span>
+          ))}
+        </div>
+      )}
+
       {cuenta.indicaciones && (
         <div className="rounded-xl border border-tone-warn-fg/25 bg-tone-warn-bg px-3 py-2 text-sm text-tone-warn-fg">
           <p className="text-[11px] font-black uppercase tracking-wide">
