@@ -177,7 +177,8 @@ reales.
    normalización de texto. **Segunda ronda cerrada 2026-09-11:** componentes con jsdom
    (`SelectorIngenieroSucursal` — cubre el bug real de sucursal sin ingenieros) y un route
    handler con Supabase mockeado (`/api/gerencia/vincular-cliente`). 65 pruebas en total. Falta:
-   más route handlers, e integración contra un branch de Supabase para probar los triggers reales.
+   más route handlers. Integración contra un branch de Supabase para triggers reales — decisión
+   del usuario: fuera de alcance por ahora (costo real, no aprobado).
 2. ~~BD sin versionar~~ **Cerrado 2026-09-11.** `supabase/migrations/20260911092901_remote_schema.sql`
    — primer baseline real vía `supabase db pull` (19 tablas, 75 funciones/triggers/políticas).
    De aquí en adelante, cambios de esquema van como migración nueva, no como SQL suelto.
@@ -246,8 +247,10 @@ que sí existe hoy. Reescrito contra el estado verificado.
       preview en un proyecto recién creado sin pasar por un PR); el usuario decidió aceptarlo como
       el sitio real. Falta: `GOOGLE_SERVICE_ACCOUNT_KEY_B64` solo se cargó en el entorno
       Production de Vercel (no Preview/Development).
-- [ ] Pendiente, nuevo: integración de pruebas contra un branch de Supabase para probar los
-      triggers reales (lo único que quedó fuera de esta ronda).
+- [x] Integración de pruebas contra un branch de Supabase (triggers reales) — **decisión del
+      usuario 2026-09-11: fuera de alcance por ahora.** Los branches de Supabase pueden tener
+      costo real; no se crea sin aprobación explícita, y el usuario prefirió no aprobarlo todavía.
+      Revisitar si se vuelve a considerar necesario.
 
 ### DESPUÉS DE ESO — Features
 - [ ] Notificaciones / realtime (Supabase Realtime).
