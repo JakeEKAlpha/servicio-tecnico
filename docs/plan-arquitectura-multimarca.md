@@ -16,9 +16,26 @@ tablas nuevas aditivas (FK nullable), nunca borrar ni reescribir de golpe.**
   de las herramientas automatizadas — ver nota abajo).
 - ✅ **Fase B** — `clientes`/`equipos`/`contratos` creados y en producción,
   cero pérdida de datos, cero hallazgos nuevos de seguridad.
-- ⬜ **Fase C** — interfaz (Equipos/Contratos en Gerencia, contrato en
-  detalle de orden) — siguiente paso.
-- ⬜ **Fase D** — auditoría final de cierre.
+- ✅ **Fase C** — recursos "Equipos" y "Contratos" en Gerencia; el detalle
+  de orden (`CuentaLexmark`/`DetalleOrden`) muestra la cobertura vigente
+  del cliente emparejado. Resuelve también el wireframe 7b/11q.
+- ✅ **Fase D** — auditoría final: `tsc`/`eslint`/`next build` limpios,
+  `get_advisors` sin hallazgos nuevos (solo los ya conocidos: es_gerencia/
+  es_encargado_de públicas a propósito, leaked password protection
+  pendiente manual). Sin regresión — Lexmark/WO/SR sin cambios de
+  comportamiento.
+
+## Notas para cuando haya datos reales
+
+- Hoy `equipos`/`contratos` están vacíos — el usuario los llenará desde
+  Gerencia. El emparejamiento de contrato en el detalle de orden depende
+  de `cuentaDeOrden()` (fuzzy match por nombre de cliente), no de
+  `ordenes.cliente_id` todavía — esa FK existe pero nada la escribe aún.
+- Cuando se quiera dejar de depender del fuzzy match, el siguiente paso
+  natural es poblar `ordenes.cliente_id`/`equipo_id`/`contrato_id` al
+  crear/editar una orden (selector de cliente/equipo en `ModalNuevaOrden`,
+  como preveía el punto 7 del plan original) y usarlas directamente en
+  `DetalleOrdenCargado`.
 
 ## Decisiones de negocio confirmadas por el usuario
 
