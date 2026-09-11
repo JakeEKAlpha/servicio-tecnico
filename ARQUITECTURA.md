@@ -140,6 +140,7 @@ todavía — ver `blueprints/cerrar-deuda-datos-blueprint.md`.
 | Almacén + Inventario | `almacen/page.tsx` + `AlmacenPiezas` | ✅ — en espera / en stock, confirmar arribo, riel de sucursales |
 | Inicio (dashboard) | `inicio/page.tsx` + `Dashboard` + `panel/*` | ✅ — panel configurable por rol, widgets con drag/resize |
 | Gerencia | `gerencia/page.tsx`, `gerencia/[recurso]/page.tsx` + `GestionRecurso`/`RielRecursos` | ✅ — CRUD genérico de ingenieros, sucursales, clientes, equipos, contratos. Esto **ya cubre** lo que el roadmap viejo llamaba "Panel de Gerencia" |
+| Reportes (análisis de servicios) | `gerencia/reportes/page.tsx` + `components/gerencia/reportes/*` | ✅ — KPIs, SLA, distribución, tendencia; ver Deuda de datos, ítem "Reportes / métricas" |
 | Configuración | `configuracion/page.tsx` + `Configuracion` | ✅ — preferencias de usuario, vista previa en vivo de tema/densidad |
 | Campo (app de ingenieros) | `app/(campo)/campo/[ordenId]` + `components/campo/*` | ✅ — checklist, evidencia fotográfica, dictado de voz. **Congelado** — no se toca fuera de una iniciativa dedicada a `/campo` |
 | Login / recuperar / cambiar contraseña | `app/login`, `app/actualizar-password` | ✅ — pantalla partida |
@@ -297,21 +298,44 @@ que sí existe hoy. Reescrito contra el estado verificado.
       dashboard de referencia que el usuario diseñó — el reordenamiento del Tablero (ya cerrado,
       ver Deuda técnica) es distinto y no depende de esto.
 - [ ] Cargar `equipos`/`contratos` reales desde Gerencia (la feature ya existe, falta la data).
-- [ ] **Reportes / métricas — pantalla de análisis ("gerente de análisis") con SLA Lexmark.**
-      El usuario ya compartió un dashboard de referencia (`dashboard_ejecutivo_work_orders.html`,
-      Chart.js + PapaParse) que lee **en vivo un Google Sheet** ("DATOS WO", pestaña "LIMPIOS")
-      con columnas donde un humano llena a mano, después de cerrar cada WO: `SLA`,
-      `TIEMPO QUE PASO DEL SLA`, `VALIDEZ DEL SLA`, `JUSTIFICANTE`, `RESULTADO`,
-      `VALIDEZ JUSTIFICADA`. Lexmark ya etiqueta motivos de retraso (ej. "DELAYED DUE TO
-      CUSTOMER") que a veces excusan el incumplimiento — no es una comparación mecánica de
-      fechas como el reordenamiento del Tablero (ese ya está cerrado, ver Deuda técnica).
-      Decisión del usuario: **no inventar campos nuevos en la BD, no crear tablas** — un humano
-      llena esas columnas donde sea (el Sheet, probablemente). Pendiente antes de diseñar: si
-      la pantalla lee directo del Sheet (como el HTML de referencia) o se migra ese flujo a la
-      app — no se resolvió del todo. KPIs/gráficas del dashboard de referencia: estatus de WO,
-      cumplimiento de SLA, por sucursal, top ingenieros por volumen, motivos de incumplimiento,
-      top clientes, tabla detalle con paginación y filtros.
-      Distinto del reordenamiento de la cola de asignación (ver abajo), que sí ya está implementado.
+- [x] **Reportes / métricas — pantalla de análisis de servicios (`/gerencia/reportes`).**
+      Adaptada del dashboard ejecutivo de referencia (`dashboard_ejecutivo_work_orders.html`) que
+      compartió el usuario, con una decisión explícita de alcance: **no lee el Google Sheet
+      "DATOS WO"** (eso seguía sin resolverse — ver historial) **ni inventa las columnas que ahí
+      llena un humano** (`VALIDEZ DEL SLA`, `JUSTIFICANTE`, etc., instrucción del usuario: "no
+      inventes campos, no crees, paréalos, respeta los filtros, usa la lógica"). En su lugar,
+      empareja los mismos conceptos del dashboard de referencia con datos que la app YA captura:
+      - Fuente: `ordenes` + `ordenes_historial` (cierre real = última transición a "Concluido").
+        Cero tablas o columnas nuevas.
+      - Cumplimiento de SLA: reutiliza la MISMA regla que ordena la cola del Tablero
+        (`calcularFechaLimiteSla` en `lib/ordenes/sla.ts`, extraída de `horasParaVencerSla` para
+        que sea una sola fuente de verdad) — WO usa `Customer Committed Completion Date`, SR usa
+        creado+22 días. Es mecánico a propósito: **no** captura los motivos de retraso que a
+        veces etiqueta Lexmark (ej. "DELAYED DUE TO CUSTOMER") porque esa columna no forma parte
+        de las 28 que hoy importa `lib/importar/lexmark.ts` — se documenta como limitación
+        conocida, no se inventa el dato.
+      - Filtros: fecha (creado_en), zona, sucursal, marca, ingeniero, origen (WO/SR/manual),
+        estatus — mismo concepto de filtro que el dashboard de referencia, catálogos reales.
+      - KPIs: total, activas, % cumplimiento SLA (solo sobre lo evaluable), vencidas abiertas
+        ahora mismo, días promedio de cierre. Gráficas: distribución por estatus (dona, reusa
+        `GraficoFases` del panel de `/inicio`), tendencia semanal creadas/concluidas (reusa
+        `GraficoFlujo`), por tipo de servicio y cumplimiento por ingeniero (nuevo
+        `GraficoBarrasCategoria`). Tabla detalle ordenable por columna + lista de "atención
+        inmediata" (SLA vencido, sigue abierta).
+      - Acceso: gateado por `app/(app)/gerencia/layout.tsx` (gerencia/admin), igual que el resto
+        de Gerencia — la pregunta de si "gerente de análisis" es un rol propio sigue sin
+        resolverse, se usó el rol existente.
+      - **Caveat real, verificado en vivo (2026-09-11):** la BD de producción tiene solo 12
+        órdenes (el proyecto Supabase se creó el 2026-09-09) y ninguna Lexmark concluida todavía
+        — las gráficas de cumplimiento por ingeniero y de tendencia se ven dispersas hasta que
+        se acumule historial real. Es esperado, no un bug: el "DATOS WO" del usuario tiene
+        historial del sistema viejo que esta pantalla, por diseño, no importa.
+      - Pendiente, fuera de este alcance: si en algún momento se decide leer el Sheet en vivo
+        (como el HTML de referencia) para ver historial pre-2026-09-09, es una decisión aparte
+        que el usuario no ha confirmado — no se implementó aquí.
+      Código: `lib/reportes/analitica.ts` (puro, 13 pruebas), `lib/reportes/datos.ts` (fetch +
+      filtros), `app/(app)/gerencia/reportes/page.tsx`,
+      `components/gerencia/reportes/{ReportesClient,FiltrosReportes,GraficoBarrasCategoria}.tsx`.
 - [x] **Responsive — verificado 2026-09-11 (375px, mobile).** `/tablero` (tarjetas), detalle de
       orden y `/tablero-dias` revisados en vivo con sesión real. Sin bugs encontrados — el Gantt
       necesita scroll horizontal para ver más de ~2 horas a la vez, esperable en este tipo de

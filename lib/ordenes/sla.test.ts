@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { horasParaVencerSla, parsearFechaLexmark } from "./sla";
+import { calcularFechaLimiteSla, horasParaVencerSla, parsearFechaLexmark } from "./sla";
 
 describe("parsearFechaLexmark", () => {
   it("parsea el formato de WO (M/D/YYYY h:mm AM/PM)", () => {
@@ -103,5 +103,33 @@ describe("horasParaVencerSla", () => {
     expect(
       horasParaVencerSla("MANUAL", { "Customer Committed Completion Date": "1/1/2027 1:00 AM" }, null, ahora),
     ).toBeNull();
+  });
+});
+
+describe("calcularFechaLimiteSla", () => {
+  it("WO: la fecha límite absoluta es la 'Customer Committed Completion Date' parseada", () => {
+    const limite = calcularFechaLimiteSla(
+      "WO",
+      { "Customer Committed Completion Date": "9/18/2026 6:00 PM" },
+      null,
+    );
+    expect(limite).not.toBeNull();
+    expect(limite!.getDate()).toBe(18);
+    expect(limite!.getHours()).toBe(18);
+  });
+
+  it("SR: la fecha límite absoluta es creado_en + 22 días — usada por la pantalla de análisis para saber si una orden concluyó a tiempo", () => {
+    const creado = new Date("2026-09-01T00:00:00");
+    const limite = calcularFechaLimiteSla("SR", {}, creado.toISOString());
+    expect(limite).not.toBeNull();
+    expect(limite!.getTime() - creado.getTime()).toBe(22 * 24 * 60 * 60 * 1000);
+  });
+
+  it("es la misma fuente que usa horasParaVencerSla (no una regla distinta)", () => {
+    const ahora = new Date("2026-09-11T12:00:00");
+    const datos = { "Customer Committed Completion Date": "9/18/2026 6:00 PM" };
+    const limite = calcularFechaLimiteSla("WO", datos, null)!;
+    const horas = horasParaVencerSla("WO", datos, null, ahora)!;
+    expect((limite.getTime() - ahora.getTime()) / (1000 * 60 * 60)).toBeCloseTo(horas, 6);
   });
 });

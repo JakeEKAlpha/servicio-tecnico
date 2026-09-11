@@ -94,3 +94,34 @@ export function prioridadServicio(
       return 7;
   }
 }
+
+/**
+ * Etiqueta legible de la misma categoría que usa `prioridadServicio` — para
+ * la pantalla de análisis (agrupar por tipo de servicio). Mantener el orden
+ * de condiciones sincronizado con `prioridadServicio` si cambia la regla.
+ */
+export function etiquetaServicio(
+  origen: string | null | undefined,
+  marca: string | null | undefined,
+  tipoContrato: string | null | undefined,
+): string {
+  const m = String(marca ?? "").toLowerCase();
+  if (m.includes("xerox")) return "Visita Xerox";
+
+  const o = String(origen ?? "").toUpperCase();
+  if (o === "WO") return "WO Lexmark";
+  if (o === "SR") return "SR Lexmark";
+
+  switch (tipoContrato) {
+    case "renta":
+      return "Renta";
+    case "garantia":
+      return "Garantía";
+    case "poliza":
+      return "Póliza";
+    case "tym":
+      return "TyM";
+    default:
+      return "Otro";
+  }
+}

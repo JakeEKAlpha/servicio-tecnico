@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { prioridadDe, prioridadServicio, ESTATUS_MANUALES } from "./estatus";
+import {
+  prioridadDe,
+  prioridadServicio,
+  etiquetaServicio,
+  ESTATUS_MANUALES,
+} from "./estatus";
 
 describe("prioridadDe", () => {
   it("los estatus accionables (asignado, listos por sistema) van primero", () => {
@@ -44,6 +49,19 @@ describe("prioridadServicio", () => {
 
   it("sin contrato vinculado y sin ser WO/SR/Xerox, cae al nivel 7", () => {
     expect(prioridadServicio("MANUAL", "Propio", null)).toBe(7);
+  });
+});
+
+describe("etiquetaServicio", () => {
+  it("usa las mismas categorías que prioridadServicio, en el mismo orden", () => {
+    expect(etiquetaServicio("WO", "Xerox", null)).toBe("Visita Xerox");
+    expect(etiquetaServicio("WO", "Lexmark", null)).toBe("WO Lexmark");
+    expect(etiquetaServicio("SR", "Lexmark", null)).toBe("SR Lexmark");
+    expect(etiquetaServicio("MANUAL", "Propio", "renta")).toBe("Renta");
+    expect(etiquetaServicio("MANUAL", "Propio", "garantia")).toBe("Garantía");
+    expect(etiquetaServicio("MANUAL", "Propio", "poliza")).toBe("Póliza");
+    expect(etiquetaServicio("MANUAL", "Propio", "tym")).toBe("TyM");
+    expect(etiquetaServicio("MANUAL", "Propio", null)).toBe("Otro");
   });
 });
 

@@ -13,6 +13,19 @@ export default function RielRecursos() {
 
   return (
     <nav className="w-full shrink-0 space-y-4 md:w-48">
+      <div>
+        <Link
+          href="/gerencia/reportes"
+          className={
+            "block rounded-lg px-2 py-1.5 text-sm font-bold transition-colors " +
+            (pathname === "/gerencia/reportes"
+              ? "bg-brand-050 text-brand"
+              : "text-text hover:bg-surface-2 hover:text-brand")
+          }
+        >
+          📊 Reportes
+        </Link>
+      </div>
       {GRUPOS_RECURSOS.map((g) => (
         <div key={g.titulo}>
           <p className="mb-1 px-2 text-[11px] font-bold uppercase tracking-wide text-muted">

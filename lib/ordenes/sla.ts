@@ -60,14 +60,43 @@ const MS_POR_HORA = 1000 * 60 * 60;
 const LIMITE_SR_DIAS = 22;
 
 /**
+ * Fecha límite absoluta del SLA de una orden Lexmark. `null` cuando no
+ * aplica (no es Lexmark) o falta el dato de origen.
+ *
+ *  - WO: `Customer Committed Completion Date`, que Lexmark ya calcula
+ *    distinto por orden (varía según el contrato de esa cuenta).
+ *  - SR: ignora la fecha del import, usa `creadoEn + 22 días`.
+ *
+ * Extraída de `horasParaVencerSla` para que la pantalla de análisis (SLA
+ * cumplido/vencido por orden) use exactamente la misma regla que ya ordena
+ * la cola del Tablero — una sola fuente de verdad.
+ */
+export function calcularFechaLimiteSla(
+  origen: string | null | undefined,
+  datosEspecificos: DatosEspecificos,
+  creadoEn: string | null | undefined,
+): Date | null {
+  if (origen === "WO") {
+    return parsearFechaLexmark(
+      datosEspecificos?.["Customer Committed Completion Date"],
+    );
+  }
+
+  if (origen === "SR") {
+    if (!creadoEn) return null;
+    const creado = new Date(creadoEn);
+    if (Number.isNaN(creado.getTime())) return null;
+    return new Date(creado.getTime() + LIMITE_SR_DIAS * 24 * MS_POR_HORA);
+  }
+
+  return null;
+}
+
+/**
  * Horas que faltan para que venza el SLA de una orden Lexmark — negativo
  * significa que ya venció (entre más negativo, más urgente). `null` cuando
  * no aplica (no es Lexmark) o falta el dato — en ese caso la orden no debe
  * moverse del lugar que ya le da `prioridadServicio`.
- *
- *  - WO: usa `Customer Committed Completion Date`, que Lexmark ya calcula
- *    distinto por orden (varía según el contrato de esa cuenta).
- *  - SR: ignora la fecha del import, usa `creadoEn + 22 días`.
  */
 export function horasParaVencerSla(
   origen: string | null | undefined,
@@ -75,21 +104,7 @@ export function horasParaVencerSla(
   creadoEn: string | null | undefined,
   ahora: Date = new Date(),
 ): number | null {
-  if (origen === "WO") {
-    const fecha = parsearFechaLexmark(
-      datosEspecificos?.["Customer Committed Completion Date"],
-    );
-    if (!fecha) return null;
-    return (fecha.getTime() - ahora.getTime()) / MS_POR_HORA;
-  }
-
-  if (origen === "SR") {
-    if (!creadoEn) return null;
-    const creado = new Date(creadoEn);
-    if (Number.isNaN(creado.getTime())) return null;
-    const limite = creado.getTime() + LIMITE_SR_DIAS * 24 * MS_POR_HORA;
-    return (limite - ahora.getTime()) / MS_POR_HORA;
-  }
-
-  return null;
+  const limite = calcularFechaLimiteSla(origen, datosEspecificos, creadoEn);
+  if (!limite) return null;
+  return (limite.getTime() - ahora.getTime()) / MS_POR_HORA;
 }
