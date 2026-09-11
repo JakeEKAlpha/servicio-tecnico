@@ -75,6 +75,17 @@ describe("estadoSla", () => {
   });
 });
 
+describe("estadoSla — cancelada", () => {
+  it("una orden Cancelada nunca es 'vencida', aunque su fecha límite ya haya pasado", () => {
+    const o = orden({
+      origen: "WO",
+      estatus: "Cancelado",
+      datos_especificos: { "Customer Committed Completion Date": "8/1/2026 6:00 PM" },
+    });
+    expect(estadoSla(o, ahora)).toBe("no_aplica");
+  });
+});
+
 describe("calcularKpis", () => {
   it("cuenta activas/concluidas/canceladas y el cumplimiento de SLA solo sobre lo evaluable", () => {
     const ordenes = [
@@ -216,5 +227,15 @@ describe("vencidasAbiertas", () => {
     });
     const r = vencidasAbiertas([pocoVencida, muyVencida, concluida], ahora);
     expect(r.map((o) => o.id)).toEqual(["muy", "poco"]);
+  });
+
+  it("una orden Cancelada con fecha límite vencida NO aparece — está cancelada, no abierta", () => {
+    const cancelada = orden({
+      id: "cancelada",
+      origen: "WO",
+      estatus: "Cancelado",
+      datos_especificos: { "Customer Committed Completion Date": "8/1/2026 6:00 PM" },
+    });
+    expect(vencidasAbiertas([cancelada], ahora)).toEqual([]);
   });
 });

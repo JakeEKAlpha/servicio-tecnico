@@ -37,8 +37,6 @@ export type OrdenAnalitica = {
   datos_especificos: Record<string, string> | null;
 };
 
-const CERRADOS = new Set(["Concluido", "Cancelado"]);
-
 /** Estado de SLA de una orden, calculado con la misma regla del Tablero. */
 export type EstadoSla =
   | "no_aplica" // no es Lexmark, o falta el dato de origen
@@ -48,6 +46,10 @@ export type EstadoSla =
   | "vencida"; // abierta, ya pasó el límite
 
 export function estadoSla(o: OrdenAnalitica, ahora: Date): EstadoSla {
+  // Cancelada: no hay veredicto de SLA que dar — no cuenta como incumplimiento
+  // ni como "vencida abierta" (no está abierta, está cancelada).
+  if (o.estatus === "Cancelado") return "no_aplica";
+
   const limite = calcularFechaLimiteSla(o.origen, o.datos_especificos, o.creado_en);
   if (!limite) return "no_aplica";
 
@@ -250,10 +252,12 @@ export function tendenciaSemanal(
   }));
 }
 
-/** Órdenes abiertas cuyo SLA ya venció — para la tabla de "atención inmediata". */
+/** Órdenes abiertas cuyo SLA ya venció — para la tabla de "atención inmediata".
+ *  `estadoSla` ya excluye canceladas y concluidas (nunca da "vencida" para
+ *  esas), así que el filtro aquí es solo por el estado calculado. */
 export function vencidasAbiertas(ordenes: OrdenAnalitica[], ahora: Date): OrdenAnalitica[] {
   return ordenes
-    .filter((o) => !CERRADOS.has(o.estatus ?? "") && estadoSla(o, ahora) === "vencida")
+    .filter((o) => estadoSla(o, ahora) === "vencida")
     .sort((a, b) => {
       const la = calcularFechaLimiteSla(a.origen, a.datos_especificos, a.creado_en)!;
       const lb = calcularFechaLimiteSla(b.origen, b.datos_especificos, b.creado_en)!;

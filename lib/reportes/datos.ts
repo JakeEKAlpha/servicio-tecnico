@@ -24,7 +24,7 @@ function uno<T extends Record<string, unknown>>(r: RelUno<T>): T | null {
 }
 
 const COLUMNAS =
-  "id, numero_orden, origen, estatus, cliente, creado_en, fecha_eta, " +
+  "id, numero_orden, origen, estatus, cliente, creado_en, actualizado_en, fecha_eta, " +
   "datos_especificos, " +
   "sucursales(nombre), ingenieros(nombre), marcas(nombre), contratos(tipo_contrato)";
 
@@ -35,6 +35,7 @@ type FilaCruda = {
   estatus: string | null;
   cliente: string | null;
   creado_en: string;
+  actualizado_en: string;
   fecha_eta: string | null;
   datos_especificos: Record<string, string> | null;
   sucursales: RelUno<{ nombre: string | null }>;
@@ -88,7 +89,12 @@ export async function cargarOrdenesAnalitica(
     estatus: f.estatus,
     cliente: f.cliente,
     creado_en: f.creado_en,
-    concluido_en: concluidoPorOrden.get(f.id) ?? null,
+    // Si está Concluido pero no hay fila de historial (dato viejo/insertado
+    // a mano sin pasar por el trigger), usa `actualizado_en` como mejor
+    // aproximación real — nunca se inventa la fecha, es una columna que ya
+    // existe y que la BD actualiza en cada cambio de la fila.
+    concluido_en:
+      concluidoPorOrden.get(f.id) ?? (f.estatus === "Concluido" ? f.actualizado_en : null),
     fecha_eta: f.fecha_eta,
     sucursal_nombre: uno(f.sucursales)?.nombre ?? null,
     ingeniero_nombre: uno(f.ingenieros)?.nombre ?? null,

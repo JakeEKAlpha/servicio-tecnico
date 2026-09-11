@@ -333,9 +333,23 @@ que sí existe hoy. Reescrito contra el estado verificado.
       - Pendiente, fuera de este alcance: si en algún momento se decide leer el Sheet en vivo
         (como el HTML de referencia) para ver historial pre-2026-09-09, es una decisión aparte
         que el usuario no ha confirmado — no se implementó aquí.
-      Código: `lib/reportes/analitica.ts` (puro, 13 pruebas), `lib/reportes/datos.ts` (fetch +
-      filtros), `app/(app)/gerencia/reportes/page.tsx`,
+      Código: `lib/reportes/analitica.ts` (puro, 15 pruebas), `lib/reportes/datos.ts` (fetch +
+      filtros, 4 pruebas), `app/(app)/gerencia/reportes/page.tsx`,
       `components/gerencia/reportes/{ReportesClient,FiltrosReportes,GraficoBarrasCategoria}.tsx`.
+
+      **Auditoría post-implementación (2026-09-11) — 2 bugs reales encontrados y corregidos**
+      (latentes hoy porque producción no tiene ninguna orden Cancelada todavía, pero se iban a
+      manifestar con datos reales):
+      1. Una orden **Cancelada** cuya fecha límite de SLA ya había pasado se contaba como
+         "vencida abierta" — `estadoSla()` no distinguía Cancelado de "sigue activa". Corregido:
+         Cancelado siempre da `no_aplica`.
+      2. Una orden **Concluido sin fila en `ordenes_historial`** (dato insertado a mano, sin pasar
+         por el trigger) se evaluaba como si siguiera abierta — podía salir como "vencida" en vez
+         de comparar su cierre real contra el límite. Corregido: si falta el historial, usa
+         `actualizado_en` (columna real, no inventada) como mejor aproximación del cierre.
+      Verificación en vivo repetida tras el fix: mismos 12/3/— que antes (el dataset actual no
+      tiene canceladas ni huecos de historial, así que no cambia lo que se ve hoy — el fix
+      previene un número incorrecto el día que sí haya una orden cancelada con SLA vencido).
 - [x] **Responsive — verificado 2026-09-11 (375px, mobile).** `/tablero` (tarjetas), detalle de
       orden y `/tablero-dias` revisados en vivo con sesión real. Sin bugs encontrados — el Gantt
       necesita scroll horizontal para ver más de ~2 horas a la vez, esperable en este tipo de
