@@ -183,16 +183,11 @@ negocio probadas con SQL contra los triggers reales.
    Gerencia. Al agregarlos, "Correr backfill" (idempotente) los toma solo.
 5. ~~14 políticas RLS sin optimizar~~ **Cerrado 2026-09-11.** `docs/db-optimizacion-rls.sql`
    aplicado por el usuario en el SQL editor de Supabase.
-6. **Sucursal por texto vs por id — diagnóstico corregido 2026-09-11.** `ordenes.sucursal_id`
-   **ya estaba resuelto**: un trigger de BD lo deriva automáticamente de `ordenes.sucursal`
-   (texto) en cada escritura — no era deuda real. La deuda de verdad era más chica y más precisa:
-   **`ingenieros` no tenía FK a `sucursales`**, y el selector de asignación (`SelectorIngenieroSucursal`)
-   armaba sus opciones de los valores únicos de `ingenieros.sucursal`, no de la tabla `sucursales`
-   — una sucursal sin ingenieros todavía no aparecía como opción. **Código construido**: FK
-   `ingenieros.sucursal_id` agregada a Gerencia, el selector ya puede leer la tabla canónica
-   (`sucursales` prop, con compatibilidad hacia atrás si no se pasa). **Falta:** correr
-   `docs/ingenieros-sucursal-id.sql` (ALTER TABLE + backfill) en el SQL editor de Supabase — sin
-   esto la columna `sucursal_id` no existe todavía en la BD real.
+6. ~~Sucursal por texto vs por id~~ **Cerrado 2026-09-11.** `ordenes.sucursal_id` ya estaba
+   resuelto por un trigger de BD (no era deuda real). La deuda real, más chica: `ingenieros` no
+   tenía FK a `sucursales` y el selector de asignación armaba sus opciones de los valores únicos
+   de `ingenieros.sucursal` en vez de la tabla canónica. `docs/ingenieros-sucursal-id.sql`
+   aplicado por el usuario (ALTER TABLE + backfill); el selector ya lee `sucursales`.
 7. **"Leaked password protection" sigue apagado** — toggle manual en el dashboard de Supabase,
    nadie lo puede activar por herramienta.
 8. **`equipos`/`contratos` están vacíos en producción** — la feature de garantía/póliza/TyM está
@@ -218,8 +213,11 @@ que sí existe hoy. Reescrito contra el estado verificado.
       COMUNICACIONES DIGITALES en `/gerencia/cuentas` y volver a correr el backfill.
 
 ### DESPUÉS — Deuda de datos, segunda ronda
-- [ ] **Armonizar `ordenes.sucursal` vs `sucursal_id`** — pospuesto deliberadamente del blueprint
-      de arriba por su alcance real (toca asignación de ingenieros); blueprint propio.
+- [x] **`ingenieros.sucursal_id` + selector de asignación lee `sucursales`** — cerrado 2026-09-11
+      (diagnóstico corregido: `ordenes.sucursal_id` no era la deuda real, ya lo resolvía un
+      trigger). Ver Deuda técnica #6.
+- [ ] Agregar vinculación manual similar a la de clientes también para casos borde de sucursal
+      (typos en `ingenieros.sucursal` que el backfill exacto no haya podido resolver).
 - [ ] Activar "leaked password protection" (30 segundos, dashboard de Supabase, manual).
 - [ ] Re-verificar el Gantt (`tablero-dias/GanttDia`) tras el pulido de wireframe reciente —
       confirmar si "el arrastre se siente torpe" sigue siendo cierto.
