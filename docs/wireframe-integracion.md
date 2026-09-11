@@ -82,6 +82,24 @@ quitar/agregar, `components/panel/*`) **no se toca ni se regresa**.
   arrastre: se levanta, la fila se ilumina, guía de hora) YA estaba
   implementado en el código actual, mejor que el wireframe incluso.
 
+## Sin empezar (por riesgo, no por descuido)
+
+- **Mapa por ingeniero (11j).** El propio wireframe lo deja como "bloque de
+  imagen, sin dibujar geografía" — o sea, ni el wireframe implementa un mapa
+  real. Necesita lat/lng de ingenieros/sucursales (pendiente de otra tarea)
+  y un proveedor de mapas. No se empezó.
+- **Fichas por entidad — cuentas/sucursales (11q).** Requiere agregar a las
+  consultas de Gerencia los encargados de almacén y los ingenieros por
+  sucursal (hoy no se cargan juntos). Cambio acotado pero no se priorizó
+  frente a pantallas de más tráfico.
+- **Campo — agenda (`/campo`, t7b) y servicio en sitio (`/campo/[id]`,
+  t8b/8c).** Son pantallas **solo móviles**, para ingenieros. No tengo forma
+  de iniciar sesión como ingeniero ni de probar gestos táctiles en este
+  entorno — tocar estas pantallas sin poder verlas en un teléfono real es
+  el riesgo más alto de toda la lista (la ficha verde de campo además ya
+  tiene reglas de negocio propias afinadas en otra sesión). Se dejaron sin
+  tocar a propósito.
+
 ## Notas de implementación
 
 - Tokens nuevos del wireframe (`_ds/.../tokens/*.css`) quedan como
