@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { perfilActual } from "@/lib/auth/sesion";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { listarOrdenes } from "@/lib/ordenes/listar";
+import { leerPreferencias } from "@/lib/panel/datos";
 import { prioridadDe } from "@/lib/ordenes/estatus";
 import { claseEstatus } from "@/lib/tema";
 import { chip, campo } from "@/lib/ui";
@@ -27,7 +28,11 @@ export default async function TableroPage({
   const { perfil } = await perfilActual();
   // El Tablero del día a día siempre es "activas" — Concluido/Cancelado se
   // consultan desde Gerencia/histórico, no aquí.
-  const { ordenes, error } = await listarOrdenes(supabase, { soloActivos: true });
+  const [{ ordenes, error }, prefs] = await Promise.all([
+    listarOrdenes(supabase, { soloActivos: true }),
+    leerPreferencias(supabase, ["tablero_vista"]),
+  ]);
+  const vistaInicial = prefs.tablero_vista === "tarjetas" ? "tarjetas" : "tabla";
 
   const esGerencia = esRolQueVeTodo(perfil.rol);
 
@@ -171,6 +176,7 @@ export default async function TableroPage({
             ingenieros={ingenieros ?? []}
             sucursales={sucursales ?? []}
             esGerencia={esGerencia}
+            vistaInicial={vistaInicial}
           />
         </Revelar>
       )}

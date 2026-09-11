@@ -11,7 +11,12 @@ import { createClient } from "@/lib/supabase/server";
  * la validación de abajo es cortesía para dar errores claros.
  */
 
-const CLAVES_VALIDAS = ["inicio_vista", "panel_layout", "reportes_filtros"] as const;
+const CLAVES_VALIDAS = [
+  "inicio_vista",
+  "panel_layout",
+  "reportes_filtros",
+  "tablero_vista",
+] as const;
 const MAX_BYTES = 32 * 1024;
 
 function esLayoutPanel(v: unknown): boolean {
@@ -101,6 +106,9 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "El valor es demasiado grande." }, { status: 400 });
   }
   if (clave === "inicio_vista" && valor !== "panel" && valor !== "simple") {
+    return NextResponse.json({ error: "Vista no válida." }, { status: 400 });
+  }
+  if (clave === "tablero_vista" && valor !== "tabla" && valor !== "tarjetas") {
     return NextResponse.json({ error: "Vista no válida." }, { status: 400 });
   }
   if (clave === "panel_layout" && !esLayoutPanel(valor)) {
