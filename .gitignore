@@ -56,3 +56,6 @@ next-env.d.ts
 /the-architect/
 /whatsapp-agentkit/
 skills-lock.json
+
+.vercel
+.env*
