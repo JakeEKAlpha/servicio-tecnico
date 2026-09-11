@@ -200,8 +200,9 @@ reales.
    tenía FK a `sucursales` y el selector de asignación armaba sus opciones de los valores únicos
    de `ingenieros.sucursal` en vez de la tabla canónica. `docs/ingenieros-sucursal-id.sql`
    aplicado por el usuario (ALTER TABLE + backfill); el selector ya lee `sucursales`.
-7. **"Leaked password protection" sigue apagado** — toggle manual en el dashboard de Supabase,
-   nadie lo puede activar por herramienta.
+7. **"Leaked password protection" sigue apagado — decisión 2026-09-11: no se activa.** El usuario
+   confirmó que es un servicio de paga (plan Pro de Supabase), no un toggle gratis de 30 segundos
+   como se pensaba. Queda descartado, no pendiente.
 8. **`equipos`/`contratos` están vacíos en producción** — la feature de garantía/póliza/TyM está
    construida pero sin datos reales; los tiene que cargar Gerencia.
 9. Menores: auth repetido en varios handlers · Gantt pendiente de re-verificar tras el pulido de
@@ -230,7 +231,8 @@ que sí existe hoy. Reescrito contra el estado verificado.
       trigger). Ver Deuda técnica #6.
 - [ ] Agregar vinculación manual similar a la de clientes también para casos borde de sucursal
       (typos en `ingenieros.sucursal` que el backfill exacto no haya podido resolver).
-- [ ] Activar "leaked password protection" (30 segundos, dashboard de Supabase, manual).
+- [x] "Leaked password protection" — **descartado 2026-09-11**, es un servicio de paga (plan Pro
+      de Supabase), no un toggle gratuito. Ver Deuda técnica #7.
 - [x] **Gantt — cerrado 2026-09-11.** Reportado por el usuario: soltar una tarjeta se sentía
       colgado. Causa real: generación síncrona del Doc/PDF (varios segundos de Google), no un
       bug. Arreglado el mensaje ("Generando documento…"); ver Estado #5.
