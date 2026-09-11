@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { tarjeta, enlace, campo, boton, botonSec } from "@/lib/ui";
+import { tarjeta, enlace, campo, boton, botonSec, etiqueta } from "@/lib/ui";
 
 export type PiezaAlmacen = {
   id: string;
@@ -342,8 +342,8 @@ export default function AlmacenPiezas({
 
             {editar && altaEn === activa.id && (
               <div className="mb-3 flex flex-wrap items-end gap-2 rounded-lg bg-surface-2 p-2">
-                <label className="text-xs text-muted">
-                  N.º de parte
+                <label className="text-xs">
+                  <span className={etiqueta}>N.º de parte</span>
                   <input
                     list="catalogo-piezas"
                     value={altaNp}
@@ -351,8 +351,8 @@ export default function AlmacenPiezas({
                     className={campo + " mt-0.5 block w-40"}
                   />
                 </label>
-                <label className="text-xs text-muted">
-                  Cantidad
+                <label className="text-xs">
+                  <span className={etiqueta}>Cantidad</span>
                   <input
                     type="number"
                     min={0}

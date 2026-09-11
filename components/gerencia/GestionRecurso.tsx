@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Campo, RecursoConfig } from "@/lib/gerencia/recursos";
-import { boton, botonSec, campo, tarjeta } from "@/lib/ui";
+import { boton, botonSec, campo, tarjeta, etiqueta } from "@/lib/ui";
 import { Editar } from "@/lib/iconos";
 import PanelDeslizante from "@/components/tablero/PanelDeslizante";
 
@@ -273,10 +273,12 @@ export default function GestionRecurso({
             )}
             <div className={tarjeta + " space-y-3"}>
               {cfg.campos.map((c) => (
-                <label key={c.k} className="block text-sm font-semibold">
-                  {c.label}
-                  {c.requerido && " *"}
-                  <div className="mt-1 font-normal">
+                <label key={c.k} className="block text-sm">
+                  <span className={etiqueta}>
+                    {c.label}
+                    {c.requerido && " *"}
+                  </span>
+                  <div>
                     <CeldaEdit
                       campoDef={c}
                       valor={borrador[c.k]}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ESTATUS_MANUALES, ESTATUS_ORDEN } from "@/lib/ordenes/estatus";
 import { claseEstatus } from "@/lib/tema";
-import { boton, botonSec, botonPeligro, botonTexto, botonMini, campo } from "@/lib/ui";
+import { boton, botonSec, botonPeligro, botonTexto, botonMini, campo, etiqueta } from "@/lib/ui";
 import Modal from "@/components/Modal";
 import PanelDeslizante from "@/components/tablero/PanelDeslizante";
 import SelectorIngenieroSucursal, {
@@ -218,7 +218,7 @@ export default function AccionesOrden({
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm">
-                Fecha ETA
+                <span className={etiqueta}>Fecha ETA</span>
                 <input
                   type="date"
                   value={fecha}
@@ -227,7 +227,7 @@ export default function AccionesOrden({
                 />
               </label>
               <div className="text-sm">
-                <span className="mb-1 block">Hora ETA</span>
+                <span className={etiqueta}>Hora ETA</span>
                 <SelectorHora valor={hora} onCambio={setHora} />
               </div>
               <SelectorIngenieroSucursal

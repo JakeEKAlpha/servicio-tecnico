@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import SelectorIngenieroSucursal, {
   type IngenieroOpcion,
 } from "@/components/SelectorIngenieroSucursal";
-import { boton, botonSec, campo as campoCls } from "@/lib/ui";
+import { boton, botonSec, campo as campoCls, etiqueta } from "@/lib/ui";
 import SelectorHora from "@/components/SelectorHora";
 import Modal from "@/components/Modal";
 
@@ -146,11 +146,11 @@ export default function ModalNuevaOrden({
       {abierto && (
         <Modal titulo="Nueva orden manual" ancho="max-w-2xl" onClose={cerrar}>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-brand">Nueva orden manual</h2>
+            <h2 className="text-[14px] font-extrabold text-brand">Nueva orden manual</h2>
             <button
               type="button"
               onClick={cerrar}
-              className="text-sm text-muted hover:text-text"
+              className="text-[12px] font-bold text-muted hover:text-text"
             >
               Cerrar
             </button>
@@ -163,7 +163,7 @@ export default function ModalNuevaOrden({
             <>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm sm:col-span-2">
-                  Cliente *
+                  <span className={etiqueta}>Cliente *</span>
                   <input
                     className={campoCls}
                     value={d.cliente}
@@ -172,7 +172,7 @@ export default function ModalNuevaOrden({
                   />
                 </label>
                 <label className="text-sm sm:col-span-2">
-                  Falla / motivo *
+                  <span className={etiqueta}>Falla / motivo *</span>
                   <textarea
                     rows={2}
                     className={campoCls}
@@ -182,7 +182,7 @@ export default function ModalNuevaOrden({
                 </label>
 
                 <label className="text-sm">
-                  Origen
+                  <span className={etiqueta}>Origen</span>
                   <select
                     className={campoCls}
                     value={d.origen}
@@ -196,7 +196,7 @@ export default function ModalNuevaOrden({
                   </select>
                 </label>
                 <label className="text-sm">
-                  Número de orden (opcional)
+                  <span className={etiqueta}>Número de orden (opcional)</span>
                   <input
                     className={campoCls}
                     placeholder="se genera MAN-… si lo dejas vacío"
@@ -206,7 +206,7 @@ export default function ModalNuevaOrden({
                 </label>
 
                 <label className="text-sm">
-                  Modelo
+                  <span className={etiqueta}>Modelo</span>
                   <input
                     className={campoCls}
                     value={d.modelo}
@@ -214,7 +214,7 @@ export default function ModalNuevaOrden({
                   />
                 </label>
                 <label className="text-sm">
-                  Número de serie
+                  <span className={etiqueta}>Número de serie</span>
                   <input
                     className={campoCls}
                     value={d.serie}
@@ -223,7 +223,7 @@ export default function ModalNuevaOrden({
                 </label>
 
                 <label className="text-sm">
-                  Contacto
+                  <span className={etiqueta}>Contacto</span>
                   <input
                     className={campoCls}
                     value={d.contacto}
@@ -231,7 +231,7 @@ export default function ModalNuevaOrden({
                   />
                 </label>
                 <label className="text-sm">
-                  Teléfono móvil
+                  <span className={etiqueta}>Teléfono móvil</span>
                   <input
                     className={campoCls}
                     value={d.tel_movil}
@@ -239,7 +239,7 @@ export default function ModalNuevaOrden({
                   />
                 </label>
                 <label className="text-sm">
-                  Teléfono fijo
+                  <span className={etiqueta}>Teléfono fijo</span>
                   <input
                     className={campoCls}
                     value={d.tel_fijo}
@@ -247,7 +247,7 @@ export default function ModalNuevaOrden({
                   />
                 </label>
                 <label className="text-sm">
-                  Dirección
+                  <span className={etiqueta}>Dirección</span>
                   <input
                     className={campoCls}
                     value={d.direccion}
@@ -255,7 +255,7 @@ export default function ModalNuevaOrden({
                   />
                 </label>
                 <label className="text-sm">
-                  Localidad
+                  <span className={etiqueta}>Localidad</span>
                   <input
                     className={campoCls}
                     value={d.localidad}
@@ -263,7 +263,7 @@ export default function ModalNuevaOrden({
                   />
                 </label>
                 <label className="text-sm">
-                  Estado
+                  <span className={etiqueta}>Estado</span>
                   <input
                     className={campoCls}
                     value={d.estado}
@@ -296,17 +296,17 @@ export default function ModalNuevaOrden({
                   type="button"
                   onClick={() => setAgendar(false)}
                   className={
-                    "flex-1 rounded-md py-2 text-sm font-semibold transition-colors " +
+                    "flex-1 rounded-md py-1.5 text-[12px] font-extrabold transition-colors " +
                     (!agendar ? "bg-surface text-text shadow-sm" : "text-muted")
                   }
                 >
-                  Dejar sin agendar
+                  Sin agendar
                 </button>
                 <button
                   type="button"
                   onClick={() => setAgendar(true)}
                   className={
-                    "flex-1 rounded-md py-2 text-sm font-semibold transition-colors " +
+                    "flex-1 rounded-md py-1.5 text-[12px] font-extrabold transition-colors " +
                     (agendar ? "bg-surface text-text shadow-sm" : "text-muted")
                   }
                 >
@@ -317,7 +317,7 @@ export default function ModalNuevaOrden({
               {agendar ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="text-sm">
-                    Fecha ETA
+                    <span className={etiqueta}>Fecha ETA</span>
                     <input
                       type="date"
                       className={campoCls}
@@ -326,7 +326,7 @@ export default function ModalNuevaOrden({
                     />
                   </label>
                   <div className="text-sm">
-                    <span className="mb-1 block">Hora ETA</span>
+                    <span className={etiqueta}>Hora ETA</span>
                     <SelectorHora
                       valor={d.hora_eta}
                       onCambio={(t) => set("hora_eta", t)}

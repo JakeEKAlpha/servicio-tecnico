@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { actualizarPassword } from "./acciones";
 import LogoAlpha from "@/components/LogoAlpha";
-import { boton, campo } from "@/lib/ui";
+import { boton, campo, etiqueta } from "@/lib/ui";
 import { Listo, Cerrar } from "@/lib/iconos";
 
 function Requisito({ ok, children }: { ok: boolean; children: React.ReactNode }) {
@@ -46,7 +46,7 @@ export default function ActualizarPasswordPage() {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="password" className="text-sm font-semibold">
+            <label htmlFor="password" className={etiqueta}>
               Contraseña nueva
             </label>
             <input
@@ -63,7 +63,7 @@ export default function ActualizarPasswordPage() {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="confirmar" className="text-sm font-semibold">
+            <label htmlFor="confirmar" className={etiqueta}>
               Repite la contraseña
             </label>
             <input

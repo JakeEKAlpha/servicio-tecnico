@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { iniciarSesion, recuperarPassword } from "./acciones";
 import LogoAlpha from "@/components/LogoAlpha";
 import { EMPRESA_ALPHA } from "@/lib/empresa";
-import { boton, campo as inputCls } from "@/lib/ui";
+import { boton, campo as inputCls, etiqueta } from "@/lib/ui";
 import { Correo, Llamar } from "@/lib/iconos";
 
 const cardCls = "w-full max-w-sm space-y-4 text-text";
@@ -62,7 +62,7 @@ function FormularioLogin() {
         </p>
       )}
       <div className="space-y-1">
-        <label htmlFor="email" className="text-sm font-semibold">
+        <label htmlFor="email" className={etiqueta}>
           Correo
         </label>
         <input
@@ -76,7 +76,7 @@ function FormularioLogin() {
         />
       </div>
       <div className="space-y-1">
-        <label htmlFor="password" className="text-sm font-semibold">
+        <label htmlFor="password" className={etiqueta}>
           Contraseña
         </label>
         <input
@@ -114,7 +114,7 @@ function FormularioRecuperar() {
         </p>
       </div>
       <div className="space-y-1">
-        <label htmlFor="email-rec" className="text-sm font-semibold">
+        <label htmlFor="email-rec" className={etiqueta}>
           Correo
         </label>
         <input
