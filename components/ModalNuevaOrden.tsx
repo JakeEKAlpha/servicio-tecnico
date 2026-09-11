@@ -10,6 +10,14 @@ import SelectorHora from "@/components/SelectorHora";
 import Modal from "@/components/Modal";
 
 export type MarcaOpcion = { id: string; nombre: string };
+export type ClienteOpcion = { id: string; nombre: string };
+export type EquipoOpcion = {
+  id: string;
+  cliente_id: string | null;
+  marca_id: string | null;
+  modelo: string;
+  serie: string | null;
+};
 
 type Datos = {
   cliente: string;
@@ -29,6 +37,8 @@ type Datos = {
   hora_eta: string;
   sucursal: string;
   ingeniero_id: string;
+  cliente_id: string;
+  equipo_id: string;
 };
 
 function vacio(marcaPorDefecto: string): Datos {
@@ -50,6 +60,8 @@ function vacio(marcaPorDefecto: string): Datos {
     hora_eta: "",
     sucursal: "",
     ingeniero_id: "",
+    cliente_id: "",
+    equipo_id: "",
   };
 }
 
@@ -80,9 +92,13 @@ function Progreso({ paso }: { paso: 1 | 2 }) {
 export default function ModalNuevaOrden({
   ingenieros,
   marcas,
+  clientes,
+  equipos,
 }: {
   ingenieros: IngenieroOpcion[];
   marcas: MarcaOpcion[];
+  clientes: ClienteOpcion[];
+  equipos: EquipoOpcion[];
 }) {
   const router = useRouter();
   // Lexmark sigue siendo el default (es lo más común hoy), pero ahora es una
@@ -186,6 +202,49 @@ export default function ModalNuevaOrden({
                     autoFocus
                   />
                 </label>
+                <label className="text-sm">
+                  <span className={etiqueta}>Vincular a cliente existente (opcional)</span>
+                  <select
+                    className={campoCls}
+                    value={d.cliente_id}
+                    onChange={(e) => {
+                      set("cliente_id", e.target.value);
+                      // Cambiar de cliente invalida el equipo elegido antes.
+                      set("equipo_id", "");
+                    }}
+                  >
+                    <option value="">— sin vincular —</option>
+                    {clientes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {d.cliente_id && (
+                  <label className="text-sm">
+                    <span className={etiqueta}>Equipo (opcional)</span>
+                    <select
+                      className={campoCls}
+                      value={d.equipo_id}
+                      onChange={(e) => set("equipo_id", e.target.value)}
+                    >
+                      <option value="">— sin vincular —</option>
+                      {equipos
+                        .filter(
+                          (e) =>
+                            e.cliente_id === d.cliente_id &&
+                            (!d.marca_id || e.marca_id === d.marca_id),
+                        )
+                        .map((e) => (
+                          <option key={e.id} value={e.id}>
+                            {e.modelo}
+                            {e.serie ? ` — ${e.serie}` : ""}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                )}
                 <label className="text-sm sm:col-span-2">
                   <span className={etiqueta}>Falla / motivo *</span>
                   <textarea

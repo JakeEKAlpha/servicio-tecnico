@@ -92,14 +92,126 @@ export type CuentaDirectorio = {
   contratos: ContratoResumen[];
 };
 
+export type ClienteOpcion = { id: string; nombre: string };
+
+export type EquipoOpcion = {
+  id: string;
+  cliente_id: string | null;
+  marca_id: string | null;
+  modelo: string;
+  serie: string | null;
+};
+
 /**
- * Encuentra la cuenta Lexmark que corresponde a un nombre de cliente de una
- * orden (emparejamiento difuso por nombre normalizado) y trae sus contactos.
+ * Para el selector opcional "Vincular a cliente existente" de
+ * `ModalNuevaOrden` (blueprint `cerrar-deuda-datos`). Todos los clientes
+ * activos, para elegir uno al crear una orden en vez de depender del
+ * fuzzy-match de `cuentaDeOrden()`.
+ */
+export async function listarClientesOpciones(
+  supabase: SupabaseClient,
+): Promise<ClienteOpcion[]> {
+  const { data } = await supabase
+    .from("clientes")
+    .select("id, nombre")
+    .eq("activo", true)
+    .order("nombre");
+  return (data ?? []) as ClienteOpcion[];
+}
+
+/**
+ * Todos los equipos activos, para filtrar en el cliente (por cliente_id +
+ * marca_id) en el selector de equipo de `ModalNuevaOrden`. La tabla es
+ * pequeña (hoy vacía en producción — ver blueprint), así que traerla completa
+ * y filtrar en el componente evita una ruta de API nueva.
+ */
+export async function listarEquiposOpciones(
+  supabase: SupabaseClient,
+): Promise<EquipoOpcion[]> {
+  const { data } = await supabase
+    .from("equipos")
+    .select("id, cliente_id, marca_id, modelo, serie")
+    .eq("activo", true)
+    .order("modelo");
+  return (data ?? []) as EquipoOpcion[];
+}
+
+/** Trae contactos activos + contratos vigentes de una cuenta ya identificada. */
+async function contactosYContratosDe(
+  supabase: SupabaseClient,
+  clienteId: string,
+): Promise<Pick<CuentaDirectorio, "contactos" | "contratos">> {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const [{ data: contactos }, { data: contratos }] = await Promise.all([
+    supabase
+      .from("contactos_cuenta")
+      .select("id, nombre, rol_contacto, correo, telefono, notas")
+      .eq("cuenta_id", clienteId)
+      .eq("activo", true),
+    supabase
+      .from("contratos")
+      .select("id, tipo_contrato, subtipo_tym, fecha_inicio, fecha_fin, visitas_incluidas, equipo_id")
+      .eq("cliente_id", clienteId)
+      .eq("activo", true),
+  ]);
+  const contratosVigentes = ((contratos ?? []) as ContratoResumen[]).filter((c) =>
+    contratoVigente(c, hoy),
+  );
+  const orden = (contactos ?? []).slice().sort(
+    (a, b) =>
+      (ORDEN_ROL[a.rol_contacto ?? "otro"] ?? 5) -
+      (ORDEN_ROL[b.rol_contacto ?? "otro"] ?? 5),
+  );
+  return { contactos: orden as ContactoCuenta[], contratos: contratosVigentes };
+}
+
+/**
+ * Resuelve una cuenta por id directo — el camino rápido cuando
+ * `ordenes.cliente_id` ya está poblado (selector en creación, o backfill).
+ * `null` si el id no existe (cuenta borrada) o está inactiva.
+ */
+async function cuentaPorId(
+  supabase: SupabaseClient,
+  clienteId: string,
+): Promise<CuentaDirectorio | null> {
+  const { data: c } = await supabase
+    .from("clientes")
+    .select("id, nombre, tipo, indicaciones")
+    .eq("id", clienteId)
+    .eq("activo", true)
+    .maybeSingle();
+  if (!c) return null;
+
+  const { contactos, contratos } = await contactosYContratosDe(supabase, c.id as string);
+  return {
+    id: c.id as string,
+    nombre: c.nombre as string,
+    tipo: (c.tipo as string | null) ?? null,
+    indicaciones: (c.indicaciones as string | null) ?? null,
+    contactos,
+    contratos,
+  };
+}
+
+/**
+ * Encuentra la cuenta que corresponde a una orden y trae sus contactos. Si
+ * `clienteId` viene (porque la orden ya tiene `cliente_id` poblado —
+ * selector en creación, o backfill), se resuelve por id directo, sin loop de
+ * puntaje. Si no viene o no se encuentra, cae al emparejamiento difuso por
+ * nombre normalizado de siempre — comportamiento sin cambios para cualquier
+ * llamador que no pase `clienteId` (p. ej. `/campo`, que sigue llamando esta
+ * función con 2 argumentos, sin tocarse).
  */
 export async function cuentaDeOrden(
   supabase: SupabaseClient,
   cliente: string | null | undefined,
+  clienteId?: string | null,
 ): Promise<CuentaDirectorio | null> {
+  if (clienteId) {
+    const porId = await cuentaPorId(supabase, clienteId);
+    if (porId) return porId;
+  }
+
   const objetivo = normalizarNombreCuenta(cliente);
   if (objetivo.length < 3) return null;
 
@@ -129,35 +241,49 @@ export async function cuentaDeOrden(
   }
   if (!mejor || mejorPuntaje < 55) return null;
 
-  const hoy = new Date().toISOString().slice(0, 10);
-  const [{ data: contactos }, { data: contratos }] = await Promise.all([
-    supabase
-      .from("contactos_cuenta")
-      .select("id, nombre, rol_contacto, correo, telefono, notas")
-      .eq("cuenta_id", mejor.id)
-      .eq("activo", true),
-    supabase
-      .from("contratos")
-      .select("id, tipo_contrato, subtipo_tym, fecha_inicio, fecha_fin, visitas_incluidas, equipo_id")
-      .eq("cliente_id", mejor.id)
-      .eq("activo", true),
-  ]);
-  const contratosVigentes = ((contratos ?? []) as ContratoResumen[]).filter((c) =>
-    contratoVigente(c, hoy),
-  );
-
-  const orden = (contactos ?? []).slice().sort(
-    (a, b) =>
-      (ORDEN_ROL[a.rol_contacto ?? "otro"] ?? 5) -
-      (ORDEN_ROL[b.rol_contacto ?? "otro"] ?? 5),
-  );
-
+  const { contactos, contratos } = await contactosYContratosDe(supabase, mejor.id as string);
   return {
     id: mejor.id as string,
     nombre: mejor.nombre as string,
     tipo: (mejor.tipo as string | null) ?? null,
     indicaciones: (mejor.indicaciones as string | null) ?? null,
-    contactos: orden as ContactoCuenta[],
-    contratos: contratosVigentes,
+    contactos,
+    contratos,
   };
+}
+
+/**
+ * La misma lógica de puntaje que `cuentaDeOrden`, pero pura (sin
+ * `SupabaseClient`) — para el script de backfill (Paso 2 del blueprint
+ * `cerrar-deuda-datos`), que ya tiene la lista de clientes cargada y no
+ * necesita re-consultar Supabase por cada orden.
+ */
+export function mejorCoincidenciaCliente(
+  clientes: { id: string; nombre: string }[],
+  nombreObjetivo: string | null | undefined,
+): { id: string; puntaje: number } | null {
+  const objetivo = normalizarNombreCuenta(nombreObjetivo);
+  if (objetivo.length < 3) return null;
+
+  let mejor: { id: string; nombre: string } | null = null;
+  let mejorPuntaje = 0;
+  for (const c of clientes) {
+    const n = normalizarNombreCuenta(c.nombre);
+    if (!n) continue;
+    let p = 0;
+    if (n === objetivo) p = 100;
+    else if (objetivo.startsWith(n) || n.startsWith(objetivo)) p = 80;
+    else if (objetivo.includes(n) || n.includes(objetivo)) p = 60;
+    else {
+      const a = new Set(n.split(" "));
+      const comun = objetivo.split(" ").filter((w) => w.length > 2 && a.has(w)).length;
+      p = comun >= 2 ? 30 + comun * 5 : 0;
+    }
+    if (p > mejorPuntaje) {
+      mejorPuntaje = p;
+      mejor = c;
+    }
+  }
+  if (!mejor || mejorPuntaje < 55) return null;
+  return { id: mejor.id, puntaje: mejorPuntaje };
 }

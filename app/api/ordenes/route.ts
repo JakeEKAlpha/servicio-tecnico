@@ -291,6 +291,11 @@ export async function POST(request: Request) {
     hora_eta: horaEta,
     ingeniero_id: ingenieroId,
     sucursal: textoONull(datos.sucursal),
+    // Selector opcional en ModalNuevaOrden (blueprint cerrar-deuda-datos) —
+    // null si no se vinculó, igual que hoy hace cualquier caller que no
+    // mande estos campos (importador Lexmark/Xerox).
+    cliente_id: textoONull(datos.cliente_id),
+    equipo_id: textoONull(datos.equipo_id),
     estatus,
     ...(Object.keys(datosEspecificos(datos.datos_especificos)).length > 0
       ? { datos_especificos: datosEspecificos(datos.datos_especificos) }

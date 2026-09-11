@@ -12,6 +12,7 @@ import TablaOrdenes from "@/components/TablaOrdenes";
 import ModalPegarWOSR from "@/components/ModalPegarWOSR";
 import ModalPegarXerox from "@/components/ModalPegarXerox";
 import ModalNuevaOrden from "@/components/ModalNuevaOrden";
+import { listarClientesOpciones, listarEquiposOpciones } from "@/lib/cuentas/directorio";
 
 export default async function TableroPage({
   searchParams,
@@ -40,7 +41,7 @@ export default async function TableroPage({
   if (!esGerencia && perfil.zona_id) {
     consultaIng = consultaIng.eq("zona_id", perfil.zona_id);
   }
-  const [{ data: ingenieros }, { data: marcas }, { data: sucursales }] =
+  const [{ data: ingenieros }, { data: marcas }, { data: sucursales }, clientes, equipos] =
     await Promise.all([
       consultaIng,
       supabase.from("marcas").select("id, nombre").order("nombre"),
@@ -49,6 +50,8 @@ export default async function TableroPage({
         .select("id, nombre, zona_id")
         .eq("activa", true)
         .order("nombre"),
+      listarClientesOpciones(supabase),
+      listarEquiposOpciones(supabase),
     ]);
 
   // Conteo por estatus (del conjunto cargado, antes de la búsqueda).
@@ -109,6 +112,8 @@ export default async function TableroPage({
                 (i) => i.zona_id === perfil.zona_id,
               )}
               marcas={marcas ?? []}
+              clientes={clientes}
+              equipos={equipos}
             />
           )}
         </div>
