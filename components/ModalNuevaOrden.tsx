@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SelectorIngenieroSucursal, {
   type IngenieroOpcion,
+  type SucursalOpcion,
 } from "@/components/SelectorIngenieroSucursal";
 import { boton, botonSec, campo as campoCls, etiqueta } from "@/lib/ui";
 import SelectorHora from "@/components/SelectorHora";
@@ -91,11 +92,13 @@ function Progreso({ paso }: { paso: 1 | 2 }) {
 
 export default function ModalNuevaOrden({
   ingenieros,
+  sucursales,
   marcas,
   clientes,
   equipos,
 }: {
   ingenieros: IngenieroOpcion[];
+  sucursales?: SucursalOpcion[];
   marcas: MarcaOpcion[];
   clientes: ClienteOpcion[];
   equipos: EquipoOpcion[];
@@ -422,6 +425,7 @@ export default function ModalNuevaOrden({
                   </div>
                   <SelectorIngenieroSucursal
                     ingenieros={ingenieros}
+                    sucursales={sucursales}
                     sucursal={d.sucursal}
                     ingenieroId={d.ingeniero_id}
                     onSucursal={(s) => set("sucursal", s)}

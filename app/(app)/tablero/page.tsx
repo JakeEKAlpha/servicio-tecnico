@@ -111,6 +111,9 @@ export default async function TableroPage({
               ingenieros={(ingenieros ?? []).filter(
                 (i) => i.zona_id === perfil.zona_id,
               )}
+              sucursales={(sucursales ?? []).filter(
+                (s) => s.zona_id === perfil.zona_id,
+              )}
               marcas={marcas ?? []}
               clientes={clientes}
               equipos={equipos}
@@ -166,6 +169,7 @@ export default async function TableroPage({
           <TablaOrdenes
             ordenes={filtradas}
             ingenieros={ingenieros ?? []}
+            sucursales={sucursales ?? []}
             esGerencia={esGerencia}
           />
         </Revelar>

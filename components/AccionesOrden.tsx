@@ -9,6 +9,7 @@ import Modal from "@/components/Modal";
 import PanelDeslizante from "@/components/tablero/PanelDeslizante";
 import SelectorIngenieroSucursal, {
   type IngenieroOpcion,
+  type SucursalOpcion,
 } from "@/components/SelectorIngenieroSucursal";
 import SelectorHora from "@/components/SelectorHora";
 
@@ -26,11 +27,13 @@ export type OrdenAcciones = {
 export default function AccionesOrden({
   orden,
   ingenieros,
+  sucursales,
   esGerencia,
   totalVisitas,
 }: {
   orden: OrdenAcciones;
   ingenieros: IngenieroOpcion[];
+  sucursales?: SucursalOpcion[];
   esGerencia: boolean;
   totalVisitas: number;
 }) {
@@ -232,6 +235,7 @@ export default function AccionesOrden({
               </div>
               <SelectorIngenieroSucursal
                 ingenieros={ingenieros}
+                sucursales={sucursales}
                 sucursal={sucursal}
                 ingenieroId={ingeniero}
                 onSucursal={setSucursal}

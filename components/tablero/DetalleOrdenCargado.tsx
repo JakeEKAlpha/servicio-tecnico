@@ -105,6 +105,7 @@ export default async function DetalleOrdenCargado({
     <DetalleOrden
       orden={detalle}
       ingenieros={ingenieros ?? []}
+      sucursales={sucursales ?? []}
       historial={historial ?? []}
       esGerencia={esGerencia}
       zonas={zonas ?? []}

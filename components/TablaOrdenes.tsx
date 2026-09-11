@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { OrdenListada } from "@/lib/ordenes/listar";
-import type { IngenieroOpcion } from "@/components/SelectorIngenieroSucursal";
+import type {
+  IngenieroOpcion,
+  SucursalOpcion,
+} from "@/components/SelectorIngenieroSucursal";
 import { colorOrden, claseEstatus } from "@/lib/tema";
 import { enlace, chip, tarjetaInteractiva } from "@/lib/ui";
 import AccionesOrden, { type OrdenAcciones } from "@/components/AccionesOrden";
@@ -56,12 +59,15 @@ const OCULTA_CON_PANEL = new Set<(typeof COLUMNAS)[number]>([
   "PDF",
 ]);
 
+type SucursalConZona = SucursalOpcion & { zona_id?: string };
+
 type Fila = {
   o: OrdenListada;
   cerrada: boolean;
   fechaCls: string;
   punto: string;
   ings: IngenieroOpcion[];
+  sucursalesFila: SucursalConZona[];
   accionesOrden: OrdenAcciones;
   totalVisitas: number;
 };
@@ -69,10 +75,12 @@ type Fila = {
 export default function TablaOrdenes({
   ordenes,
   ingenieros,
+  sucursales,
   esGerencia,
 }: {
   ordenes: OrdenListada[];
   ingenieros: IngenieroOpcion[];
+  sucursales?: SucursalConZona[];
   esGerencia: boolean;
 }) {
   const pathname = usePathname();
@@ -114,6 +122,11 @@ export default function TablaOrdenes({
             (i) => (i as { zona_id?: string }).zona_id === o.zona_id,
           )
         : ingenieros,
+      // Mismo criterio que `ings`: gerencia ve todas las zonas junto, así
+      // que cada fila necesita solo las sucursales de SU zona.
+      sucursalesFila: esGerencia
+        ? (sucursales ?? []).filter((s) => s.zona_id === o.zona_id)
+        : (sucursales ?? []),
       accionesOrden: {
         id: o.id,
         zona_id: o.zona_id,
@@ -132,7 +145,7 @@ export default function TablaOrdenes({
     <>
       {/* --- Móvil: tarjetas --- */}
       <ul className="space-y-2 p-3 md:hidden">
-        {filas.map(({ o, cerrada, punto, ings, accionesOrden, totalVisitas }) => (
+        {filas.map(({ o, cerrada, punto, ings, sucursalesFila, accionesOrden, totalVisitas }) => (
           <li
             key={o.id}
             className={
@@ -192,6 +205,7 @@ export default function TablaOrdenes({
                 <AccionesOrden
                   orden={accionesOrden}
                   ingenieros={ings}
+                  sucursales={sucursalesFila}
                   esGerencia={esGerencia}
                   totalVisitas={totalVisitas}
                 />
@@ -220,7 +234,7 @@ export default function TablaOrdenes({
           </thead>
           <tbody>
             {filas.map(
-              ({ o, cerrada, fechaCls, punto, ings, accionesOrden, totalVisitas }) => (
+              ({ o, cerrada, fechaCls, punto, ings, sucursalesFila, accionesOrden, totalVisitas }) => (
                 <tr
                   key={o.id}
                   className={
@@ -271,6 +285,7 @@ export default function TablaOrdenes({
                     <AccionesOrden
                       orden={accionesOrden}
                       ingenieros={ings}
+                  sucursales={sucursalesFila}
                       esGerencia={esGerencia}
                       totalVisitas={totalVisitas}
                     />

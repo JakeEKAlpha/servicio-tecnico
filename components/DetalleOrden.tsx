@@ -6,6 +6,7 @@ import { ESTATUS_MANUALES, ESTATUS_ORDEN } from "@/lib/ordenes/estatus";
 import { boton, botonSec, campo } from "@/lib/ui";
 import SelectorIngenieroSucursal, {
   type IngenieroOpcion,
+  type SucursalOpcion,
 } from "@/components/SelectorIngenieroSucursal";
 import SelectorHora from "@/components/SelectorHora";
 import Colapsable from "@/components/Colapsable";
@@ -157,6 +158,7 @@ function CampoEditable({
 export default function DetalleOrden({
   orden,
   ingenieros,
+  sucursales,
   historial,
   esGerencia,
   zonas = [],
@@ -165,6 +167,7 @@ export default function DetalleOrden({
 }: {
   orden: OrdenDetalle;
   ingenieros: Ingeniero[];
+  sucursales?: SucursalOpcion[];
   historial: HistorialItem[];
   esGerencia: boolean;
   zonas?: { id: string; nombre: string }[];
@@ -495,6 +498,7 @@ export default function DetalleOrden({
           </div>
           <SelectorIngenieroSucursal
             ingenieros={ingenieros}
+            sucursales={sucursales}
             sucursal={sucursal}
             ingenieroId={ingeniero}
             onSucursal={setSucursal}

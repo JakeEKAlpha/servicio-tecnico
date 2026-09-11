@@ -9,16 +9,27 @@ export type IngenieroOpcion = {
   sucursal: string | null;
 };
 
+export type SucursalOpcion = { nombre: string };
+
 /**
  * Par de desplegables Sucursal + Ingeniero:
  *  - al elegir sucursal, el desplegable de ingeniero se filtra a esa sucursal
  *  - opción "➕ Ver ingenieros de otras sucursales…" para ver el resto
  *  - al elegir ingeniero, la sucursal se alinea con la suya
  *
- * Componente controlado: el padre guarda `sucursal` e `ingenieroId`.
+ * Componente controlado: el padre guarda `sucursal` e `ingenieroId`. El
+ * valor que viaja sigue siendo el **nombre** de la sucursal (texto) — eso no
+ * cambia, es lo que ya resuelve el trigger de `ordenes.sucursal_id` en la BD.
+ *
+ * `sucursales`: lista canónica de la tabla `sucursales` para las opciones del
+ * primer desplegable — antes se armaba de los valores únicos de
+ * `ingenieros.sucursal`, lo que dejaba fuera sucursales sin ingenieros
+ * todavía y podía inventar una "sucursal fantasma" por un typo. Si no se
+ * pasa (compatibilidad), cae al comportamiento anterior.
  */
 export default function SelectorIngenieroSucursal({
   ingenieros,
+  sucursales: sucursalesProp,
   sucursal,
   ingenieroId,
   onSucursal,
@@ -26,6 +37,7 @@ export default function SelectorIngenieroSucursal({
   disabled,
 }: {
   ingenieros: IngenieroOpcion[];
+  sucursales?: SucursalOpcion[];
   sucursal: string;
   ingenieroId: string;
   onSucursal: (s: string) => void;
@@ -34,11 +46,13 @@ export default function SelectorIngenieroSucursal({
 }) {
   const [verTodos, setVerTodos] = useState(false);
 
-  const sucursales = [
-    ...new Set(
-      ingenieros.map((i) => i.sucursal).filter((s): s is string => !!s),
-    ),
-  ].sort();
+  const sucursales = sucursalesProp
+    ? [...new Set(sucursalesProp.map((s) => s.nombre))].sort()
+    : [
+        ...new Set(
+          ingenieros.map((i) => i.sucursal).filter((s): s is string => !!s),
+        ),
+      ].sort();
 
   const visibles =
     verTodos || !sucursal
