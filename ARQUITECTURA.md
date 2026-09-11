@@ -265,7 +265,14 @@ que sí existe hoy. Reescrito contra el estado verificado.
 ### DESPUÉS DE ESO — Features
 - [ ] Notificaciones / realtime (Supabase Realtime).
 - [ ] Cargar `equipos`/`contratos` reales desde Gerencia (la feature ya existe, falta la data).
-- [ ] Reportes / métricas.
+- [ ] **Reportes / métricas — pantalla de análisis para gerencia+coordinación (SLA Lexmark).**
+      Notas 2026-09-11 para cuando se diseñe: el usuario ya lleva tracking manual en un Sheet
+      ("DATOS WO" en su Drive) con columnas que le interesan a gerencia: `SLA`, `TIEMPO QUE PASO
+      DEL SLA`, `VALIDEZ DEL SLA`, `JUSTIFICANTE`, `RESULTADO`, `VALIDEZ JUSTIFICADA`. Lexmark ya
+      etiqueta motivos de retraso (ej. "DELAYED DUE TO CUSTOMER") que a veces excusan el
+      incumplimiento — la pantalla de análisis necesita capturar esa justificación humana, no solo
+      la comparación mecánica de fechas. El usuario va a compartir un dashboard que ya diseñó.
+      Distinto del reordenamiento de la cola de asignación (ver abajo), que sí ya está implementado.
 - [x] **Responsive — verificado 2026-09-11 (375px, mobile).** `/tablero` (tarjetas), detalle de
       orden y `/tablero-dias` revisados en vivo con sesión real. Sin bugs encontrados — el Gantt
       necesita scroll horizontal para ver más de ~2 horas a la vez, esperable en este tipo de

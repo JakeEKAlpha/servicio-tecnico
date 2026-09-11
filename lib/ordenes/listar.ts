@@ -1,21 +1,27 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { prioridadDe, prioridadServicio } from "@/lib/ordenes/estatus";
+import { horasParaVencerSla } from "@/lib/ordenes/sla";
 
 /**
  * Lista las órdenes visibles para el usuario (RLS filtra por zona) con el
  * nombre de ingeniero y marca resueltos, ordenadas:
  *   1) prioridad de estatus  2) prioridad de tipo de servicio (WO Lexmark >
  *      Xerox > SR Lexmark > Renta > Garantía/Póliza > TyM > resto, ver
- *      `prioridadServicio`)  3) numero_visita  4) fecha_eta (sin fecha al final)
+ *      `prioridadServicio`)  3) urgencia de SLA Lexmark (qué tan cerca está
+ *      de vencer — desempata dentro del mismo tipo de servicio, ver
+ *      `horasParaVencerSla`)  4) numero_visita  5) fecha_eta (sin fecha al
+ *      final)
  *
  * Usado por `GET /api/ordenes` y por la página del Tablero.
  */
 
-/** Columnas que realmente consume el Tablero (evita traer los ~20 campos
- *  restantes de `ordenes`, incluidos 2 jsonb, en cada fila de la lista). */
+/** Columnas que realmente consume el Tablero. `datos_especificos` y
+ *  `creado_en` se traen a propósito (antes se evitaban por ser el jsonb más
+ *  pesado) — los necesita `horasParaVencerSla` para ordenar por urgencia. */
 const COLUMNAS_LISTA =
   "id, zona_id, origen, numero_orden, numero_visita, estatus, fecha_eta, hora_eta, " +
   "cliente, localidad, estado, sucursal, ingeniero_id, link_doc, link_pdf, " +
+  "datos_especificos, creado_en, " +
   "ingenieros(nombre), marcas(nombre), contratos(tipo_contrato)";
 
 export type OrdenListada = {
@@ -66,7 +72,11 @@ export async function listarOrdenes(
     ingenieros: Rel;
     marcas: Rel;
     contratos: RelContrato;
+    datos_especificos: Record<string, string> | null;
+    creado_en: string | null;
   };
+
+  const ahora = new Date();
 
   const ordenes = ((filas ?? []) as unknown as Fila[])
     .map(({ ingenieros, marcas, contratos, ...orden }) => ({
@@ -84,6 +94,17 @@ export async function listarOrdenes(
       const sb = prioridadServicio(b.origen, b.marca_nombre, b._tipoContrato);
       if (sa !== sb) return sa - sb;
 
+      // Desempate por urgencia de SLA: null (no aplica o falta el dato) no
+      // debe moverse — se queda donde ya lo puso `prioridadServicio`, así
+      // que ordena después de cualquier orden con urgencia real.
+      const ua = horasParaVencerSla(a.origen, a.datos_especificos, a.creado_en, ahora);
+      const ub = horasParaVencerSla(b.origen, b.datos_especificos, b.creado_en, ahora);
+      if (ua !== ub) {
+        if (ua === null) return 1;
+        if (ub === null) return -1;
+        return ua - ub;
+      }
+
       const va = Number(a.numero_visita) || 1;
       const vb = Number(b.numero_visita) || 1;
       if (va !== vb) return va - vb;
@@ -93,7 +114,7 @@ export async function listarOrdenes(
       return fa < fb ? -1 : fa > fb ? 1 : 0;
     })
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .map(({ _tipoContrato, ...orden }) => orden) as OrdenListada[];
+    .map(({ _tipoContrato, datos_especificos, creado_en, ...orden }) => orden) as OrdenListada[];
 
   return { ordenes, error: null };
 }
