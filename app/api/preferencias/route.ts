@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requerirUsuario } from "@/lib/auth/requerirSesion";
 import {
   IDS_COLUMNAS_TABLERO,
   IDS_OCULTABLES,
@@ -81,13 +81,9 @@ function esColumnasAnchos(v: unknown): boolean {
 }
 
 export async function GET(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "No hay sesión." }, { status: 401 });
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase } = s;
 
   const clave = new URL(request.url).searchParams.get("clave");
   if (!clave || !(CLAVES_VALIDAS as readonly string[]).includes(clave)) {
@@ -107,13 +103,9 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "No hay sesión." }, { status: 401 });
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase, userId } = s;
 
   let body: { clave?: unknown; valor?: unknown };
   try {
@@ -154,7 +146,7 @@ export async function PUT(request: Request) {
   const { error } = await supabase
     .from("preferencias_usuario")
     .upsert(
-      { user_id: user.id, clave, valor, actualizado_en: new Date().toISOString() },
+      { user_id: userId, clave, valor, actualizado_en: new Date().toISOString() },
       { onConflict: "user_id,clave" },
     );
 

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requerirPerfil } from "@/lib/auth/requerirSesion";
 import { parsearReporteLexmark } from "@/lib/importar/lexmark";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { MARCA_LEXMARK_ID } from "@/lib/marcas";
+import { excedeLimite, ipDeLaPeticion } from "@/lib/rateLimit";
 
 /**
  * Importación de órdenes desde el reporte WO/SR de Lexmark (texto pegado,
@@ -18,35 +19,17 @@ import { MARCA_LEXMARK_ID } from "@/lib/marcas";
  */
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const s = await requerirPerfil();
+  if (!s.ok) return s.res;
+  const { supabase, perfil } = s;
 
-  // 1) Sesión + perfil
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  // Alta masiva de órdenes — 15/min por IP, para no golpear la BD si el
+  // texto pegado se manda por error muchas veces seguidas.
+  const ip = await ipDeLaPeticion();
+  if (excedeLimite(`importar-lexmark:${ip}`, 15, 60_000)) {
     return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
-
-  const { data: perfil, error: perfilError } = await supabase
-    .from("perfiles")
-    .select("zona_id, rol")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (perfilError) {
-    return NextResponse.json(
-      { ok: false, error: "No se pudo leer el perfil del usuario." },
-      { status: 500 },
-    );
-  }
-  if (!perfil) {
-    return NextResponse.json(
-      { ok: false, error: "Tu usuario no tiene un perfil asignado." },
-      { status: 403 },
+      { ok: false, error: "Demasiadas solicitudes. Espera un momento." },
+      { status: 429 },
     );
   }
 

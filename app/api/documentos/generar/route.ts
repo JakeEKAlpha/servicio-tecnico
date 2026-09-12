@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requerirUsuario } from "@/lib/auth/requerirSesion";
 import { generarDocumento, ErrorGeneracion } from "@/lib/documentos/generar";
+import { excedeLimite, ipDeLaPeticion } from "@/lib/rateLimit";
 
 /**
  * Generación de Doc + PDF desde la plantilla de Google Docs.
@@ -13,17 +14,18 @@ import { generarDocumento, ErrorGeneracion } from "@/lib/documentos/generar";
  * el original). No cambia el estatus de la orden — eso lo hacen los puntos 1 y 2.
  */
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase } = s;
 
-  // Sesión
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  // Cada llamada gasta cuota real de la API de Google (Docs/Drive) — 20/min
+  // por IP, generoso para uso normal (el flujo ya lo llama automático al
+  // asignar) pero corta un loop/abuso antes de que cueste dinero real.
+  const ip = await ipDeLaPeticion();
+  if (excedeLimite(`generar-doc:${ip}`, 20, 60_000)) {
     return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
+      { ok: false, error: "Demasiadas solicitudes. Espera un momento." },
+      { status: 429 },
     );
   }
 

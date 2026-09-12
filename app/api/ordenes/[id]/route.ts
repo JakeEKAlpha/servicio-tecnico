@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requerirUsuario, requerirPerfil } from "@/lib/auth/requerirSesion";
 import { ESTATUS_ORDEN, ESTATUS_MANUALES } from "@/lib/ordenes/estatus";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { generarDocumento } from "@/lib/documentos/generar";
@@ -58,17 +58,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase } = s;
 
   const { data: orden, error } = await supabase
     .from("ordenes")
@@ -100,40 +92,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-
-  // 1) Sesión + perfil
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
-
-  const { data: perfil, error: perfilError } = await supabase
-    .from("perfiles")
-    .select("zona_id, rol")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (perfilError) {
-    return NextResponse.json(
-      { ok: false, error: "No se pudo leer el perfil del usuario." },
-      { status: 500 },
-    );
-  }
-  if (!perfil) {
-    return NextResponse.json(
-      { ok: false, error: "Tu usuario no tiene un perfil asignado." },
-      { status: 403 },
-    );
-  }
+  const s = await requerirPerfil();
+  if (!s.ok) return s.res;
+  const { supabase, perfil } = s;
   const veTodo = esRolQueVeTodo(perfil.rol as string);
 
-  // 2) Body
+  // 1) Body
   let datos: Record<string, unknown>;
   try {
     datos = (await request.json()) as Record<string, unknown>;
@@ -214,7 +178,7 @@ export async function PATCH(
     );
   }
 
-  // 3) Leer la orden actual (RLS decide si el usuario la puede ver/editar)
+  // 2) Leer la orden actual (RLS decide si el usuario la puede ver/editar)
   const { data: ordenActual, error: readError } = await supabase
     .from("ordenes")
     .select("*")
@@ -290,7 +254,12 @@ export async function PATCH(
         { status: 400 },
       );
     }
-    if (estatusActual === "Concluido" && nuevoEstatus !== "Concluido") {
+    // Concluido es un candado para coordinador/ingeniero, pero no para
+    // gerencia/admin (decisión del usuario, 2026-09-12): puede reabrir una
+    // orden que se concluyó por error. Mismo criterio en el bloque de
+    // reasignación de abajo y en los de detalle/sucursal más arriba —
+    // los 4 comparten `!veTodo` a propósito, no los desincronices.
+    if (estatusActual === "Concluido" && nuevoEstatus !== "Concluido" && !veTodo) {
       return NextResponse.json(
         { ok: false, error: "Orden concluida: ya no se puede modificar." },
         { status: 409 },
@@ -318,7 +287,7 @@ export async function PATCH(
   if (traeAsignacion || (nuevoEstatus === "Asignado" && traeSucursal)) {
     // --- Flujo "reasignar" (guardarAsignacion, sin validación de ETA por
     //     preferencias — esa parte no está migrada) ---
-    if (estatusActual === "Concluido") {
+    if (estatusActual === "Concluido" && !veTodo) {
       return NextResponse.json(
         { ok: false, error: "Orden concluida: ya no se puede modificar." },
         { status: 409 },

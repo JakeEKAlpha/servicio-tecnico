@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requerirUsuario } from "@/lib/auth/requerirSesion";
 
 /**
  * Suscripción push del usuario actual a este dispositivo.
@@ -8,16 +8,9 @@ import { createClient } from "@/lib/supabase/server";
  */
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase, userId } = s;
 
   let body: { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
   try {
@@ -40,7 +33,7 @@ export async function POST(request: Request) {
   }
 
   const { error } = await supabase.from("push_subscripciones").upsert(
-    { perfil_id: user.id, endpoint, p256dh, auth_key: authKey },
+    { perfil_id: userId, endpoint, p256dh, auth_key: authKey },
     { onConflict: "endpoint" },
   );
 
@@ -51,16 +44,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase, userId } = s;
 
   let body: { endpoint?: string };
   try {
@@ -83,7 +69,7 @@ export async function DELETE(request: Request) {
     .from("push_subscripciones")
     .delete()
     .eq("endpoint", endpoint)
-    .eq("perfil_id", user.id);
+    .eq("perfil_id", userId);
 
   if (error) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });

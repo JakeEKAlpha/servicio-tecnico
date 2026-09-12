@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requerirUsuario, requerirPerfil } from "@/lib/auth/requerirSesion";
 import { ESTADOS_PIEZA } from "@/lib/piezas";
 
 /**
@@ -9,37 +9,14 @@ import { ESTADOS_PIEZA } from "@/lib/piezas";
  *          y la registra en el catálogo si es nueva.
  */
 
-async function sesion(supabase: Awaited<ReturnType<typeof createClient>>) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
-
-async function rolDe(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string,
-): Promise<string> {
-  const { data } = await supabase
-    .from("perfiles")
-    .select("rol")
-    .eq("id", userId)
-    .maybeSingle();
-  return String(data?.rol ?? "");
-}
-
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  if (!(await sesion(supabase))) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase } = s;
 
   const { data, error } = await supabase
     .from("piezas_orden")
@@ -61,14 +38,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const user = await sesion(supabase);
-  if (!user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirPerfil();
+  if (!s.ok) return s.res;
+  const { supabase, perfil } = s;
 
   let body: Record<string, unknown>;
   try {
@@ -85,7 +57,7 @@ export async function POST(
 
   // Regla del negocio: el ingeniero solo puede PEDIR piezas (en_espera).
   // El coordinador (y gerencia) dan de alta RECOMENDADAS por defecto.
-  const rol = await rolDe(supabase, user.id);
+  const rol = perfil.rol;
   const pedido = typeof body.estado === "string" &&
     (ESTADOS_PIEZA as readonly string[]).includes(body.estado)
       ? (body.estado as string)

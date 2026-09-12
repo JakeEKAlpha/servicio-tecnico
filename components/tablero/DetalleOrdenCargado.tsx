@@ -36,7 +36,7 @@ export default async function DetalleOrdenCargado({
   const esGerencia = esRolQueVeTodo(perfil.rol);
 
   const [
-    { data: ingenieros },
+    { data: ingenierosCrudos },
     { data: historial },
     { data: piezas },
     { data: zonas },
@@ -45,7 +45,7 @@ export default async function DetalleOrdenCargado({
   ] = await Promise.all([
     supabase
       .from("ingenieros")
-      .select("id, nombre, sucursal")
+      .select("id, nombre, sucursal_id")
       .eq("zona_id", orden.zona_id)
       .eq("activo", true)
       .order("nombre"),
@@ -70,6 +70,16 @@ export default async function DetalleOrdenCargado({
       .order("nombre"),
     cuentaDeOrden(supabase, orden.cliente, orden.cliente_id),
   ]);
+
+  // `ingenieros.sucursal` (texto) ya no existe en la BD — solo sucursal_id.
+  // Se resuelve el nombre aquí contra `sucursales` (ya cargada arriba).
+  const nombrePorSucursalId = new Map(
+    (sucursales ?? []).map((s) => [s.id, s.nombre] as const),
+  );
+  const ingenieros = (ingenierosCrudos ?? []).map((i) => ({
+    ...i,
+    sucursal: i.sucursal_id ? (nombrePorSucursalId.get(i.sucursal_id) ?? null) : null,
+  }));
 
   // Stock de la sucursal de la orden, para mostrar disponibilidad por pieza.
   const stock: Record<string, number> = {};

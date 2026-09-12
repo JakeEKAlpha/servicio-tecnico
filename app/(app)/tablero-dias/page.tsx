@@ -33,14 +33,28 @@ export default async function TableroDiasPage({
 
   let consultaIng = supabase
     .from("ingenieros")
-    .select("id, nombre, sucursal")
+    .select("id, nombre, sucursal_id")
     .eq("activo", true)
-    .order("sucursal")
     .order("nombre");
   if (!esGerencia && perfil.zona_id) {
     consultaIng = consultaIng.eq("zona_id", perfil.zona_id);
   }
-  const { data: ingenieros } = await consultaIng;
+  const [{ data: ingenierosCrudos }, { data: sucursalesCat }] = await Promise.all([
+    consultaIng,
+    supabase.from("sucursales").select("id, nombre"),
+  ]);
+
+  // `ingenieros.sucursal` (texto) ya no existe en la BD — solo sucursal_id.
+  // Se resuelve el nombre aquí y se ordena por él, igual que antes.
+  const nombrePorSucursalId = new Map(
+    (sucursalesCat ?? []).map((s) => [s.id, s.nombre] as const),
+  );
+  const ingenieros = (ingenierosCrudos ?? [])
+    .map((i) => ({
+      ...i,
+      sucursal: i.sucursal_id ? (nombrePorSucursalId.get(i.sucursal_id) ?? null) : null,
+    }))
+    .sort((a, b) => (a.sucursal ?? "").localeCompare(b.sucursal ?? "") || a.nombre.localeCompare(b.nombre));
 
   const { ordenes } = await listarOrdenes(supabase, {});
 

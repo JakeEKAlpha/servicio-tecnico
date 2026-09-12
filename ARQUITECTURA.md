@@ -112,7 +112,7 @@ con RLS) y tienen `revoke execute` a anon/authenticated (no se llaman por RPC).
 | `GET /api/ordenes` | parte de datos de `reconstruirVistaGeneral()` | ✅ (vía `lib/ordenes/listar`) |
 | `GET/PATCH /api/ordenes/[id]` | `cambiarEstatus()` / `guardarAsignacion()` | ✅ — el update, los triggers hacen el resto. `regenerar_doc:false` para el Gantt |
 | `POST /api/importar/lexmark` | `agregarFilaCruda()` + `importarDesdeHoja()` | ✅ — parseo por posición (28 cols), sin encabezados, detecta WO/SR por 1ª celda |
-| `POST /api/importar/xerox` | (nuevo — multimarca) | ✅ — captura de reportes Xerox (SR/tarea) |
+| `ModalPegarXerox` → `POST /api/ordenes` | (nuevo — multimarca) | ✅ — captura de reportes Xerox (SR/tarea); parseo en el cliente (`lib/importar/xerox.ts`), sin endpoint de importación dedicado (no existe `/api/importar/xerox` — corregido 2026-09-12, este doc lo describía mal) |
 | `POST /api/documentos/generar` | `generarDocumentoDesdeDatosDocumento()` | ✅ — copia plantilla → 16 marcadores → PDF → Unidad compartida |
 | `GET/POST /api/ordenes/[id]/piezas`, `PATCH/DELETE /api/piezas/[id]` | (nuevo — Almacén) | ✅ |
 | `GET/POST /api/inventario`, `PATCH/DELETE /api/inventario/[id]` | (nuevo — Almacén/Inventario) | ✅ |
