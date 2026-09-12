@@ -62,13 +62,13 @@ export default async function TableroPage({
   // gerencia (la tabla los filtra por zona de cada orden).
   let consultaIng = supabase
     .from("ingenieros")
-    .select("id, nombre, sucursal, zona_id")
+    .select("id, nombre, sucursal_id, zona_id")
     .eq("activo", true)
     .order("nombre");
   if (!esGerencia && perfil.zona_id) {
     consultaIng = consultaIng.eq("zona_id", perfil.zona_id);
   }
-  const [{ data: ingenieros }, { data: marcas }, { data: sucursales }, clientes, equipos] =
+  const [{ data: ingenierosCrudos }, { data: marcas }, { data: sucursales }, clientes, equipos] =
     await Promise.all([
       consultaIng,
       supabase.from("marcas").select("id, nombre").order("nombre"),
@@ -80,6 +80,18 @@ export default async function TableroPage({
       listarClientesOpciones(supabase),
       listarEquiposOpciones(supabase),
     ]);
+
+  // `ingenieros.sucursal` (texto) ya no existe en la BD — solo sucursal_id.
+  // El nombre se resuelve aquí contra `sucursales` (ya cargada arriba) en vez
+  // de otro join, para que `IngenieroOpcion.sucursal` (string) siga
+  // funcionando sin tocar los componentes que la consumen.
+  const nombrePorSucursalId = new Map(
+    (sucursales ?? []).map((s) => [s.id, s.nombre] as const),
+  );
+  const ingenieros = (ingenierosCrudos ?? []).map((i) => ({
+    ...i,
+    sucursal: i.sucursal_id ? (nombrePorSucursalId.get(i.sucursal_id) ?? null) : null,
+  }));
 
   // Conteo por estatus (del conjunto cargado, antes de la búsqueda).
   const conteos = new Map<string, number>();
