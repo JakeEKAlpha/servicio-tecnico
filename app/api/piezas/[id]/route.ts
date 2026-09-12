@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requerirUsuario } from "@/lib/auth/requerirSesion";
 import { ESTADOS_PIEZA } from "@/lib/piezas";
 import { enviarPushAPerfil } from "@/lib/push/enviar";
 
@@ -15,16 +15,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase, userId } = s;
 
   let body: Record<string, unknown>;
   try {
@@ -151,7 +144,7 @@ export async function PATCH(
   const update: Record<string, unknown> = { estado };
   if (estado === "recibida") {
     update.recibida_en = new Date().toISOString();
-    update.recibida_por = user.id;
+    update.recibida_por = userId;
   }
 
   const { data, error } = await supabase
@@ -211,16 +204,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase } = s;
 
   const { error } = await supabase.from("piezas_orden").delete().eq("id", id);
   if (error) {

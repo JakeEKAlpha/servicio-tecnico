@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requerirUsuario, requerirPerfil } from "@/lib/auth/requerirSesion";
 import { listarOrdenes } from "@/lib/ordenes/listar";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { MARCA_LEXMARK_ID } from "@/lib/marcas";
@@ -93,18 +93,9 @@ function datosEspecificos(v: unknown): Record<string, string> {
 const VALORES_ACTIVOS = ["1", "true", "si", "sí", "yes"];
 
 export async function GET(request: Request) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase } = s;
 
   const soloActivos = VALORES_ACTIVOS.includes(
     (new URL(request.url).searchParams.get("activos") ?? "").toLowerCase(),
@@ -126,42 +117,11 @@ export async function GET(request: Request) {
 // ---------------------------------------------------------------------------
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const s = await requerirPerfil();
+  if (!s.ok) return s.res;
+  const { supabase, perfil } = s;
 
-  // 1) Sesión
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
-
-  // 2) Perfil del usuario (para saber su zona y su rol)
-  const { data: perfil, error: perfilError } = await supabase
-    .from("perfiles")
-    .select("zona_id, rol")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (perfilError) {
-    return NextResponse.json(
-      { ok: false, error: "No se pudo leer el perfil del usuario." },
-      { status: 500 },
-    );
-  }
-  if (!perfil) {
-    return NextResponse.json(
-      { ok: false, error: "Tu usuario no tiene un perfil asignado." },
-      { status: 403 },
-    );
-  }
-
-  // 3) Body
+  // 1) Body
   let datos: Record<string, unknown>;
   try {
     datos = (await request.json()) as Record<string, unknown>;
@@ -172,7 +132,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 4) Validaciones obligatorias (igual que crearOrdenRapida)
+  // 2) Validaciones obligatorias (igual que crearOrdenRapida)
   const cliente = limpiar(datos.cliente);
   const falla = limpiar(datos.falla);
   if (!cliente) {
@@ -188,7 +148,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 5) Zona destino
+  // 3) Zona destino
   //    - coordinador / ingeniero: siempre su propia zona (perfil).
   //    - gerencia / admin: no tienen zona fija, deben mandar `zona_id`.
   const veTodo = esRolQueVeTodo(perfil.rol as string);
@@ -223,28 +183,28 @@ export async function POST(request: Request) {
     );
   }
 
-  // 6) Marca (default Lexmark)
+  // 4) Marca (default Lexmark)
   const marcaId = textoONull(datos.marca_id) ?? MARCA_LEXMARK_ID;
 
-  // 7) origen: 'SR' | 'WO' -> se respeta; cualquier otra cosa -> 'MANUAL'
+  // 5) origen: 'SR' | 'WO' -> se respeta; cualquier otra cosa -> 'MANUAL'
   const origen =
     datos.origen === "SR" || datos.origen === "WO" ? datos.origen : "MANUAL";
 
-  // 8) Número de orden (manual o autogenerado)
+  // 6) Número de orden (manual o autogenerado)
   let numeroOrden = limpiar(datos.numero_orden);
   if (!numeroOrden) {
     numeroOrden = generarNumeroManual();
   }
 
-  // 9) Campos de asignación
+  // 7) Campos de asignación
   const fechaEta = textoONull(datos.fecha_eta); // 'YYYY-MM-DD' o null
   const horaEta = textoONull(datos.hora_eta); // texto (soporta rangos) o null
   const ingenieroId = textoONull(datos.ingeniero_id);
 
-  // 10) Estatus inicial: (fecha_eta && ingeniero_id) ? 'Asignado' : 'Nuevo'
+  // 8) Estatus inicial: (fecha_eta && ingeniero_id) ? 'Asignado' : 'Nuevo'
   const estatus = fechaEta && ingenieroId ? "Asignado" : "Nuevo";
 
-  // 11) Pre-chequeo de duplicado (misma lógica que getExistingKeys: número +
+  // 9) Pre-chequeo de duplicado (misma lógica que getExistingKeys: número +
   //     visita 1, dentro de la zona). El UNIQUE (zona_id, numero_orden,
   //     numero_visita) de la BD es el respaldo real.
   const { data: yaExiste, error: dupError } = await supabase
@@ -271,7 +231,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 12) Insert
+  // 10) Insert
   const nuevaOrden = {
     zona_id: zonaId,
     marca_id: marcaId,

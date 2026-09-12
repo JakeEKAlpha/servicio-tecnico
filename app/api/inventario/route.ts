@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { requerirUsuario } from "@/lib/auth/requerirSesion";
 
 /**
  * Stock de piezas por sucursal. La autorización la hace la RLS de la tabla
@@ -37,17 +38,9 @@ const CAMPOS = [
 ] as const;
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase } = s;
 
   let body: Record<string, unknown>;
   try {

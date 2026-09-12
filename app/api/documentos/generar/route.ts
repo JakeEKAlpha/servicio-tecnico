@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requerirUsuario } from "@/lib/auth/requerirSesion";
 import { generarDocumento, ErrorGeneracion } from "@/lib/documentos/generar";
 
 /**
@@ -13,19 +13,9 @@ import { generarDocumento, ErrorGeneracion } from "@/lib/documentos/generar";
  * el original). No cambia el estatus de la orden — eso lo hacen los puntos 1 y 2.
  */
 export async function POST(request: Request) {
-  const supabase = await createClient();
-
-  // Sesión
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return NextResponse.json(
-      { ok: false, error: "No hay sesión iniciada." },
-      { status: 401 },
-    );
-  }
+  const s = await requerirUsuario();
+  if (!s.ok) return s.res;
+  const { supabase } = s;
 
   // Body
   let body: Record<string, unknown>;
