@@ -260,7 +260,12 @@ export default function TablaOrdenes({
           </ul>
         ) : (
           <div className="scroll-oculto overflow-x-auto">
-            <table className="border-collapse text-sm" style={{ tableLayout: "fixed" }}>
+            {/* text-xs + celdas más angostas (auditoría 2026-09-11): con los
+                anchos por defecto reducidos para caber sin scroll en un
+                escritorio típico, una tipografía más compacta se ve mejor
+                que texto normal apretado. Solo afecta esta vista de tabla
+                de escritorio — Tarjetas y móvil no cambian. */}
+            <table className="border-collapse text-xs" style={{ tableLayout: "fixed" }}>
               <colgroup>
                 {columnasVisibles.map((c) => (
                   <col key={c.id} style={{ width: anchoDe(c.id) }} />
@@ -271,7 +276,7 @@ export default function TablaOrdenes({
                   {columnasVisibles.map((c) => (
                     <th
                       key={c.id}
-                      className="relative overflow-hidden text-ellipsis whitespace-nowrap px-3 py-2.5"
+                      className="relative overflow-hidden text-ellipsis whitespace-nowrap px-2 py-2"
                     >
                       {c.etiqueta}
                       <span
@@ -302,7 +307,7 @@ export default function TablaOrdenes({
                     {columnasVisibles.map((c) => (
                       <td
                         key={c.id}
-                        className="overflow-hidden text-ellipsis whitespace-nowrap px-3 py-2"
+                        className="overflow-hidden text-ellipsis whitespace-nowrap px-2 py-1.5"
                       >
                         {celdaTablero(c.id, f, esGerencia)}
                       </td>
