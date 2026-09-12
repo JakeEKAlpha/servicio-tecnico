@@ -26,6 +26,7 @@ import {
   AgendaHoy,
   AlertasCriticas,
   NecesitaAtencion,
+  RelojesZona,
   AccesosRapidos,
   FiltrosRapidos,
 } from "@/components/panel/widgets/basicos";
@@ -102,6 +103,8 @@ export default function Panel({
         );
       case "agenda":
         return <AgendaHoy filas={datos.base.agendaHoy} />;
+      case "relojes":
+        return <RelojesZona />;
       case "accesos":
         return <AccesosRapidos accesos={datos.base.accesos} />;
       case "alm_validar":
@@ -119,11 +122,16 @@ export default function Panel({
     () =>
       layout.lg
         .map((it) => it.i)
-        .filter(
-          (i) =>
-            !layout.ocultos.includes(i) && rolPuedeVer(i, rol) && !!widgetDef(i),
-        ),
-    [layout, rol],
+        .filter((i) => {
+          const d = widgetDef(i);
+          if (!d || layout.ocultos.includes(i) || !rolPuedeVer(i, rol)) return false;
+          // Widgets "solo escritorio" (ej. varios relojes uno junto al otro)
+          // no se encogen en móvil, se quitan del todo — si no, dejarían un
+          // hueco vacío en el acomodo de la rejilla.
+          if (d.soloEscritorio && bp === "sm") return false;
+          return true;
+        }),
+    [layout, rol, bp],
   );
 
   const layouts = useMemo(() => {

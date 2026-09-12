@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { claseTono, chipServicio, type Tono } from "@/lib/tema";
 import type { Kpi, Pendiente, Acceso, AgendaFila } from "@/lib/inicio/datos";
@@ -149,6 +150,67 @@ export function AgendaHoy({ filas }: { filas: AgendaFila[] }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+type ZonaReloj = { id: string; etiqueta: string; zonaIana: string };
+
+/** Las 3 zonas donde opera la empresa, cada una en un huso distinto
+ *  (UTC-7/-6/-5, sin horario de verano desde la reforma de 2022). Lista
+ *  simple a propósito: agregar otra ciudad es una línea más. */
+const ZONAS_RELOJ: ZonaReloj[] = [
+  { id: "bcs", etiqueta: "Baja CS", zonaIana: "America/Mazatlan" },
+  { id: "cdmx", etiqueta: "CDMX", zonaIana: "America/Mexico_City" },
+  { id: "cancun", etiqueta: "Cancún", zonaIana: "America/Cancun" },
+];
+
+function horaEnZona(zonaIana: string, ahora: Date): string {
+  return new Intl.DateTimeFormat("es-MX", {
+    timeZone: zonaIana,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(ahora);
+}
+
+/**
+ * Reloj por zona horaria — Baja California Sur, CDMX y Cancún caen en 3
+ * husos distintos; coordinar entre zonas requiere ver las 3 horas a la vez.
+ * Pedido del usuario 2026-09-11, solo para escritorio (marcado
+ * `soloEscritorio` en el catálogo — en el celular ya se ve la hora del
+ * sistema arriba).
+ */
+export function RelojesZona() {
+  const [ahora, setAhora] = useState<Date | null>(null);
+
+  useEffect(() => {
+    // La hora depende del reloj del navegador — se calcula tras montar
+    // (evita un mismatch de hidratación entre servidor y cliente) y se
+    // refresca cada medio minuto, suficiente para un reloj sin segundos.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAhora(new Date());
+    const id = setInterval(() => setAhora(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="grid h-full grid-cols-3 gap-2">
+      {ZONAS_RELOJ.map((z) => (
+        <div
+          key={z.id}
+          className="flex flex-col items-center justify-center gap-1 rounded-lg bg-surface-2 py-3"
+        >
+          <span className="text-2xl font-extrabold tabular-nums text-text">
+            {ahora ? horaEnZona(z.zonaIana, ahora) : "—:—"}
+          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+            {z.etiqueta}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

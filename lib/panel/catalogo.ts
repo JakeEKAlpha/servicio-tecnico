@@ -17,6 +17,9 @@ export type WidgetDef = {
   min: { w: number; h: number };
   /** Roles que pueden ver el widget. */
   roles: RolPanel[];
+  /** Solo tiene sentido en escritorio (ej. varios relojes uno junto al
+   *  otro) — se oculta del todo en el breakpoint móvil, no solo se encoge. */
+  soloEscritorio?: boolean;
 };
 
 const COORD: RolPanel[] = ["coordinador", "gerencia", "admin"];
@@ -37,6 +40,18 @@ export const CATALOGO: WidgetDef[] = [
   { id: "fases", titulo: "Distribución por fase", def: { w: 6, h: 3 }, min: { w: 4, h: 3 }, roles: TODOS },
   { id: "pendientes", titulo: "Órdenes por asignar", def: { w: 6, h: 4 }, min: { w: 4, h: 3 }, roles: COORD },
   { id: "agenda", titulo: "Agenda de hoy", def: { w: 4, h: 3 }, min: { w: 3, h: 2 }, roles: COORD },
+  // Baja California Sur, CDMX y Cancún caen en 3 husos distintos
+  // (UTC-7/-6/-5) — coordinar entre zonas requiere ver las 3 horas a la
+  // vez. Pedido del usuario 2026-09-11; solo escritorio (en el celular ya
+  // se ve la hora del sistema arriba).
+  {
+    id: "relojes",
+    titulo: "Zonas horarias",
+    def: { w: 4, h: 2 },
+    min: { w: 3, h: 2 },
+    roles: COORD,
+    soloEscritorio: true,
+  },
   { id: "accesos", titulo: "Accesos rápidos", def: { w: 4, h: 2 }, min: { w: 3, h: 2 }, roles: TODOS },
   { id: "alm_validar", titulo: "Piezas por validar", def: { w: 3, h: 2 }, min: { w: 2, h: 2 }, roles: ["almacen"] },
   { id: "alm_minimo", titulo: "Bajo mínimo", def: { w: 3, h: 2 }, min: { w: 2, h: 2 }, roles: ["almacen"] },
@@ -71,6 +86,7 @@ export const ORDEN_DEFECTO: Record<"coord" | "almacen", string[]> = {
     "kpi_eta",
     "atencion",
     "agenda",
+    "relojes",
     "fases",
     "accesos",
   ],
