@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   IDS_COLUMNAS_TABLERO,
   IDS_OCULTABLES,
-  ANCHO_MIN,
   ANCHO_MAX,
+  anchoMinDe,
 } from "@/lib/ordenes/columnasTablero";
 
 /**
@@ -75,7 +75,7 @@ function esColumnasAnchos(v: unknown): boolean {
     ([id, ancho]) =>
       (IDS_COLUMNAS_TABLERO as string[]).includes(id) &&
       typeof ancho === "number" &&
-      ancho >= ANCHO_MIN &&
+      ancho >= anchoMinDe(id) &&
       ancho <= ANCHO_MAX,
   );
 }

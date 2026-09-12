@@ -32,6 +32,12 @@ export type ColumnaTablero = {
   /** Se oculta automáticamente cuando el panel de detalle está abierto,
    *  sin importar la preferencia del usuario — es espacio, no elección. */
   colapsaConPanel?: boolean;
+  /** Ancho mínimo propio, si `ANCHO_MIN` (44px) es insuficiente — ej.
+   *  "Estatus / acciones" trae un `&lt;select&gt;` y botones reales, no solo
+   *  texto: a 44px quedarían tapados/inutilizables, no solo recortados
+   *  visualmente como pasaría con una columna de puro texto. Hallazgo de
+   *  auditoría 2026-09-11. */
+  anchoMin?: number;
 };
 
 export const COLUMNAS_TABLERO: ColumnaTablero[] = [
@@ -45,7 +51,13 @@ export const COLUMNAS_TABLERO: ColumnaTablero[] = [
   { id: "ingeniero", etiqueta: "Ingeniero", anchoDef: 160 },
   { id: "fecha_eta", etiqueta: "Fecha ETA", anchoDef: 130 },
   { id: "hora_eta", etiqueta: "Hora ETA", anchoDef: 90, colapsaConPanel: true },
-  { id: "estatus", etiqueta: "Estatus / acciones", anchoDef: 210, fijo: true },
+  {
+    id: "estatus",
+    etiqueta: "Estatus / acciones",
+    anchoDef: 210,
+    fijo: true,
+    anchoMin: 160,
+  },
 ];
 
 export const IDS_COLUMNAS_TABLERO = COLUMNAS_TABLERO.map((c) => c.id);
@@ -55,6 +67,12 @@ export const ANCHO_MAX = 480;
 
 export function columnaTablero(id: string): ColumnaTablero | undefined {
   return COLUMNAS_TABLERO.find((c) => c.id === id);
+}
+
+/** Ancho mínimo real para una columna — el suyo propio si lo define, si no
+ *  el genérico `ANCHO_MIN`. */
+export function anchoMinDe(id: string): number {
+  return columnaTablero(id)?.anchoMin ?? ANCHO_MIN;
 }
 
 /** IDs que el usuario puede ocultar (todo lo que no es `fijo`). */

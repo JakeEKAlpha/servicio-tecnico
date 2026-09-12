@@ -13,8 +13,8 @@ import { enlace, chip, tarjetaInteractiva } from "@/lib/ui";
 import { badgeSla } from "@/lib/ordenes/sla";
 import {
   COLUMNAS_TABLERO,
-  ANCHO_MIN,
   ANCHO_MAX,
+  anchoMinDe,
   type ColumnaTableroId,
 } from "@/lib/ordenes/columnasTablero";
 import AccionesOrden, { type OrdenAcciones } from "@/components/AccionesOrden";
@@ -179,21 +179,25 @@ export default function TablaOrdenes({
   function moverArrastre(e: React.PointerEvent<HTMLSpanElement>) {
     const a = arrastre.current;
     if (!a) return;
-    const nuevo = Math.min(ANCHO_MAX, Math.max(ANCHO_MIN, a.ancho0 + (e.clientX - a.x0)));
+    const nuevo = Math.min(
+      ANCHO_MAX,
+      Math.max(anchoMinDe(a.id), a.ancho0 + (e.clientX - a.x0)),
+    );
     setAnchos((prev) => ({ ...prev, [a.id]: nuevo }));
   }
   function soltarArrastre(e: React.PointerEvent<HTMLSpanElement>) {
     const a = arrastre.current;
     if (!a) return;
     arrastre.current = null;
-    setAnchos((prev) => {
-      fetch("/api/preferencias", {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ clave: "tablero_columnas_anchos", valor: prev }),
-      }).catch(() => undefined);
-      return prev;
-    });
+    // `anchos` (variable de closure) ya trae el último valor: cada
+    // `pointermove` disparó un re-render antes de este `pointerup`. Leerlo
+    // directamente es más simple y correcto que un updater de setState cuyo
+    // único fin sería leer `prev` para un efecto secundario (fetch).
+    fetch("/api/preferencias", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ clave: "tablero_columnas_anchos", valor: anchos }),
+    }).catch(() => undefined);
     e.currentTarget.releasePointerCapture(e.pointerId);
   }
 
@@ -274,6 +278,7 @@ export default function TablaOrdenes({
                         onPointerDown={iniciarArrastre(c.id)}
                         onPointerMove={moverArrastre}
                         onPointerUp={soltarArrastre}
+                        onPointerCancel={soltarArrastre}
                         className="absolute inset-y-0 right-0 w-2 cursor-col-resize touch-none select-none hover:bg-brand/30"
                         title="Arrastra para cambiar el ancho"
                       />
