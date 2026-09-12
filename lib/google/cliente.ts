@@ -5,8 +5,9 @@ import { docs as docsApi } from "@googleapis/docs";
 /**
  * Cliente de Google (Drive + Docs) autenticado con la cuenta de servicio.
  *
- * La llave va en la variable de entorno GOOGLE_SERVICE_ACCOUNT_KEY como el
- * JSON completo en una sola línea. NUNCA se commitea.
+ * La llave va en la variable de entorno GOOGLE_SERVICE_ACCOUNT_KEY_B64 como
+ * el JSON completo (el archivo .json de la cuenta de servicio), codificado
+ * en base64, en una sola línea. NUNCA se commitea.
  *
  * La cuenta de servicio necesita acceso (compartido como Editor) a:
  *  - la plantilla (Google Doc), y
