@@ -237,7 +237,7 @@ async function consultasPanel(supabase: SupabaseClient, perfil: Perfil) {
   };
   const unaMarca = (r: FilaAtencion["marcas"]) => (Array.isArray(r) ? r[0] : r)?.nombre ?? null;
 
-  const atencion: ItemAtencion[] = ((atencionRaw.data ?? []) as unknown as FilaAtencion[])
+  const candidatos = ((atencionRaw.data ?? []) as unknown as FilaAtencion[])
     .map((o) => {
       const horas = horasParaVencerSla(o.origen, o.datos_especificos, o.creado_en, ahora);
       const vencido = horas !== null && horas < 0;
@@ -254,15 +254,28 @@ async function consultasPanel(supabase: SupabaseClient, perfil: Perfil) {
         _horas: horas, // usado solo para ordenar, se descarta abajo
       };
     })
-    .filter((x): x is ItemAtencion & { _horas: number | null } => x !== null)
-    .sort((a, b) => {
-      if (a.motivo !== b.motivo) return a.motivo === "vencido" ? -1 : 1;
-      if (a.motivo === "vencido") return (a._horas ?? 0) - (b._horas ?? 0); // más vencida primero
-      return 0;
-    })
-    .slice(0, 8)
+    .filter((x): x is ItemAtencion & { _horas: number | null } => x !== null);
+
+  // El widget muestra máximo 8 filas. Antes se ordenaba todo junto
+  // (vencidas primero) y se cortaba a 8 — con más de 8 vencidas, las
+  // "sin asignar" (que antes tenían su propio widget) desaparecían del
+  // todo, sin aviso. Se reserva un cupo mínimo para que eso no pase.
+  // Hallazgo de auditoría 2026-09-11.
+  const LIMITE_ATENCION = 8;
+  const CUPO_MIN_SIN_ASIGNAR = 2;
+  const vencidas = candidatos
+    .filter((x) => x.motivo === "vencido")
+    .sort((a, b) => (a._horas ?? 0) - (b._horas ?? 0)); // más vencida primero
+  const sinAsignar = candidatos.filter((x) => x.motivo === "sin_asignar");
+  const cupoSinAsignar = Math.min(
+    sinAsignar.length,
+    Math.max(CUPO_MIN_SIN_ASIGNAR, LIMITE_ATENCION - vencidas.length),
+  );
+  const atencion: ItemAtencion[] = [
+    ...vencidas.slice(0, LIMITE_ATENCION - cupoSinAsignar),
+    ...sinAsignar.slice(0, cupoSinAsignar),
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .map(({ _horas, ...item }) => item);
+  ].map(({ _horas, ...item }) => item);
 
   return { flujo, fases, cumplimientoEta, alertas, atencion };
 }
