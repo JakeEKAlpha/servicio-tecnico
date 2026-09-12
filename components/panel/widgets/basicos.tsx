@@ -203,7 +203,7 @@ export function RelojesZona() {
           key={z.id}
           className="flex flex-col items-center justify-center gap-1 rounded-lg bg-surface-2 py-3"
         >
-          <span className="text-2xl font-extrabold tabular-nums text-text">
+          <span className="whitespace-nowrap text-2xl font-extrabold tabular-nums text-text">
             {ahora ? horaEnZona(z.zonaIana, ahora) : "—:—"}
           </span>
           <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">

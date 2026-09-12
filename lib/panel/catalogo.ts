@@ -48,7 +48,10 @@ export const CATALOGO: WidgetDef[] = [
     id: "relojes",
     titulo: "Zonas horarias",
     def: { w: 4, h: 2 },
-    min: { w: 3, h: 2 },
+    // min.w = def.w a propósito: son 3 relojes uno junto al otro, no tiene
+    // caso encogerlo más — con menos ancho la hora ("10:42") se parte en
+    // dos líneas. Hallazgo de auditoría 2026-09-11.
+    min: { w: 4, h: 2 },
     roles: COORD,
     soloEscritorio: true,
   },
