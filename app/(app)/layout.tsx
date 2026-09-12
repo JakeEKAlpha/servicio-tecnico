@@ -21,6 +21,15 @@ export default async function AppLayout({
     redirect("/campo");
   }
 
+  // Almacén usa su propia pantalla — no el Tablero completo (no es su
+  // función asignar órdenes ni ver todo lo que ve un coordinador). Bug real
+  // encontrado en producción 2026-09-12: faltaba este redirect, así que
+  // cualquier cuenta con rol `almacen` caía en /tablero con los mismos
+  // poderes que un coordinador.
+  if (perfil.rol === "almacen") {
+    redirect("/almacen");
+  }
+
   const empresa = empresaDeZona(perfil.zona_nombre);
 
   return (
