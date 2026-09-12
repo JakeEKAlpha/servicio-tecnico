@@ -254,7 +254,7 @@ export default function ServicioCampo({
       {/* Cuenta Lexmark: requisitos + mesa de servicio */}
       {cuenta && (cuenta.indicaciones || cuenta.contactos.length > 0) && (
         <Tarjeta titulo="Cuenta Lexmark / mesa de servicio">
-          <CuentaLexmark cuenta={cuenta} />
+          <CuentaLexmark cuenta={cuenta} vista="ingeniero" />
         </Tarjeta>
       )}
 
@@ -423,7 +423,11 @@ export default function ServicioCampo({
             </div>
 
             <div className="relative">
+              <label htmlFor="diagnostico-campo" className="mb-1 block text-[11px] font-bold text-muted">
+                Diagnóstico / actividades realizadas
+              </label>
               <textarea
+                id="diagnostico-campo"
                 rows={4}
                 value={diag}
                 disabled={osGenerada}

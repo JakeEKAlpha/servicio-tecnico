@@ -141,11 +141,21 @@ function CampoEditable({
             setEditando(true);
           }
         }}
-        title={editable ? "Doble clic para editar" : undefined}
+        onKeyDown={(e) => {
+          if (!editable) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setBorrador(valor ?? "");
+            setEditando(true);
+          }
+        }}
+        role={editable ? "button" : undefined}
+        tabIndex={editable ? 0 : undefined}
+        title={editable ? "Doble clic o Enter para editar" : undefined}
         className={
           "whitespace-pre-wrap text-sm " +
           (editable
-            ? "cursor-text rounded px-1 -mx-1 hover:bg-brand-050"
+            ? "cursor-text rounded px-1 -mx-1 hover:bg-brand-050 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
             : "")
         }
       >
@@ -460,7 +470,7 @@ export default function DetalleOrden({
           <p className="mb-2 text-xs text-muted">
             Emparejado con «{cuenta.nombre}».
           </p>
-          <CuentaLexmark cuenta={cuenta} />
+          <CuentaLexmark cuenta={cuenta} vista="coordinador" />
         </Colapsable>
         </Revelar>
       )}
@@ -540,6 +550,7 @@ export default function DetalleOrden({
             <select
               value={zonaId}
               onChange={(e) => setZonaId(e.target.value)}
+              aria-label="Zona destino"
               className={campo + " max-w-xs"}
             >
               {zonas.map((z) => (

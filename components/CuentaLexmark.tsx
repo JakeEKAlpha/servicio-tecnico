@@ -21,14 +21,38 @@ const soloDigitos = (t: string) => t.replace(/\D/g, "");
 /**
  * Ficha de la cuenta Lexmark de un cliente: requisitos de acceso + mesa de
  * servicio y contactos. Presentacional; sirve para coordinación y para campo.
+ *
+ * `vista` decide qué mitad de los requisitos mostrar primero — al ingeniero
+ * en sitio no le sirve de nada leer "avisar con 24h de anticipación" (ya
+ * pasó, no es su tarea) y al coordinador no le hace falta el recordatorio de
+ * EPP en su pantalla de asignación. Mientras una cuenta no se haya dividido
+ * todavía (`indicaciones_coordinador`/`indicaciones_ingeniero` vacíos), cae
+ * al texto legado completo para los dos, igual que antes.
  */
 export default function CuentaLexmark({
   cuenta,
   compacto = false,
+  vista,
 }: {
   cuenta: CuentaDirectorio;
   compacto?: boolean;
+  vista?: "coordinador" | "ingeniero";
 }) {
+  const dividida = !!(cuenta.indicaciones_coordinador || cuenta.indicaciones_ingeniero);
+  const requisitos = dividida
+    ? vista === "ingeniero"
+      ? cuenta.indicaciones_ingeniero
+      : vista === "coordinador"
+        ? cuenta.indicaciones_coordinador
+        : cuenta.indicaciones
+    : cuenta.indicaciones;
+  const etiqueta =
+    dividida && vista === "ingeniero"
+      ? "Al llegar (ingeniero)"
+      : dividida && vista === "coordinador"
+        ? "Antes de la visita (coordinador)"
+        : "Requisitos de la cuenta";
+
   return (
     <div className="space-y-3">
       {cuenta.contratos.length > 0 && (
@@ -51,14 +75,12 @@ export default function CuentaLexmark({
         </div>
       )}
 
-      {cuenta.indicaciones && (
+      {requisitos && (
         <div className="rounded-xl border border-tone-warn-fg/25 bg-tone-warn-bg px-3 py-2 text-sm text-tone-warn-fg">
           <p className="text-[11px] font-black uppercase tracking-wide">
-            Requisitos de la cuenta
+            {etiqueta}
           </p>
-          <p className="mt-0.5 whitespace-pre-wrap font-medium">
-            {cuenta.indicaciones}
-          </p>
+          <p className="mt-0.5 whitespace-pre-wrap font-medium">{requisitos}</p>
         </div>
       )}
 
