@@ -116,20 +116,18 @@ function ColumnasTablero({ inicial }: { inicial: ColumnaTableroId[] }) {
   const [guardando, setGuardando] = useState<ColumnaTableroId | null>(null);
 
   function alternar(id: ColumnaTableroId) {
-    setOcultas((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      setGuardando(id);
-      fetch("/api/preferencias", {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ clave: "tablero_columnas_ocultas", valor: [...next] }),
-      })
-        .catch(() => undefined)
-        .finally(() => setGuardando((g) => (g === id ? null : g)));
-      return next;
-    });
+    const next = new Set(ocultas);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setOcultas(next);
+    setGuardando(id);
+    fetch("/api/preferencias", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ clave: "tablero_columnas_ocultas", valor: [...next] }),
+    })
+      .catch(() => undefined)
+      .finally(() => setGuardando((g) => (g === id ? null : g)));
   }
 
   const columnas = COLUMNAS_TABLERO.filter((c) => !c.fijo);
@@ -215,7 +213,8 @@ export default function Configuracion({
           Configuración
         </h1>
         <p className="text-sm text-muted">
-          Tus preferencias se guardan solo en este dispositivo.
+          La mayoría de tus preferencias se guardan solo en este dispositivo
+          — el Tablero es la excepción, viaja con tu cuenta (ver abajo).
         </p>
       </div>
 
