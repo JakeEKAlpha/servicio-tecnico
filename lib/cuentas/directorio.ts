@@ -86,7 +86,12 @@ export type CuentaDirectorio = {
   id: string;
   nombre: string;
   tipo: string | null;
+  /** Texto libre legado, sin dividir — ver indicaciones_coordinador/ingeniero. */
   indicaciones: string | null;
+  /** Lo que resuelve el coordinador antes de la visita (avisos, anticipación). */
+  indicaciones_coordinador: string | null;
+  /** Lo que el ingeniero hace/lleva en sitio (EPP, identificación, credencial). */
+  indicaciones_ingeniero: string | null;
   contactos: ContactoCuenta[];
   /** Contratos activos y vigentes (garantía/póliza/TyM) de este cliente. */
   contratos: ContratoResumen[];
@@ -176,7 +181,7 @@ async function cuentaPorId(
 ): Promise<CuentaDirectorio | null> {
   const { data: c } = await supabase
     .from("clientes")
-    .select("id, nombre, tipo, indicaciones")
+    .select("id, nombre, tipo, indicaciones, indicaciones_coordinador, indicaciones_ingeniero")
     .eq("id", clienteId)
     .eq("activo", true)
     .maybeSingle();
@@ -188,6 +193,8 @@ async function cuentaPorId(
     nombre: c.nombre as string,
     tipo: (c.tipo as string | null) ?? null,
     indicaciones: (c.indicaciones as string | null) ?? null,
+    indicaciones_coordinador: (c.indicaciones_coordinador as string | null) ?? null,
+    indicaciones_ingeniero: (c.indicaciones_ingeniero as string | null) ?? null,
     contactos,
     contratos,
   };
@@ -217,7 +224,7 @@ export async function cuentaDeOrden(
 
   const { data: cuentas } = await supabase
     .from("clientes")
-    .select("id, nombre, tipo, indicaciones");
+    .select("id, nombre, tipo, indicaciones, indicaciones_coordinador, indicaciones_ingeniero");
   if (!cuentas || cuentas.length === 0) return null;
 
   let mejor: (typeof cuentas)[number] | null = null;
@@ -247,6 +254,8 @@ export async function cuentaDeOrden(
     nombre: mejor.nombre as string,
     tipo: (mejor.tipo as string | null) ?? null,
     indicaciones: (mejor.indicaciones as string | null) ?? null,
+    indicaciones_coordinador: (mejor.indicaciones_coordinador as string | null) ?? null,
+    indicaciones_ingeniero: (mejor.indicaciones_ingeniero as string | null) ?? null,
     contactos,
     contratos,
   };
