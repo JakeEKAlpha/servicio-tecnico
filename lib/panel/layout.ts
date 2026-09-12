@@ -96,12 +96,50 @@ function mergeBreakpoint(
 ): LayoutItem[] {
   const guardados = Array.isArray(guardado) ? guardado.filter(esItem) : [];
   const porId = new Map(guardados.map((g) => [g.i, g]));
-  return base.map((b) => {
-    const def = widgetDef(b.i)!;
+
+  // Cuenta nueva o breakpoint nunca guardado: no hay nada "existente" que
+  // respetar, se usa el acomodo default completo tal cual.
+  if (guardados.length === 0) return base;
+
+  // Un widget que el usuario ya tenía (aunque su rol ya no pueda verlo, caso
+  // raro) conserva su posición guardada; si no, usa la default de `base`
+  // como antes — mismo comportamiento de siempre para ids conocidos.
+  const existentes: LayoutItem[] = [];
+  const nuevosIds: string[] = [];
+  for (const b of base) {
     const g = porId.get(b.i);
-    if (g && rolPuedeVer(b.i, rol)) return sanearItem(g, def, cols);
-    return b;
-  });
+    if (!g) {
+      nuevosIds.push(b.i);
+      continue;
+    }
+    const def = widgetDef(b.i)!;
+    existentes.push(rolPuedeVer(b.i, rol) ? sanearItem(g, def, cols) : b);
+  }
+
+  // Widgets del catálogo que el usuario nunca guardó (agregados después de
+  // su última visita, ej. "atencion"/"relojes"): entran al FINAL del
+  // acomodo que el usuario ya tenía, igual que `agregarWidget` — no se
+  // insertan en medio de un layout que el usuario ya movió/redimensionó a
+  // mano, que podría no tener ninguna relación con el orden del catálogo.
+  // Decisión del usuario 2026-09-11.
+  let x = 0;
+  let y = existentes.reduce((m, it) => Math.max(m, it.y + it.h), 0);
+  let altoFila = 0;
+  for (const id of nuevosIds) {
+    const def = widgetDef(id)!;
+    const w = Math.min(def.def.w, cols);
+    const h = def.def.h;
+    if (x + w > cols) {
+      x = 0;
+      y += altoFila;
+      altoFila = 0;
+    }
+    existentes.push({ i: id, x, y, w, h });
+    x += w;
+    altoFila = Math.max(altoFila, h);
+  }
+
+  return existentes;
 }
 
 /**
