@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requerirUsuario } from "@/lib/auth/requerirSesion";
 import { generarDocumento, ErrorGeneracion } from "@/lib/documentos/generar";
+import { excedeLimite, ipDeLaPeticion } from "@/lib/rateLimit";
 
 /**
  * Generación de Doc + PDF desde la plantilla de Google Docs.
@@ -16,6 +17,17 @@ export async function POST(request: Request) {
   const s = await requerirUsuario();
   if (!s.ok) return s.res;
   const { supabase } = s;
+
+  // Cada llamada gasta cuota real de la API de Google (Docs/Drive) — 20/min
+  // por IP, generoso para uso normal (el flujo ya lo llama automático al
+  // asignar) pero corta un loop/abuso antes de que cueste dinero real.
+  const ip = await ipDeLaPeticion();
+  if (excedeLimite(`generar-doc:${ip}`, 20, 60_000)) {
+    return NextResponse.json(
+      { ok: false, error: "Demasiadas solicitudes. Espera un momento." },
+      { status: 429 },
+    );
+  }
 
   // Body
   let body: Record<string, unknown>;

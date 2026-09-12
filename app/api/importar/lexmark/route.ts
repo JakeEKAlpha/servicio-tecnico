@@ -3,6 +3,7 @@ import { requerirPerfil } from "@/lib/auth/requerirSesion";
 import { parsearReporteLexmark } from "@/lib/importar/lexmark";
 import { esRolQueVeTodo } from "@/lib/auth/roles";
 import { MARCA_LEXMARK_ID } from "@/lib/marcas";
+import { excedeLimite, ipDeLaPeticion } from "@/lib/rateLimit";
 
 /**
  * Importación de órdenes desde el reporte WO/SR de Lexmark (texto pegado,
@@ -21,6 +22,16 @@ export async function POST(request: Request) {
   const s = await requerirPerfil();
   if (!s.ok) return s.res;
   const { supabase, perfil } = s;
+
+  // Alta masiva de órdenes — 15/min por IP, para no golpear la BD si el
+  // texto pegado se manda por error muchas veces seguidas.
+  const ip = await ipDeLaPeticion();
+  if (excedeLimite(`importar-lexmark:${ip}`, 15, 60_000)) {
+    return NextResponse.json(
+      { ok: false, error: "Demasiadas solicitudes. Espera un momento." },
+      { status: 429 },
+    );
+  }
 
   // 2) Body
   let body: Record<string, unknown>;
