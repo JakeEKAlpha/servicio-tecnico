@@ -18,16 +18,54 @@ function primero(v: string | null): string | null {
 }
 const soloDigitos = (t: string) => t.replace(/\D/g, "");
 
+function siNo(v: boolean | null): string | null {
+  if (v === true) return "Sí";
+  if (v === false) return "No";
+  return null;
+}
+
+/**
+ * Requisitos de acceso de la cuenta, ya divididos por campo (Directorio de
+ * Cuentas, ago. 2026) — no un texto libre. Devuelve `null` cuando no hay
+ * absolutamente nada capturado, para caer al texto legado en ese caso.
+ */
+function requisitosCoordinador(c: CuentaDirectorio): string[] | null {
+  const lineas: string[] = [];
+  if (c.confirmacion_acceso !== null)
+    lineas.push(`Confirmación de acceso: ${siNo(c.confirmacion_acceso)}`);
+  if (c.anticipacion) lineas.push(`Anticipación: ${c.anticipacion}`);
+  if (c.requiere_correo) {
+    lineas.push(
+      `Enviar correo${c.destinatario_correo ? ` a ${c.destinatario_correo}` : ""}` +
+        `${c.cc_correo ? ` (CC: ${c.cc_correo})` : ""}` +
+        `${c.datos_correo ? ` — incluir: ${c.datos_correo}` : ""}`,
+    );
+  } else if (c.requiere_correo === false) {
+    lineas.push("No requiere correo previo.");
+  }
+  if (c.horario_restringido) lineas.push(`Horario: ${c.horario_restringido}`);
+  return lineas.length ? lineas : null;
+}
+function requisitosIngeniero(c: CuentaDirectorio): string[] | null {
+  const lineas: string[] = [];
+  if (c.equipo_seguridad !== null)
+    lineas.push(`Equipo de seguridad (EPP): ${siNo(c.equipo_seguridad)}`);
+  if (c.identificacion_requerida !== null)
+    lineas.push(`Identificación oficial: ${siNo(c.identificacion_requerida)}`);
+  if (c.horario_restringido) lineas.push(`Horario: ${c.horario_restringido}`);
+  return lineas.length ? lineas : null;
+}
+
 /**
  * Ficha de la cuenta Lexmark de un cliente: requisitos de acceso + mesa de
  * servicio y contactos. Presentacional; sirve para coordinación y para campo.
  *
- * `vista` decide qué mitad de los requisitos mostrar primero — al ingeniero
- * en sitio no le sirve de nada leer "avisar con 24h de anticipación" (ya
- * pasó, no es su tarea) y al coordinador no le hace falta el recordatorio de
- * EPP en su pantalla de asignación. Mientras una cuenta no se haya dividido
- * todavía (`indicaciones_coordinador`/`indicaciones_ingeniero` vacíos), cae
- * al texto legado completo para los dos, igual que antes.
+ * `vista` decide qué mitad de los requisitos mostrar — al ingeniero en sitio
+ * no le sirve de nada leer "avisar con 24h de anticipación" (ya pasó, no es
+ * su tarea) y al coordinador no le hace falta el recordatorio de EPP en su
+ * pantalla de asignación. Mientras una cuenta no se haya revisado todavía
+ * (todos los campos nuevos en null), cae al texto legado completo para los
+ * dos, igual que antes de dividirlo (ago. 2026).
  */
 export default function CuentaLexmark({
   cuenta,
@@ -38,20 +76,15 @@ export default function CuentaLexmark({
   compacto?: boolean;
   vista?: "coordinador" | "ingeniero";
 }) {
-  const dividida = !!(cuenta.indicaciones_coordinador || cuenta.indicaciones_ingeniero);
-  const requisitos = dividida
-    ? vista === "ingeniero"
-      ? cuenta.indicaciones_ingeniero
-      : vista === "coordinador"
-        ? cuenta.indicaciones_coordinador
-        : cuenta.indicaciones
-    : cuenta.indicaciones;
+  const lineas =
+    vista === "ingeniero" ? requisitosIngeniero(cuenta) : requisitosCoordinador(cuenta);
   const etiqueta =
-    dividida && vista === "ingeniero"
+    lineas && vista === "ingeniero"
       ? "Al llegar (ingeniero)"
-      : dividida && vista === "coordinador"
+      : lineas && vista === "coordinador"
         ? "Antes de la visita (coordinador)"
         : "Requisitos de la cuenta";
+  const requisitos = lineas ?? (cuenta.indicaciones ? [cuenta.indicaciones] : null);
 
   return (
     <div className="space-y-3">

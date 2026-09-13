@@ -86,16 +86,40 @@ export type CuentaDirectorio = {
   id: string;
   nombre: string;
   tipo: string | null;
-  /** Texto libre legado, sin dividir — ver indicaciones_coordinador/ingeniero. */
+  /** Texto libre legado — solo para cuentas que aún no se dividieron abajo. */
   indicaciones: string | null;
-  /** Lo que resuelve el coordinador antes de la visita (avisos, anticipación). */
-  indicaciones_coordinador: string | null;
-  /** Lo que el ingeniero hace/lleva en sitio (EPP, identificación, credencial). */
-  indicaciones_ingeniero: string | null;
+  /** Requisitos de acceso, del Directorio de Cuentas (null = sin revisar todavía). */
+  confirmacion_acceso: boolean | null;
+  equipo_seguridad: boolean | null;
+  identificacion_requerida: boolean | null;
+  anticipacion: string | null;
+  requiere_correo: boolean | null;
+  destinatario_correo: string | null;
+  cc_correo: string | null;
+  datos_correo: string | null;
+  horario_restringido: string | null;
   contactos: ContactoCuenta[];
   /** Contratos activos y vigentes (garantía/póliza/TyM) de este cliente. */
   contratos: ContratoResumen[];
 };
+
+const CAMPOS_REQUISITOS =
+  "indicaciones, confirmacion_acceso, equipo_seguridad, identificacion_requerida, anticipacion, requiere_correo, destinatario_correo, cc_correo, datos_correo, horario_restringido";
+
+function requisitosDe(c: Record<string, unknown>) {
+  return {
+    indicaciones: (c.indicaciones as string | null) ?? null,
+    confirmacion_acceso: (c.confirmacion_acceso as boolean | null) ?? null,
+    equipo_seguridad: (c.equipo_seguridad as boolean | null) ?? null,
+    identificacion_requerida: (c.identificacion_requerida as boolean | null) ?? null,
+    anticipacion: (c.anticipacion as string | null) ?? null,
+    requiere_correo: (c.requiere_correo as boolean | null) ?? null,
+    destinatario_correo: (c.destinatario_correo as string | null) ?? null,
+    cc_correo: (c.cc_correo as string | null) ?? null,
+    datos_correo: (c.datos_correo as string | null) ?? null,
+    horario_restringido: (c.horario_restringido as string | null) ?? null,
+  };
+}
 
 export type ClienteOpcion = { id: string; nombre: string };
 
@@ -181,7 +205,7 @@ async function cuentaPorId(
 ): Promise<CuentaDirectorio | null> {
   const { data: c } = await supabase
     .from("clientes")
-    .select("id, nombre, tipo, indicaciones, indicaciones_coordinador, indicaciones_ingeniero")
+    .select(`id, nombre, tipo, ${CAMPOS_REQUISITOS}`)
     .eq("id", clienteId)
     .eq("activo", true)
     .maybeSingle();
@@ -192,9 +216,7 @@ async function cuentaPorId(
     id: c.id as string,
     nombre: c.nombre as string,
     tipo: (c.tipo as string | null) ?? null,
-    indicaciones: (c.indicaciones as string | null) ?? null,
-    indicaciones_coordinador: (c.indicaciones_coordinador as string | null) ?? null,
-    indicaciones_ingeniero: (c.indicaciones_ingeniero as string | null) ?? null,
+    ...requisitosDe(c),
     contactos,
     contratos,
   };
@@ -224,7 +246,7 @@ export async function cuentaDeOrden(
 
   const { data: cuentas } = await supabase
     .from("clientes")
-    .select("id, nombre, tipo, indicaciones, indicaciones_coordinador, indicaciones_ingeniero");
+    .select(`id, nombre, tipo, ${CAMPOS_REQUISITOS}`);
   if (!cuentas || cuentas.length === 0) return null;
 
   let mejor: (typeof cuentas)[number] | null = null;
@@ -253,9 +275,7 @@ export async function cuentaDeOrden(
     id: mejor.id as string,
     nombre: mejor.nombre as string,
     tipo: (mejor.tipo as string | null) ?? null,
-    indicaciones: (mejor.indicaciones as string | null) ?? null,
-    indicaciones_coordinador: (mejor.indicaciones_coordinador as string | null) ?? null,
-    indicaciones_ingeniero: (mejor.indicaciones_ingeniero as string | null) ?? null,
+    ...requisitosDe(mejor),
     contactos,
     contratos,
   };
